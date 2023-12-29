@@ -65,6 +65,11 @@ def extract_from_rawdata(rawdata):
 
 def create_dataframe(dates, users, messages):
     '''Crea un dataframe pandas (con le date, gli utenti e i messaggi), applica cleaning e undersampling.'''
+    def print_istances_count(df, n):
+        '''Stampa il numero di istanze per utente.'''
+        print(", ".join(f"{i}: {len(df[df['user'] == i])}" for i in range(n)))
+
+
     # Calcola responsiveness (differenza fra il timestamp di un messaggio e il precedente)
     # Quantifica quanto una persona ci mette a rispondere e anche quanti messaggi "di fila" scrive
     # Si calcola qui e non in feature construction perché con opearazioni di cleaning e balancing
@@ -97,6 +102,10 @@ def create_dataframe(dates, users, messages):
 
     df['user'].replace(users, range(len(users)), inplace=True)
 
+    n = len(users) # numero di utenti
+    print("[INFO] Numero di istanze per utente:", end=" ")
+    print_istances_count(df, n)
+
     # Rimuovere le righe con altri messaggi informativi
     df = df.loc[df['message'] != 'null'] # (generati da whatsapp)
     df = df.loc[df['message'] != '<Media omitted>']
@@ -108,8 +117,6 @@ def create_dataframe(dates, users, messages):
 
 
     # UNDERSAMPLING per bilanciare il dataset (rimuovendo righe a caso)
-    n = len(users) # numero di utenti
-
     # Dataframe diviso per utenti
     user_class_list = [df[df['user'] == i] for i in range(n)]    
 
@@ -125,7 +132,7 @@ def create_dataframe(dates, users, messages):
     df = pd.concat(user_class_list_downsampled)
 
     print("[INFO] Numero di istanze per utente dopo cleaning e undersampling:", end=" ")
-    print(", ".join(f"{i}: {len(df[df['user'] == i])}" for i in range(n)))
+    print_istances_count(df, n)
 
     return df.reset_index(drop=True) # restituisci il dataframe con gli indici ricalcolati
 
@@ -137,6 +144,13 @@ def feature_construction(df):
 
     # Lista di vocaboli italiani in minuscolo
     italian_words = {w.lower() for w in nlp.vocab.strings}
+
+    # Lista tag POS (Part-of-speech)
+    POS_LIST = [
+        "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ", 
+        "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", 
+        "SYM", "VERB", "X", "SPACE"
+    ]
 
 
     def uppercase_count(m):
@@ -189,7 +203,7 @@ def feature_construction(df):
 
         return round(italian_count/token_count, 2)
 
-    def message_composition(m):
+    def message_composition(nlp_message):
         """
             Calcola la percentuale di tag POS (Part-of-speech) presenti in un messaggio.
             Es. "Mario mangia la pasta" 
@@ -219,7 +233,7 @@ def feature_construction(df):
         """
         
         # Conta token per tipo
-        c = Counter(([token.pos_ for token in nlp(m)])) 
+        c = Counter(([token.pos_ for token in nlp_message])) 
 
         # Numero totale di token
         sbase = sum(c.values())
@@ -230,7 +244,13 @@ def feature_construction(df):
             d[el] = round(cnt/sbase, 2)
 
         return d
+    
+    def first_word_type(nlp_message):
+        """Restituisce l'id del tag POS della prima parola di un messaggio."""
+        if (nlp_message.text == ""):
+            return -1
 
+        return POS_LIST.index(nlp_message[0].pos_)
 
     # Calcola nuove feature
     composition_list = []
@@ -240,6 +260,7 @@ def feature_construction(df):
     emojii_list = []
     unique_emojii_list = []
     italianness_list = []
+    first_word_type_list = []
 
     for message in tqdm(df['message']):
         uppercase_list.append(uppercase_count(message))
@@ -248,7 +269,10 @@ def feature_construction(df):
         emojii_list.append(emojis_count(message))
         unique_emojii_list.append(unique_emojis_count(message))
         italianness_list.append(italianness(message))
-        composition_list.append(message_composition(message))
+
+        nlp_message = nlp(message)
+        composition_list.append(message_composition(nlp_message))
+        first_word_type_list.append(first_word_type(nlp_message))
 
     # Aggiungi nuove colonne al dataframe
     df["uppercase"] = uppercase_list
@@ -257,12 +281,7 @@ def feature_construction(df):
     df["emojii"] = emojii_list
     df["unique_emojii"] = unique_emojii_list
     df["italianness"] = italianness_list
-
-    POS_LIST = [
-        "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ", 
-        "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", 
-        "SYM", "VERB", "X", "SPACE"
-    ]
+    df["first_word_type"] = first_word_type_list # diminuisce precisione?
 
     for pos in POS_LIST:
         df[pos] = [d[pos] for d in composition_list]
