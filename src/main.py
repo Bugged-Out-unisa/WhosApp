@@ -29,7 +29,7 @@ def read_all_files():
 
     # Concatena contenuto di ogni file nella cartella
     for file_name in tqdm(files):
-        f = open(os.path.join(DATA_PATH, file_name),'r',encoding='utf-8')
+        f = open(os.path.join(DATA_PATH, file_name), 'r', encoding='utf-8')
         rawdata += f.read()
         f.close()
 
