@@ -324,8 +324,6 @@ if __name__ == "__main__":
     print("\n[LOADING] Leggendo le chat dai file grezzi...")
     rawdata = read_all_files()
 
-    print(type(rawdata))
-
     print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
     dates, users, messages = ExtractChat(rawdata).extract()
 

@@ -19,9 +19,6 @@ class ExtractChat:
         self.__set_datatime()
 
     def __set_datatime(self):
-        print(re.match(ExtractChat.REGEX_TIMESTAMP_FOR_XIAOMI, self.__rawdata))
-        print(re.match(ExtractChat.REGEX_TIMESTAMP_FOR_IOS, self.__rawdata))
-        print(re.match(ExtractChat.REGEX_TIMESTAMP_FOR_ANDROID, self.__rawdata))
 
         if re.match(ExtractChat.REGEX_TIMESTAMP_FOR_XIAOMI, self.__rawdata):
             self.__formatdate = ExtractChat.FORMAT_DATE_FOR_XIAOMI
