@@ -9,9 +9,10 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.ensemble import RandomForestClassifier 
 from sklearn.utils import resample
 from sklearn.feature_extraction.text import CountVectorizer
-from tqdm import tqdm # pip install tqdm
-import spacy # pip install spacy
-import emojis # pip install emojis
+from tqdm import tqdm
+import spacy
+import emojis
+from utility.extractChat import ExtractChat
 
 
 # Path della cartella delle chat
@@ -28,40 +29,12 @@ def read_all_files():
 
     # Concatena contenuto di ogni file nella cartella
     for file_name in tqdm(files):
-        f = open(os.path.join(DATA_PATH, file_name),'r',encoding='utf-8')
+        f = open(os.path.join(DATA_PATH, file_name), 'r', encoding='utf-8')
         rawdata += f.read()
         f.close()
 
     return rawdata
 
-def extract_from_rawdata(rawdata):
-    '''Restituisce una lista di date, utenti e messaggi dalla chat di whatsapp.'''
-    # Regex per estrarre le date
-    pattern = '\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s-\s'
-    
-    # Estrai date in formato unix epoch (per favorire la differenza fra date)
-    dates = [int(datetime.strptime(d, "%m/%d/%y, %H:%M - ").timestamp())
-               for d in re.findall(pattern, rawdata)]
-
-    # Estrai messaggi raw (contengono anche l'utente)
-    users_messages = re.split(pattern, rawdata)[1:]
-
-    # Separa utenti e messaggi
-    users = []
-    messages= []
-    for message in tqdm(users_messages):
-        entry = re.split('([\w\W]+?):\s', message)
-
-        if entry[1:]:
-            users.append(entry[1])
-            messages.append(entry[2].rstrip('\n'))
-        else:
-            # Questa parte è per i messaggi "informativi" di whatsapp
-            # es. "Messages are end-to-end encrypted"
-            users.append('info')
-            messages.append(entry[0])
-
-    return dates, users, messages
 
 def create_dataframe(dates, users, messages):
     '''Crea un dataframe pandas (con le date, gli utenti e i messaggi), applica cleaning e undersampling.'''
@@ -352,7 +325,7 @@ if __name__ == "__main__":
     rawdata = read_all_files()
 
     print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
-    dates, users, messages = extract_from_rawdata(rawdata)
+    dates, users, messages = ExtractChat(rawdata).extract()
 
     print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
     df = create_dataframe(dates, users, messages)
