@@ -11,7 +11,7 @@ import spacy
 import emojis
 from utility.extractChat import ExtractChat
 from utility.dataFrameProcess import DataFrameProcessor
-from feel_it import EmotionClassifier, SentimentClassifier
+#from feel_it import EmotionClassifier, SentimentClassifier
 
 
 # Path della cartella delle chat
@@ -56,10 +56,10 @@ def feature_construction(df):
     ]
 
     # Inizializza sentiment/emotion classifier
-    sentiment_classifier = SentimentClassifier()
+    """sentiment_classifier = SentimentClassifier()
     sentiment_mapping = {'negative':0, 'positive':1}
     emotion_classifier = EmotionClassifier()
-    emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }
+    emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }"""
 
 
     def uppercase_count(m):
