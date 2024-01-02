@@ -36,12 +36,17 @@ def read_all_files():
 
 def feature_construction(df):
     '''Crea nuove feature: un insieme di metadati relativo ad ogni messaggio.'''
-    # Inizializza analizzatore NLP (bisogna prima scaricarlo)
-    # sm -> small, md -> medium, lg -> large
-    nlp = spacy.load("it_core_news_lg")
+    # Inizializza analizzatore NLP
+    # Bisogna prima scaricare i moduli (sm -> small, md -> medium, lg -> large): 
+    #   python3 -m spacy download en_core_web_sm
+    #   python3 -m spacy download it_core_news_lg
+    # ATTENZIONE: Il vocabolario inglese contiene anche parole italiane e viceversa
+    nlp_it = spacy.load("it_core_news_lg")
+    nlp_en = spacy.load("en_core_web_sm")
 
-    # Lista di vocaboli italiani in minuscolo
-    italian_words = {w.lower() for w in nlp.vocab.strings}
+    # Lista di vocaboli italiani e inglese in minuscolo
+    italian_words = {w.lower() for w in nlp_it.vocab.strings}
+    english_words = {w.lower() for w in nlp_en.vocab.strings}
 
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
@@ -85,27 +90,29 @@ def feature_construction(df):
         """Conta il numero di emojii uniche in un messaggio."""
         return emojis.count(s, unique=True)
 
-    def italianness(m):
+    def vocabulary_count(nlp_message, vocabulary):
         '''
-            Indica quanto una persona parla italiano "pulito"
+            Indica quanto una persona parla italiano "pulito" 
+                oppure quanti inglesismi usa (in base al vocabolario in input)
+            
             cioè il rapporto fra parole presenti nel vocabolario 
                 e il numero totale di parole in un messaggio.
         '''
-        italian_count = 0
-        token_count = 0
+        count = 0
+        total_count = 0
 
-        for token in nlp(m.lower()):
+        for token in nlp_message:
             if token.is_alpha: # per filtrare numeri e simboli
-                token_count += 1
+                total_count += 1
 
-                if token.text in italian_words:
-                    italian_count += 1
+                if token.text.lower() in vocabulary:
+                    count += 1
 
         # Frase senza parole
-        if token_count == 0:
+        if total_count == 0:
             return 0
 
-        return round(italian_count/token_count, 2)
+        return round(count/total_count, 2)
 
     def message_composition(nlp_message):
         """
@@ -172,9 +179,10 @@ def feature_construction(df):
     emojii_list = []
     unique_emojii_list = []
     italianness_list = []
+    englishness_list = []
     first_word_type_list = []
-    emotion_list = []
-    sentiment_list = []
+    # emotion_list = []
+    # sentiment_list = []
 
     for message in tqdm(df['message']):
         uppercase_list.append(uppercase_count(message))
@@ -182,13 +190,16 @@ def feature_construction(df):
         word_length_list.append(words_length(message))
         emojii_list.append(emojis_count(message))
         unique_emojii_list.append(unique_emojis_count(message))
-        italianness_list.append(italianness(message))
-        emotion_list.append(emotion(message))
-        sentiment_list.append(sentiment(message))
+        # emotion_list.append(emotion(message))
+        # sentiment_list.append(sentiment(message))
 
-        nlp_message = nlp(message)
-        composition_list.append(message_composition(nlp_message))
-        first_word_type_list.append(first_word_type(nlp_message))
+        nlp_it_message = nlp_it(message)
+        nlp_en_message = nlp_en(message)
+
+        composition_list.append(message_composition(nlp_it_message))
+        first_word_type_list.append(first_word_type(nlp_it_message))
+        italianness_list.append(vocabulary_count(nlp_it_message, italian_words))
+        englishness_list.append(vocabulary_count(nlp_en_message, english_words))
 
     # Aggiungi nuove colonne al dataframe
     df["uppercase"] = uppercase_list
@@ -197,9 +208,10 @@ def feature_construction(df):
     df["emojii"] = emojii_list
     df["unique_emojii"] = unique_emojii_list
     df["italianness"] = italianness_list
-    df["first_word_type"] = first_word_type_list
-    df["sentiment"] = sentiment_list
-    df["emotion"] = emotion_list
+    df["englishness"] = englishness_list
+    # df["first_word_type"] = first_word_type_list
+    # df["sentiment"] = sentiment_list
+    # df["emotion"] = emotion_list
 
     for pos in POS_LIST:
         df[pos] = [d[pos] for d in composition_list]
