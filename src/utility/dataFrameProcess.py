@@ -17,6 +17,7 @@ class DataFrameProcessor:
     def __init__(self, dates=None, users=None, messages=None):
         self.__dates = dates
         self.__users = users
+        self.__unique_users = sorted(set(users))
         self.__messages = messages
 
     def __responsiveness(self):
@@ -35,8 +36,8 @@ class DataFrameProcessor:
         Elimina messaggi "informativi"
         """
 
-        if "info" in self.__users:
-            self.__users.remove("info")
+        if "info" in self.__unique_users:
+            self.__unique_users.remove("info")
             return df.loc[df['user'] != "info"]
         return df
 
@@ -45,7 +46,7 @@ class DataFrameProcessor:
         Rimpiazza gli utenti con i propri indici per favorire l'elaborazione dei dati
         """
 
-        df['user'].replace(self.__users, range(len(self.__users)), inplace=True)
+        df['user'].replace(self.__unique_users, range(len(self.__unique_users)), inplace=True)
 
     def __print_users(self):
         """
@@ -53,7 +54,7 @@ class DataFrameProcessor:
         """
 
         print("[INFO] Utenti:", end=" ")
-        print(", ".join(f"{i}:{u}" for i, u in enumerate(self.__users)))
+        print(", ".join(f"{i}:{u}" for i, u in enumerate(self.__unique_users)))
 
     def __print_instances_count(self, df: pd.DataFrame, message=None):
         """
@@ -62,7 +63,7 @@ class DataFrameProcessor:
 
         print(f"[INFO] {message}:", end=" ")
         print(", ".join(
-            f"{i}: {len(df[df['user'] == i])}" for i in range(len(self.__users))
+            f"{i}: {len(df[df['user'] == i])}" for i in range(len(self.__unique_users))
         ))
 
     @classmethod
@@ -80,7 +81,7 @@ class DataFrameProcessor:
         Rimuove le righe in eccesso (casualmente) per bilanciare il dataset
         """
 
-        user_class_list = [df[df['user'] == i] for i in range(len(self.__users))]
+        user_class_list = [df[df['user'] == i] for i in range(len(self.__unique_users))]
 
         min_class = min([len(c) for c in user_class_list])
 
@@ -94,6 +95,7 @@ class DataFrameProcessor:
         """
         Crea il dataframe e effettua le operazioni di pulizia e bilanciamento
         """
+        
         df = pd.DataFrame({
             "date": self.__dates,
             "responsiveness": self.__responsiveness(),
