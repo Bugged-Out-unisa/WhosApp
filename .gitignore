@@ -2,7 +2,7 @@ rawdata/*
 src/__pycache__/
 src/utility/__pycache__/
 .idea/
-
+venv/
 ## Plugin-specific files:
 
 # IntelliJ
