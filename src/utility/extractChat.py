@@ -19,6 +19,9 @@ class ExtractChat:
         self.__set_datatime()
 
     def __set_datatime(self):
+        """
+        Imposta il formato della data in base al formato del timestamp.
+        """
 
         if re.match(ExtractChat.REGEX_TIMESTAMP_FOR_XIAOMI, self.__rawdata):
             self.__formatdate = ExtractChat.FORMAT_DATE_FOR_XIAOMI
@@ -36,6 +39,9 @@ class ExtractChat:
             raise Exception("Format not supported")
 
     def extract(self):
+        """
+        Estrae le informazioni dal file di testo.
+        """
         dates = [int(datetime.strptime(d, self.__formatdate).timestamp())
                  for d in re.findall(self.__regex_timestamp, self.__rawdata)]
 
@@ -54,9 +60,3 @@ class ExtractChat:
                 messages.append(entry[0])
 
         return dates, users, messages
-
-    def __enter__(self):
-        return self.extract()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
