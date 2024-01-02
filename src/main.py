@@ -290,7 +290,5 @@ if __name__ == "__main__":
     print("\n[LOADING] Applicando feature construction...")
     feature_construction(df)
 
-    print(df.head(25)[['user', 'message', 'italianness', 'englishness']])
-
     print("\n[LOADING] Addestrando il modello...")
     random_forest(df)
