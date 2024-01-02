@@ -1,6 +1,4 @@
-import re
 import os
-from datetime import datetime
 import numpy as np
 import pandas as pd
 from collections import Counter, defaultdict
@@ -13,6 +11,7 @@ from tqdm import tqdm
 import spacy
 import emojis
 from utility.extractChat import ExtractChat
+from utility.dataFrameProcess import DataFrameProcessor
 
 
 # Path della cartella delle chat
@@ -34,80 +33,6 @@ def read_all_files():
         f.close()
 
     return rawdata
-
-
-def create_dataframe(dates, users, messages):
-    '''Crea un dataframe pandas (con le date, gli utenti e i messaggi), applica cleaning e undersampling.'''
-    def print_istances_count(df, n):
-        '''Stampa il numero di istanze per utente.'''
-        print(", ".join(f"{i}: {len(df[df['user'] == i])}" for i in range(n)))
-
-
-    # Calcola responsiveness (differenza fra il timestamp di un messaggio e il precedente)
-    # Quantifica quanto una persona ci mette a rispondere e anche quanti messaggi "di fila" scrive
-    # Si calcola qui e non in feature construction perché con opearazioni di cleaning e balancing
-    #   alcune istanze vengono rimosse ed è probabile che un messaggio non è più una "risposta" al precedente
-    responsiveness = [0]
-    for i in range(1, len(dates)):
-        diff = dates[i] - dates[i-1]
-
-        if diff < 0: # significa che appartengono a due chat diverse
-            diff = 0
-
-        responsiveness.append(diff)
-
-    # Inizializza il data frame
-    df = pd.DataFrame({"date":dates, "responsiveness":responsiveness, "user": users, "message":messages})
-
-    # CLEANING
-    # Elimina messaggi "informativi"
-    # es. "Messages are end-to-end encrypted"
-    df = df.loc[df['user'] != "info"]
-
-    # Rimpiazza gli utenti con i propri indici per favorire l'elaborazione dei dati
-    users = sorted(set(users))
-
-    if "info" in users:
-        users.remove("info")
-
-    print("[INFO] Utenti:", end=" ")
-    print(", ".join(f"{i}:{u}" for i, u in enumerate(users)))
-
-    df['user'].replace(users, range(len(users)), inplace=True)
-
-    n = len(users) # numero di utenti
-    print("[INFO] Numero di istanze per utente:", end=" ")
-    print_istances_count(df, n)
-
-    # Rimuovere le righe con altri messaggi informativi
-    df = df.loc[df['message'] != 'null'] # (generati da whatsapp)
-    df = df.loc[df['message'] != '<Media omitted>']
-    df = df.loc[df['message'] != 'You deleted this message']
-    df = df.loc[df['message'] != 'This message was deleted']
-    df = df.loc[df['message'] != "Missed video call"]
-    df = df.loc[df['message'] != "Waiting for this message"]
-    df = df[~df['message'].str.contains('\(file attached\)')]
-
-
-    # UNDERSAMPLING per bilanciare il dataset (rimuovendo righe a caso)
-    # Dataframe diviso per utenti
-    user_class_list = [df[df['user'] == i] for i in range(n)]    
-
-    # Numero di sample della classe di minoranza
-    min_class = min([len(c) for c in user_class_list])
-
-    # Ottieni classi downsampled
-    user_class_list_downsampled = []
-    for c in user_class_list:
-        user_class_list_downsampled.append(resample(c, replace=False, n_samples=min_class, random_state=42))
-
-    # Unisci dataframe di maggioranza e minoranza bilanciati
-    df = pd.concat(user_class_list_downsampled)
-
-    print("[INFO] Numero di istanze per utente dopo cleaning e undersampling:", end=" ")
-    print_istances_count(df, n)
-
-    return df.reset_index(drop=True) # restituisci il dataframe con gli indici ricalcolati
 
 def feature_construction(df):
     '''Crea nuove feature: un insieme di metadati relativo ad ogni messaggio.'''
@@ -328,7 +253,7 @@ if __name__ == "__main__":
     dates, users, messages = ExtractChat(rawdata).extract()
 
     print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
-    df = create_dataframe(dates, users, messages)
+    df = DataFrameProcessor(dates, users, messages).get_dataframe()
 
     print("\n[LOADING] Applicando feature construction...")
     feature_construction(df)
