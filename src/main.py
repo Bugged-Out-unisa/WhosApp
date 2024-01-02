@@ -11,6 +11,7 @@ import spacy
 import emojis
 from utility.extractChat import ExtractChat
 from utility.dataFrameProcess import DataFrameProcessor
+from feel_it import EmotionClassifier, SentimentClassifier
 
 
 # Path della cartella delle chat
@@ -48,6 +49,12 @@ def feature_construction(df):
         "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", 
         "SYM", "VERB", "X", "SPACE"
     ]
+
+    # Inizializza sentiment/emotion classifier
+    sentiment_classifier = SentimentClassifier()
+    sentiment_mapping = {'negative':0, 'positive':1}
+    emotion_classifier = EmotionClassifier()
+    emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }
 
 
     def uppercase_count(m):
@@ -148,6 +155,14 @@ def feature_construction(df):
             return -1
 
         return POS_LIST.index(nlp_message[0].pos_)
+    
+    def sentiment(m):
+        """Restituisce l'id del sentiment del messaggio descritto in sentiment_mapping."""
+        return sentiment_mapping[sentiment_classifier.predict([m])[0]]
+    
+    def emotion(m):
+        """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
+        return emotion_mapping[emotion_classifier.predict([m])[0]]
 
     # Calcola nuove feature
     composition_list = []
@@ -158,6 +173,8 @@ def feature_construction(df):
     unique_emojii_list = []
     italianness_list = []
     first_word_type_list = []
+    emotion_list = []
+    sentiment_list = []
 
     for message in tqdm(df['message']):
         uppercase_list.append(uppercase_count(message))
@@ -166,6 +183,8 @@ def feature_construction(df):
         emojii_list.append(emojis_count(message))
         unique_emojii_list.append(unique_emojis_count(message))
         italianness_list.append(italianness(message))
+        emotion_list.append(emotion(message))
+        sentiment_list.append(sentiment(message))
 
         nlp_message = nlp(message)
         composition_list.append(message_composition(nlp_message))
@@ -178,7 +197,9 @@ def feature_construction(df):
     df["emojii"] = emojii_list
     df["unique_emojii"] = unique_emojii_list
     df["italianness"] = italianness_list
-    df["first_word_type"] = first_word_type_list # diminuisce precisione?
+    df["first_word_type"] = first_word_type_list
+    df["sentiment"] = sentiment_list
+    df["emotion"] = emotion_list
 
     for pos in POS_LIST:
         df[pos] = [d[pos] for d in composition_list]
