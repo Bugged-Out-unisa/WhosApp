@@ -4,8 +4,7 @@ import pandas as pd
 from collections import Counter, defaultdict
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.ensemble import RandomForestClassifier 
-from sklearn.utils import resample
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from tqdm import tqdm
 import spacy
