@@ -4,11 +4,9 @@ from tqdm import tqdm
 
 
 class ExtractChat:
-    REGEX_TIMESTAMP_FOR_XIAOMI = r'\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s-\s'
-    REGEX_TIMESTAMP_FOR_ANDROID = r"\d{2}/\d{2}/\d{4}, \d{2}:\d{2} -"
-    REGEX_TIMESTAMP_FOR_IOS = r"\[\d{2}/\d{2}/\d{2}, \d{2}:\d{2}:\d{2}\]"
+    REGEX_TIMESTAMP_FOR_ANDROID = r"\d{1,2}/\d{1,2}/\d{2,4}, \d{2}:\d{2} -"
+    REGEX_TIMESTAMP_FOR_IOS = r"\[\d{2}/\d{2}/\d{2,4}, \d{2}:\d{2}:\d{2}\]"
 
-    FORMAT_DATE_FOR_XIAOMI = "%m/%d/%y, %H:%M - "
     FORMAT_DATE_FOR_ANDROID = "%d/%m/%Y, %H:%M -"
     FORMAT_DATE_FOR_IOS = "[%d/%m/%y, %H:%M:%S]"
 
@@ -23,11 +21,7 @@ class ExtractChat:
         Imposta il formato della data in base al formato del timestamp.
         """
 
-        if re.match(ExtractChat.REGEX_TIMESTAMP_FOR_XIAOMI, self.__rawdata):
-            self.__formatdate = ExtractChat.FORMAT_DATE_FOR_XIAOMI
-            self.__regex_timestamp = ExtractChat.REGEX_TIMESTAMP_FOR_XIAOMI
-
-        elif re.match(ExtractChat.REGEX_TIMESTAMP_FOR_IOS, self.__rawdata):
+        if re.match(ExtractChat.REGEX_TIMESTAMP_FOR_IOS, self.__rawdata):
             self.__formatdate = ExtractChat.FORMAT_DATE_FOR_IOS
             self.__regex_timestamp = ExtractChat.REGEX_TIMESTAMP_FOR_IOS
 
@@ -54,7 +48,7 @@ class ExtractChat:
 
             if entry[1:]:
                 users.append(entry[1])
-                messages.append(entry[2].rstrip('\n'))
+                messages.append(entry[2].replace("\n", " ").strip())
             else:
                 users.append('info')
                 messages.append(entry[0])
