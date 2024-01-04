@@ -7,7 +7,7 @@ class ExtractChat:
     REGEX_TIMESTAMP_FOR_ANDROID = r"\d{1,2}/\d{1,2}/\d{2,4}, \d{2}:\d{2} -"
     REGEX_TIMESTAMP_FOR_IOS = r"\[\d{2}/\d{2}/\d{2,4}, \d{2}:\d{2}:\d{2}\]"
 
-    FORMAT_DATE_FOR_ANDROID = "%d/%m/%Y, %H:%M -"
+    FORMAT_DATE_FOR_ANDROID = "%d/%m/%y, %H:%M -"
     FORMAT_DATE_FOR_IOS = "[%d/%m/%y, %H:%M:%S]"
 
     def __init__(self, rawdata: str):
