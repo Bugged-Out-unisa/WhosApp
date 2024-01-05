@@ -17,8 +17,8 @@ DATA_PATH = "../rawdata"
 
 
 def read_all_files():
-    '''Restituisce una stringa contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
-    rawdata = ""
+    '''Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
+    rawdata = []
     
     # Ottieni lista dei file nella cartella
     files = [f for f in os.listdir(DATA_PATH) if os.path.isfile(os.path.join(DATA_PATH, f))]
@@ -26,15 +26,14 @@ def read_all_files():
     # Concatena contenuto di ogni file nella cartella
     for file_name in tqdm(files):
         f = open(os.path.join(DATA_PATH, file_name), 'r', encoding='utf-8')
-        rawdata += f.read()
+        rawdata.append(f.read())
         f.close()
 
     return rawdata
 
 if __name__ == "__main__":
-    modelName = sys.argv[1]
-
     try:
+        modelName = sys.argv[1]
         model = models[modelName]
     except:
         print("Modello specificato non trovato...")
