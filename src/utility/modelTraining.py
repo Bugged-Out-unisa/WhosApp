@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.preprocessing import MinMaxScaler
 
 class ModelTraining:
     def __init__(self, model, dataFrame):
@@ -27,6 +28,10 @@ class ModelTraining:
         df_words_count = pd.DataFrame(X_message.toarray(), columns=vec.get_feature_names_out())
         X = pd.concat([X, df_words_count], axis=1)
         # ---------------------------------
+
+        # FEATURE SCALING
+        scaler = MinMaxScaler()
+        X = pd.DataFrame(scaler.fit_transform(X))
 
         # TRAINING CON CROSS VALIDATION
         cv  = 5 # numero di fold (di solito 5 o 10)
