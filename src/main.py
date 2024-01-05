@@ -19,8 +19,8 @@ DATA_PATH = "../rawdata"
 
 
 def read_all_files():
-    '''Restituisce una stringa contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
-    rawdata = ""
+    '''Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
+    rawdata = []
     
     # Ottieni lista dei file nella cartella
     files = [f for f in os.listdir(DATA_PATH) if os.path.isfile(os.path.join(DATA_PATH, f))]
@@ -28,7 +28,7 @@ def read_all_files():
     # Concatena contenuto di ogni file nella cartella
     for file_name in tqdm(files):
         f = open(os.path.join(DATA_PATH, file_name), 'r', encoding='utf-8')
-        rawdata += f.read()
+        rawdata.append(f.read())
         f.close()
 
     return rawdata
@@ -162,13 +162,13 @@ def feature_construction(df):
 
         return POS_LIST.index(nlp_message[0].pos_)
     
-    def sentiment(m):
-        """Restituisce l'id del sentiment del messaggio descritto in sentiment_mapping."""
-        return sentiment_mapping[sentiment_classifier.predict([m])[0]]
+    # def sentiment(m):
+    #     """Restituisce l'id del sentiment del messaggio descritto in sentiment_mapping."""
+    #     return sentiment_mapping[sentiment_classifier.predict([m])[0]]
     
-    def emotion(m):
-        """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
-        return emotion_mapping[emotion_classifier.predict([m])[0]]
+    # def emotion(m):
+    #     """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
+    #     return emotion_mapping[emotion_classifier.predict([m])[0]]
 
     # Calcola nuove feature
     composition_list = []
@@ -216,9 +216,8 @@ def feature_construction(df):
         df[pos] = [d[pos] for d in composition_list]
 
 if __name__ == "__main__":
-    modelName = sys.argv[1]
-
     try:
+        modelName = sys.argv[1]
         model = models[modelName]
     except:
         print("Modello specificato non trovato...")
