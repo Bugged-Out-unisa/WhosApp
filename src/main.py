@@ -1,17 +1,16 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
 from collections import Counter, defaultdict
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import CountVectorizer
 from tqdm import tqdm
 import spacy
 import emojis
 from utility.extractChat import ExtractChat
 from utility.dataFrameProcess import DataFrameProcessor
-from feel_it import EmotionClassifier, SentimentClassifier
+from utility.model_list import models
+from utility.modelTraining import ModelTraining
+#from feel_it import EmotionClassifier, SentimentClassifier
 
 
 # Path della cartella delle chat
@@ -56,10 +55,10 @@ def feature_construction(df):
     ]
 
     # Inizializza sentiment/emotion classifier
-    sentiment_classifier = SentimentClassifier()
-    sentiment_mapping = {'negative':0, 'positive':1}
-    emotion_classifier = EmotionClassifier()
-    emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }
+    # sentiment_classifier = SentimentClassifier()
+    # sentiment_mapping = {'negative':0, 'positive':1}
+    # emotion_classifier = EmotionClassifier()
+    # emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }
 
 
     def uppercase_count(m):
@@ -216,68 +215,16 @@ def feature_construction(df):
     for pos in POS_LIST:
         df[pos] = [d[pos] for d in composition_list]
 
-def random_forest(df):
-    '''Applica random forest sul dataframe.'''
-    # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
-    X = df.drop(['user', 'date', 'message'], axis=1) # tutto tranne le colonne listate
-    y = df["user"]
-
-    # TRASFORMA IL MESSAGGIO IN UNA MATRICE DI FREQUENZA DELLE PAROLE (bag of words)
-    # così il modello capisce le parole più utilizzate da un utente
-    # ---------------------------------
-    # Vettorizza le parole presenti nel messaggio
-    vec = CountVectorizer()
-    X_message = vec.fit_transform(df['message'])
-
-    # Unisci la matrice al dataframe
-    df_words_count = pd.DataFrame(X_message.toarray(), columns=vec.get_feature_names_out())
-    X = pd.concat([X, df_words_count], axis=1)
-    # ---------------------------------
-
-    # TRAINING CON CROSS VALIDATION
-    cv  = 5 # numero di fold (di solito 5 o 10)
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    scoring = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted']
-    scores = cross_validate(model, X, y, cv=cv, scoring=scoring)
-
-    # Stampa un report sulle metriche di valutazione del modello
-    print(f"[INFO] Media delle metriche di valutazione dopo {cv}-fold cross validation:")
-    indexes = list(scores.keys())
-
-    for index in indexes:
-        print(f"{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
-
-    # TRAINING CON SPLIT CLASSICO
-    test_size = 0.2 # percentuale del dataset di test dopo lo split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
-
-    # Genera un report per il modello addestrato
-    print(f"\n[INFO] Report con {int((1-test_size)*100)}% training set e {int(test_size*100)}% test set:")
-    
-    # Calcola l'accuratezza del modello
-    accuracy = accuracy_score(y_test, predictions)
-    print(f'Accuracy: {round(accuracy, 2)}\n')
-
-    # Stampa il classification report
-    report = classification_report(y_test, predictions)
-    print(report)
-
-    # Stampa le feature più predittive
-    n = 20 # numero di feature
-    print("\n[INFO] Top {} feature più predittive:".format(n))
-
-    feature_names = X.columns.tolist() # Estrai i nomi di tutte le feature
-    importances = model.feature_importances_
-    important_features = np.argsort(importances)[::-1]
-    top_n_features = important_features[:n]
-
-    for i in top_n_features:
-        print(f"{feature_names[i]}: %0.5f" % importances[i])
-
-
 if __name__ == "__main__":
+    modelName = sys.argv[1]
+
+    try:
+        model = models[modelName]
+    except:
+        print("Modello specificato non trovato...")
+        print("-- Utilizzato Random Forest --")
+        model = models["random_forest"]
+
     print("\n[LOADING] Leggendo le chat dai file grezzi...")
     rawdata = read_all_files()
 
@@ -290,5 +237,11 @@ if __name__ == "__main__":
     print("\n[LOADING] Applicando feature construction...")
     feature_construction(df)
 
-    print("\n[LOADING] Addestrando il modello...")
-    random_forest(df)
+    if isinstance(model, list):
+        for i,m in enumerate(model, 1):
+            print("\n[LOADING] Addestrando il modello... #{}".format(i))
+            ModelTraining(m, df)
+
+    else:
+        print("\n[LOADING] Addestrando il modello...")
+        ModelTraining(model, df)
