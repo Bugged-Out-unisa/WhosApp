@@ -18,7 +18,13 @@ class datasetCreation():
     def __init__(self, datasetName :str = None, refactor :bool = None):
         self.DATA_PATH = "../rawdata"
         self.DATASET_PATH = "../datasets/"
-        self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
+        self.__datasetName = None
+
+        try:
+            self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
+        except Exception:
+            pass
+
         self.__isToRefactor = refactor
         self.__dataFrame = None
         self.__main__()
