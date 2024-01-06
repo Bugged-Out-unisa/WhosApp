@@ -28,11 +28,7 @@ class datasetCreation():
             try:
                 datasetName = sys.argv[1]
 
-                if datasetName == "base":
-                    self.__datasetName = "dataset.parquet"
-                
-                else:
-                    self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
+                self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
             except:
                 raise Exception("Non è stato inserito un nome per il dataset")
         
