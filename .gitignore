@@ -1,4 +1,6 @@
 rawdata/*
+models/*
+datasets/*
 src/__pycache__/
 src/utility/__pycache__/
 .idea/
