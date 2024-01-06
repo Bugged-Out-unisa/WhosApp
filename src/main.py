@@ -8,28 +8,8 @@ from utility.dataFrameProcess import DataFrameProcessor
 from utility.model_list import models
 from utility.modelTraining import ModelTraining
 from utility.featureConstruction import featureConstruction
-#from feel_it import EmotionClassifier, SentimentClassifier
-
-
-# Path della cartella delle chat
-# dove verranno analizzati in automatico tutti i file al suo interno
-DATA_PATH = "../rawdata"
-
-
-def read_all_files():
-    '''Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
-    rawdata = []
-    
-    # Ottieni lista dei file nella cartella
-    files = [f for f in os.listdir(DATA_PATH) if os.path.isfile(os.path.join(DATA_PATH, f))]
-
-    # Concatena contenuto di ogni file nella cartella
-    for file_name in tqdm(files):
-        f = open(os.path.join(DATA_PATH, file_name), 'r', encoding='utf-8')
-        rawdata.append(f.read())
-        f.close()
-
-    return rawdata
+from utility.rawDataReader import rawDataReader
+#from feel_it import EmotionClassifier, SentimentClassifie
 
 if __name__ == "__main__":
     try:
@@ -41,7 +21,7 @@ if __name__ == "__main__":
         model = models["random_forest"]
 
     print("\n[LOADING] Leggendo le chat dai file grezzi...")
-    rawdata = read_all_files()
+    rawdata = rawDataReader().__read_all_files()
 
     print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
     dates, users, messages = ExtractChat(rawdata).extract()
