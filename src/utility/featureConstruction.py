@@ -9,24 +9,25 @@ from collections import Counter, defaultdict
 
 class featureConstruction():
 
-    def __init__(self, dataFrame : pd.DataFrame):
-        self.DATASET_PATH = "../datasets/"
-        self.FILE_NAME = "dataset"
-        self.FILE_EXT = ".parquet"
+    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, fileName : str):
+        self.DATASET_PATH = datasetPath
+        self.FILE_NAME = fileName
 
         self.__dataFrame = dataFrame
         self.__feature_construction()
 
     def __write_dataFrame(self):
-        counter = 0
+        # counter = 0
 
-        filename = self.FILE_NAME + self.FILE_EXT
+        #fileName = self.FILE_NAME + self.FILE_EXT
 
-        while os.path.isfile(self.DATASET_PATH + filename):
-            counter += 1
-            filename = f"{self.FILE_NAME}{counter}{self.FILE_EXT}"
+        fileName = self.FILE_NAME
+
+        # while os.path.isfile(self.DATASET_PATH + filename):
+        #     counter += 1
+        #     filename = f"{self.FILE_NAME}{counter}{self.FILE_EXT}"
         
-        self.__dataFrame.to_parquet(self.DATASET_PATH + filename)
+        self.__dataFrame.to_parquet(self.DATASET_PATH + fileName)
         
 
 

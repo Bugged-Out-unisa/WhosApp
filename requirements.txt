@@ -6,3 +6,4 @@ spacy>=3.7.2
 emojis>=0.7.0
 feel-it>=1.0.5
 pyarrow
+skops
