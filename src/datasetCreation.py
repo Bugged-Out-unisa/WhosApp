@@ -24,14 +24,17 @@ class datasetCreation():
         self.__main__()
 
     def __main__(self):
+        #Se non passato per funzione controlla args da cmd line
         if self.__datasetName is None:
             try:
                 datasetName = sys.argv[1]
 
+                #aggiunge estensione in caso mancasse
                 self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
             except:
                 raise Exception("Non è stato inserito un nome per il dataset")
         
+        #booleano per sovrascrivere
         if self.__isToRefactor is None:
             try:
                 self.__isToRefactor = True if sys.argv[2] == "refactor" else False
@@ -39,6 +42,7 @@ class datasetCreation():
             except:
                 self.__isToRefactor = False
 
+        # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
         if(not os.path.exists(self.DATASET_PATH + self.__datasetName) or self.__isToRefactor):
 
             print("\n[LOADING] Leggendo le chat dai file grezzi...")
@@ -55,6 +59,7 @@ class datasetCreation():
 
             print("[INFO] Dataset creato con successo.")
         
+        # se il file esiste già allora salva  il DF esistente
         elif(os.path.exists(self.DATASET_PATH + self.__datasetName)):
             self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__datasetName)
 

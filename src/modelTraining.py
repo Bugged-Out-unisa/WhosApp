@@ -32,6 +32,7 @@ class ModelTraining:
         self.__main__()
 
     def __main__(self):
+        #Se non passato per funzione controlla args da cmd line
         if self.__outputName is None:
             try:
                 self.__outputName = sys.argv[1]
@@ -70,6 +71,7 @@ class ModelTraining:
         
         self.__outputName = self.__outputName if self.__outputName.endswith(".skops") else  self.__outputName + ".skops"
 
+        # controllo in caso si voglia sovrascrivere comunque
         while(os.path.exists(self.MODEL_PATH + self.__outputName)  and not self.__isToRetrain):
             user_input = input("Il modello '{}' già esiste, sovrascriverlo? [Y/N]\n".format(self.__outputName))
             user_input = user_input.lower()
