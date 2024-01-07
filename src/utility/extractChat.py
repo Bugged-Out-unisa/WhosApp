@@ -1,4 +1,5 @@
 import re
+import json
 from datetime import datetime
 from tqdm import tqdm
 
@@ -8,9 +9,27 @@ class ExtractChat:
     REGEX_TIMESTAMP_FOR_ANDROID = REGEX_TIMESTAMP_BASE + r" - "
     REGEX_TIMESTAMP_FOR_IOS = r"\[" + REGEX_TIMESTAMP_BASE + r":\d{2}\] "
 
-    def __init__(self, rawdata: str):
+    def __init__(self, rawdata :str, aliases :str = None):
         self.__rawdata = rawdata
+        self.__aliasesPath = aliases
+        self.__userDict = dict()
         self.__regex_timestamp = None
+        self.__loadAliases()
+
+    def __loadAliases(self):
+        try:
+            f = open(self.__aliasesPath, "r", encoding="utf8")
+        except Exception: 
+            return
+
+        data = json.load(f)
+
+        for name in data:
+            for value in data[name]:
+                self.__userDict[value] = name
+                
+        f.close()
+
 
     def __set_datatime(self, file):
         """
@@ -69,5 +88,8 @@ class ExtractChat:
                 else:
                     users.append('info')
                     messages.append(entry[0])
+        
+        if(len(self.__userDict)) >= 1:
+            users = [self.__userDict.get(name, name) for name in users]
 
         return dates, users, messages

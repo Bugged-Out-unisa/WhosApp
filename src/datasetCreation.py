@@ -8,7 +8,7 @@ from utility.extractChat import ExtractChat
 from utility.dataFrameProcess import DataFrameProcessor
 
 # HOW TO USE
-# datasetCreation.py <datasetName> -c <*configFile>-r <*refactor>
+# datasetCreation.py <datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
     # if datasetName exists
         #if refactor is specified then create dataset with said name
         #else return already made dataset
@@ -18,12 +18,18 @@ from utility.dataFrameProcess import DataFrameProcessor
 
 class datasetCreation():
 
-    def __init__(self, datasetName :str = None, configFile= "config.cfg",refactor :bool = False):
+    def __init__(self, datasetName :str = None, configFile= "config.cfg", aliasFile = None, refactor :bool = False):
         self.DATA_PATH = "../rawdata"
         self.DATASET_PATH = "../datasets/"
         self.CONFIG_PATH = "../configs/"
-        self.__datasetName = None
+
+        if aliasFile:
+            self.__aliasFile  = aliasFile if aliasFile.endswith(".json") else aliasFile + ".json"
+        else:
+            self.__aliasFile  = aliasFile
+
         self.__configFile= configFile
+        self.__datasetName = datasetName
 
         try:
             self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
@@ -43,6 +49,7 @@ class datasetCreation():
 
         # optional arguments
         parser.add_argument("-c", "--config", help="File config", required=False)
+        parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
         parser.add_argument("-r", "--refactor", help="Opzione di refactor", required=False)
 
         args = None
@@ -56,7 +63,10 @@ class datasetCreation():
                 raise Exception("Non è stato inserito un nome per il dataset")
         
             if args.config:
-                self.__configFile = args.config
+                self.__configFile = args.config if args.config.endswith(".cfg") else  args.config + ".cfg"
+            
+            if args.aliases:
+                self.__aliasFile = args.aliases if args.aliases.endswith(".json") else  args.aliases + ".json"
             
             if args.refactor:
                 self.__isToRefactor = True if args.refactor == "refactor" else False
@@ -67,8 +77,13 @@ class datasetCreation():
             print("\n[LOADING] Leggendo le chat dai file grezzi...")
             rawdata = rawDataReader(self.DATA_PATH).read_all_files()
 
+            dates = users = messages = None
+
             print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
-            dates, users, messages = ExtractChat(rawdata).extract()
+            if (self.__aliasFile):
+                dates, users, messages = ExtractChat(rawdata, self.CONFIG_PATH + self.__aliasFile).extract()
+            else:
+                dates, users, messages = ExtractChat(rawdata).extract()
 
             print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
             self.__dataFrame = DataFrameProcessor(dates, users, messages).get_dataframe()
