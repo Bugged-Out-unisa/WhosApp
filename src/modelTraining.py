@@ -29,6 +29,11 @@ class ModelTraining:
         self.__model = model
         self.__dataFrame = dataFrame
         self.__isToRetrain = retrain
+
+        # Crea cartella dataset se non esiste
+        if not os.path.exists(self.MODEL_PATH):
+            os.makedirs(self.MODEL_PATH)
+
         self.__main__()
 
     def __main__(self):
@@ -96,7 +101,7 @@ class ModelTraining:
     def __model_training(self):
         '''Applica random forest sul dataframe.'''
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
-        X = self.__dataFrame.drop(['user', 'date', 'message'], axis=1) # tutto tranne le colonne listate
+        X = self.__dataFrame.drop(['user', 'message'], axis=1)
         y = self.__dataFrame["user"]
 
         # TRASFORMA IL MESSAGGIO IN UNA MATRICE DI FREQUENZA DELLE PAROLE (bag of words)

@@ -23,8 +23,10 @@ class featureConstruction():
         
         self.__feature_construction()
 
-    def __write_dataFrame(self):        
-        self.__dataFrame.to_parquet(self.DATASET_PATH)
+    def __write_dataFrame(self):
+        # Rimuovi alcune features perché inutili in fase di training
+        df_to_export = self.__dataFrame.drop(['date', 'message_composition'], axis=1)
+        df_to_export.to_parquet(self.DATASET_PATH)
         
 
 

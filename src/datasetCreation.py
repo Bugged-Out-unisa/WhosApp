@@ -32,6 +32,11 @@ class datasetCreation():
 
         self.__isToRefactor = refactor
         self.__dataFrame = None
+
+        # Crea cartella dataset se non esiste
+        if not os.path.exists(self.DATASET_PATH):
+            os.makedirs(self.DATASET_PATH)
+
         self.__main__()
 
     def __main__(self):
