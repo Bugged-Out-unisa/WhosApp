@@ -42,7 +42,7 @@ class featureConstruction():
     def __feature_construction(self):
 
         parser = configparser.RawConfigParser()   
-        configFilePath = "../configs/config.cfg"
+        configFilePath = self.__config
         parser.read(configFilePath)
 
         sections = parser.sections()

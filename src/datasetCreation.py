@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 import pandas as pd
 from utility.featureConstruction import featureConstruction
 from utility.rawDataReader import rawDataReader
@@ -7,18 +8,22 @@ from utility.extractChat import ExtractChat
 from utility.dataFrameProcess import DataFrameProcessor
 
 # HOW TO USE
-# datasetCreation.py <datasetName> <*refactor>
+# datasetCreation.py <datasetName> -c <*configFile>-r <*refactor>
     # if datasetName exists
         #if refactor is specified then create dataset with said name
         #else return already made dataset
     # else create dataset based on rawdata with that name
 
+    # [W I P] you can use config.cfg to choose which function to run... 
+
 class datasetCreation():
 
-    def __init__(self, datasetName :str = None, refactor :bool = None):
+    def __init__(self, datasetName :str = None, configFile= "config.cfg",refactor :bool = False):
         self.DATA_PATH = "../rawdata"
         self.DATASET_PATH = "../datasets/"
+        self.CONFIG_PATH = "../configs/"
         self.__datasetName = None
+        self.__configFile= configFile
 
         try:
             self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
@@ -31,22 +36,30 @@ class datasetCreation():
 
     def __main__(self):
         #Se non passato per funzione controlla args da cmd line
+        parser = argparse.ArgumentParser()
+
+        # mandatory argument
+        parser.add_argument("datasetName", help="Nome dataset")
+
+        # optional arguments
+        parser.add_argument("-c", "--config", help="File config", required=False)
+        parser.add_argument("-r", "--refactor", help="Opzione di refactor", required=False)
+
+        args = None
+
         if self.__datasetName is None:
             try:
-                datasetName = sys.argv[1]
+                args = parser.parse_args()
 
-                #aggiunge estensione in caso mancasse
-                self.__datasetName = datasetName if datasetName.endswith(".parquet") else  datasetName + ".parquet"
+                self.__datasetName = args.datasetName if args.datasetName.endswith(".parquet") else  args.datasetName + ".parquet"
             except:
                 raise Exception("Non è stato inserito un nome per il dataset")
         
-        #booleano per sovrascrivere
-        if self.__isToRefactor is None:
-            try:
-                self.__isToRefactor = True if sys.argv[2] == "refactor" else False
-
-            except:
-                self.__isToRefactor = False
+            if args.config:
+                self.__configFile = args.config
+            
+            if args.refactor:
+                self.__isToRefactor = True if args.refactor == "refactor" else False
 
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
         if(not os.path.exists(self.DATASET_PATH + self.__datasetName) or self.__isToRefactor):
@@ -67,6 +80,7 @@ class datasetCreation():
         
         # se il file esiste già allora salva  il DF esistente
         elif(os.path.exists(self.DATASET_PATH + self.__datasetName)):
+            print("[INFO] Trovato dataset esistente")
             self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__datasetName)
 
     def getDataframe(self):
