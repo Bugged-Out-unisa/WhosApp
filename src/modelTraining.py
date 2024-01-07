@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_validate
@@ -11,7 +12,7 @@ from datasetCreation import datasetCreation
 import skops.io as skio
 
 # HOW TO USE:
-# py modelTraining.py <outputName> <modelName> <datasetName> <*retrain>
+# py modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>
 
 #CHECKS IF SPECIFIED DATASET EXIST
     #(dataCreation.py return already existing DF)
@@ -22,49 +23,52 @@ import skops.io as skio
 
 
 class ModelTraining:
-    def __init__(self, outputName :str = None, model = None, dataFrame :pd.DataFrame = None, retrain : bool = None):
+    def __init__(self, outputName :str = None, model = None, dataFrame :pd.DataFrame = None, retrain :bool = None):
         self.MODEL_PATH = "../models/"
         self.__outputName = outputName
         self.__model = model
-        self.__modelName = ""
         self.__dataFrame = dataFrame
         self.__isToRetrain = retrain
         self.__main__()
 
     def __main__(self):
         #Se non passato per funzione controlla args da cmd line
-        if self.__outputName is None:
-            try:
-                self.__outputName = sys.argv[1]
-            except:
-                raise Exception("Non è stato inserito un nome per il modello") 
+        parser = argparse.ArgumentParser()
 
-        if self.__model is None:
+        # mandatory arguments
+        parser.add_argument("outputName", help="Nome file del modello salvato")
+        parser.add_argument("modelName", help="Nome del modello da trainare")
+        parser.add_argument("datasetName", help="Nome del dataset da usare nel training")
+
+        # optional arguments
+        parser.add_argument("-r", "--retrain", help="Opzione di retraining", required=False)
+
+        args = None
+
+        if any(value is None for value in [self.__outputName, self.__model, self.__dataFrame]):
+            datasetName = modelName = ""
+            
             try:
-                self.__modelName = sys.argv[2]
+                args = parser.parse_args()
+
+                self.__outputName = args.outputName
+                modelName = args.modelName
+                datasetName = args.datasetName
             except:
-                raise Exception("Nome modello non specificato...")     
+                raise Exception("--Errore esecuzione da linea di comando--\nIl comando dovrebbe essere eseguito così:\npy modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>")
                
             try:
-                self.__model = models[self.__modelName]
+                self.__model = models[modelName]
             except:
                 raise Exception("Modello specificato non trovato")
 
-
-        if self.__dataFrame is None:
             try:
-                datasetName = sys.argv[3]
-                
                 self.__dataFrame = datasetCreation(datasetName, False).getDataframe()
             except:
                 raise Exception("##MODELLO## ERRORE INDIVIDUAZIONE DATASET")
-        
-        if self.__isToRetrain is None:
-            try:
-                self.__isToRetrain = True if sys.argv[4] == "retrain" else False
 
-            except:
-                self.__isToRetrain = False        
+            if args.retrain:
+                self.__isToRetrain = True if args.retrain == "retrain" else False
 
         yes_choices = ["yes","y"]
         no_choices = ["no", "n"]
