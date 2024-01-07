@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import MinMaxScaler
 from utility.model_list import models
 from datasetCreation import datasetCreation
@@ -29,6 +28,11 @@ class ModelTraining:
         self.__model = model
         self.__dataFrame = dataFrame
         self.__isToRetrain = retrain
+
+        # Crea cartella dataset se non esiste
+        if not os.path.exists(self.MODEL_PATH):
+            os.makedirs(self.MODEL_PATH)
+
         self.__main__()
 
     def __main__(self):
@@ -96,20 +100,8 @@ class ModelTraining:
     def __model_training(self):
         '''Applica random forest sul dataframe.'''
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
-        X = self.__dataFrame.drop(['user', 'date', 'message'], axis=1) # tutto tranne le colonne listate
+        X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
-
-        # TRASFORMA IL MESSAGGIO IN UNA MATRICE DI FREQUENZA DELLE PAROLE (bag of words)
-        # così il modello capisce le parole più utilizzate da un utente
-        # ---------------------------------
-        # Vettorizza le parole presenti nel messaggio
-        vec = CountVectorizer()
-        X_message = vec.fit_transform(self.__dataFrame['message'])
-
-        # Unisci la matrice al dataframe
-        df_words_count = pd.DataFrame(X_message.toarray(), columns=vec.get_feature_names_out())
-        X = pd.concat([X, df_words_count], axis=1)
-        # ---------------------------------
 
         # FEATURE SCALING
         scaler = MinMaxScaler()

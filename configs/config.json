@@ -1,0 +1,13 @@
+{
+    "uppercase_count" : true,
+    "char_count" : true,
+    "word_length" : true,
+    "emoji_count"  : true,
+    "unique_emoji_count"  : true,
+    "sentiment" : false,
+    "emotion" : false,
+    "message_composition" : true,
+    "first_word_type" : true,
+    "englishness" : true,
+    "italianness" : true
+}

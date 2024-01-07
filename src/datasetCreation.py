@@ -5,7 +5,7 @@ import pandas as pd
 from utility.featureConstruction import featureConstruction
 from utility.rawDataReader import rawDataReader
 from utility.extractChat import ExtractChat
-from utility.dataFrameProcess import DataFrameProcessor
+from utility.data_framing import DataFrameProcessor
 
 # HOW TO USE
 # datasetCreation.py <datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
@@ -14,11 +14,11 @@ from utility.dataFrameProcess import DataFrameProcessor
         #else return already made dataset
     # else create dataset based on rawdata with that name
 
-    # [W I P] you can use config.cfg to choose which function to run... 
+    # [W I P] you can use config.json to choose which function to run... 
 
 class datasetCreation():
 
-    def __init__(self, datasetName :str = None, configFile= "config.cfg", aliasFile = None, refactor :bool = False):
+    def __init__(self, datasetName :str = None, configFile= "config.json", aliasFile = None, refactor :bool = False):
         self.DATA_PATH = "../rawdata"
         self.DATASET_PATH = "../datasets/"
         self.CONFIG_PATH = "../configs/"
@@ -38,6 +38,11 @@ class datasetCreation():
 
         self.__isToRefactor = refactor
         self.__dataFrame = None
+
+        # Crea cartella dataset se non esiste
+        if not os.path.exists(self.DATASET_PATH):
+            os.makedirs(self.DATASET_PATH)
+
         self.__main__()
 
     def __main__(self):
