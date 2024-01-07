@@ -1,11 +1,16 @@
+# output
 rawdata/*
 models/*
 datasets/*
+
+# pycache
 src/__pycache__/
 src/utility/__pycache__/
+src/utility/data_framing/__pycache__/
+
+# other
 .idea/
 venv/
-## Plugin-specific files:
 
 # IntelliJ
 /out/
@@ -18,9 +23,3 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-
-### Intellij Patch ###
-# Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
-
-# *.iml
-# modules.xml

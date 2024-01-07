@@ -93,6 +93,7 @@ class ModelTraining:
                 print(' ')
                 continue
 
+        print("[INFO] Training del modello in corso...\n")
         self.__model_training()
 
 

@@ -5,7 +5,7 @@ from sklearn.utils import resample
 
 class DataFrameProcessor:
 
-    BLACKLIST = "./utility/blacklist.txt"
+    BLACKLIST = "./utility/data_framing/blacklist.txt"
 
     def __init__(self, dates=None, users=None, messages=None):
         self.__dates = dates
