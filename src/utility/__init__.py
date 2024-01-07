@@ -1,4 +1,4 @@
 from .extractChat import ExtractChat
-from .dataFrameProcess import DataFrameProcessor
+from .data_framing.dataFrameProcess import DataFrameProcessor
 
 __all__ = ['ExtractChat', 'DataFrameProcessor']
