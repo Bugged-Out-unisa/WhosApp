@@ -6,6 +6,7 @@ import configparser
 import numpy as np
 import pandas as pd
 from collections import Counter, defaultdict
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class featureConstruction():
@@ -25,9 +26,21 @@ class featureConstruction():
 
     def __write_dataFrame(self):
         # Rimuovi alcune features perché inutili in fase di training
-        df_to_export = self.__dataFrame.drop(['date', 'message_composition'], axis=1)
+        df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
         df_to_export.to_parquet(self.DATASET_PATH)
-        
+
+    def __bag_of_words(self):
+        """
+            Trasforma il messaggio in una matrice di frequenza delle parole (bag of words)
+            così il modello capisce le parole più utilizzate da un utente
+        """
+        # Vettorizza le parole presenti nel messaggio
+        vec = CountVectorizer()
+        message_matrix = vec.fit_transform(self.__dataFrame['message'])
+
+        # Unisci la matrice al dataframe
+        df_words_count = pd.DataFrame(message_matrix.toarray(), columns=vec.get_feature_names_out())
+        self.__dataFrame = pd.concat([self.__dataFrame, df_words_count], axis=1)
 
 
     def __feature_construction(self):
@@ -150,6 +163,8 @@ class featureConstruction():
 
         for pos in self.POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in message_composition_list]
+
+        self.__bag_of_words()
 
         self.__write_dataFrame()
 
