@@ -90,6 +90,6 @@ class ExtractChat:
                     messages.append(entry[0])
         
         if(len(self.__userDict)) >= 1:
-            users = [self.__userDict.get(name, "Tizio Caio") for name in users]
+            users = [self.__userDict.get(name, "test") for name in users]
 
         return dates, users, messages
