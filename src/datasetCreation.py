@@ -74,7 +74,7 @@ class datasetCreation():
             self.__dataFrame = DataFrameProcessor(dates, users, messages).get_dataframe()
 
             print("\n[LOADING] Applicando feature construction...")
-            featureConstruction(self.__dataFrame, self.DATASET_PATH, self.__datasetName)
+            featureConstruction(self.__dataFrame, self.DATASET_PATH + self.__datasetName, self.CONFIG_PATH + self.__configFile)
 
             print("[INFO] Dataset creato con successo.")
         

@@ -10,9 +10,8 @@ from collections import Counter, defaultdict
 
 class featureConstruction():
 
-    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, fileName : str, config = "../configs/config.cfg"):
+    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.cfg"):
         self.DATASET_PATH = datasetPath
-        self.FILE_NAME = fileName
         self.__dataFrame = dataFrame
         self.__config = config
         # Lista tag POS (Part-of-speech)
@@ -24,18 +23,8 @@ class featureConstruction():
         
         self.__feature_construction()
 
-    def __write_dataFrame(self):
-        # counter = 0
-
-        #fileName = self.FILE_NAME + self.FILE_EXT
-
-        fileName = self.FILE_NAME
-
-        # while os.path.isfile(self.DATASET_PATH + filename):
-        #     counter += 1
-        #     filename = f"{self.FILE_NAME}{counter}{self.FILE_EXT}"
-        
-        self.__dataFrame.to_parquet(self.DATASET_PATH + fileName)
+    def __write_dataFrame(self):        
+        self.__dataFrame.to_parquet(self.DATASET_PATH)
         
 
 
@@ -47,15 +36,17 @@ class featureConstruction():
 
         sections = parser.sections()
 
-        settings = []
+        settings = {}
 
         for section in sections:
             #get a dictionary of settings in the current section
             section_settings = dict(parser.items(section))
+
+            settings[section] = list()
             #add the settings to the main dictionary
             for name, value in section_settings.items():
-                if value.lower() == "true":
-                    settings.append(name)
+                if value.lower() != "false":
+                    settings[section].append(name)
 
 
 
@@ -91,12 +82,20 @@ class featureConstruction():
         emotion_list = []
         sentiment_list = []
 
-        for message in tqdm(self.__dataFrame['message']):
-            for setting in settings:
-                genericList = locals()[setting + "_list"]
-                featureFunction = getattr(self, setting)
+        # Aggiorno ogni lista con la corrispettiva funzione (Ho modificato in maniera tale che nomeLista = nomeFunzione + "_list")
+        def updateGenericList(conf, param, lists):
+            # Prendo la lista tramite il suo nome
+            genericList = lists[conf + "_list"]
 
-                genericList.append(featureFunction(message))
+            #prendo la funzione dal suo nome
+            featureFunction = getattr(self, conf)
+
+            #chiamo la funzione e aggiungo alla lista il valore di ritorno
+            genericList.append(featureFunction(param))
+
+        for message in tqdm(self.__dataFrame['message']):
+            for setting in settings["Base"]:
+                updateGenericList(setting, message, locals())
 
             # uppercase_list.append(self.uppercase_count(message))
             # length_list.append(self.char_count(message))
@@ -105,20 +104,36 @@ class featureConstruction():
             # unique_emoji_list.append(self.unique_emojis_count(message))
             # emotion_list.append(emotion(message))
             # sentiment_list.append(sentiment(message))
+            
+            nlp_it_message = None
+            nlp_en_message = None
+            
+            #inizializzo questi valori solo in caso mi servano
+            if len(settings["NLP"]) >= 1 or len(settings["Italian Check"]) >= 1:
+                nlp_it_message = nlp_it(message)
+            
+            for setting in settings["NLP"]:
+                updateGenericList(setting, nlp_it_message, locals())
+            
+            if len(settings["Italian Check"]) >= 1:
+                italianness_list.append(self.vocabulary_count(nlp_it_message, italian_words))
 
-            nlp_it_message = nlp_it(message)
-            nlp_en_message = nlp_en(message)
+            if len(settings["English Check"]) >= 1:
+                nlp_en_message = nlp_en(message)
 
-            message_composition_list.append(self.message_composition(nlp_it_message))
-            first_word_type_list.append(self.first_word_type(nlp_it_message))
-            italianness_list.append(self.vocabulary_count(nlp_it_message, italian_words))
-            englishness_list.append(self.vocabulary_count(nlp_en_message, english_words))
+                englishness_list.append(self.vocabulary_count(nlp_en_message, english_words))
+                
+            # message_composition_list.append(self.message_composition(nlp_it_message))
+            # first_word_type_list.append(self.first_word_type(nlp_it_message))
+            
+            
 
         # Aggiungi nuove colonne al dataframe
-        for setting in settings:
-            genericList = locals()[setting + "_list"]
+        for section in settings:
+            for setting in settings[section]:
+                genericList = locals()[setting + "_list"]
 
-            self.__dataFrame[setting] = genericList
+                self.__dataFrame[setting] = genericList
         
         # self.__dataFrame["uppercase"] = uppercase_list
         # self.__dataFrame["length"] = length_list
