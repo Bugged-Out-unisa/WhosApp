@@ -1,18 +1,11 @@
 import pandas as pd
+import re
 from sklearn.utils import resample
 
 
 class DataFrameProcessor:
 
-    BLACKLIST = (
-        "null",
-        "<Media omitted>",
-        "You deleted this message",
-        "This message was deleted",
-        "Missed video call",
-        "Waiting for this message",
-        "(file attached)"
-    )
+    BLACKLIST = "./utility/blacklist.txt"
 
     def __init__(self, dates=None, users=None, messages=None):
         self.__dates = dates
@@ -69,11 +62,30 @@ class DataFrameProcessor:
     @classmethod
     def __cleaning_blacklist(cls, df: pd.DataFrame):
         """
-        Rimuovere le righe con altri messaggi informativi
-        """
+           Rimuovere le righe con altri messaggi informativi
+           """
 
-        df = df[~df['message'].isin(cls.BLACKLIST)]
+        # Leggi le regex dal file "blacklist.txt"
+        with open(cls.BLACKLIST, 'r') as file:
+            blacklist_patterns = [re.compile(line.strip()) for line in file]
+
+        # Funzione per controllare se un messaggio matcha una regex nella blacklist
+        def matches_blacklist(message):
+            for pattern in blacklist_patterns:
+                if pattern.fullmatch(message):
+                    return True
+            return False
+
+        # Rimuovere le stringhe "<This message was edited>" o "<Questo messaggio è stato modificato>"
+        df['message'] = (df['message'].str
+                         .replace(r"<This message was edited>|<Questo messaggio è stato modificato>", "", regex=True))
+
+        # Applica la funzione matches_blacklist a ogni riga del DataFrame
+        df = df[~df['message'].apply(matches_blacklist)]
+
+        # Rimuove anche i messaggi che contengono "(file attached)"
         df = df[~df['message'].str.contains("\(file attached\)")]
+
         return df
 
     def __undersampling(self, df: pd.DataFrame):
