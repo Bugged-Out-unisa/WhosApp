@@ -5,7 +5,7 @@ import pandas as pd
 from utility.featureConstruction import featureConstruction
 from utility.rawDataReader import rawDataReader
 from utility.extractChat import ExtractChat
-from utility.dataFrameProcess import DataFrameProcessor
+from utility.data_framing import DataFrameProcessor
 
 # HOW TO USE
 # datasetCreation.py <datasetName> -c <*configFile>-r <*refactor>
