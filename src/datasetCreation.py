@@ -14,11 +14,11 @@ from utility.dataFrameProcess import DataFrameProcessor
         #else return already made dataset
     # else create dataset based on rawdata with that name
 
-    # [W I P] you can use config.cfg to choose which function to run... 
+    # [W I P] you can use config.json to choose which function to run... 
 
 class datasetCreation():
 
-    def __init__(self, datasetName :str = None, configFile= "config.cfg",refactor :bool = False):
+    def __init__(self, datasetName :str = None, configFile= "config.json",refactor :bool = False):
         self.DATA_PATH = "../rawdata"
         self.DATASET_PATH = "../datasets/"
         self.CONFIG_PATH = "../configs/"
