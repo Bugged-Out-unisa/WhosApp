@@ -11,18 +11,18 @@ from feel_it import EmotionClassifier, SentimentClassifier
 
 class featureConstruction():
 
-    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.json"):
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json"):
         self.DATASET_PATH = datasetPath
         self.__dataFrame = dataFrame
         self.__config = config
 
-        self.__init_configs()        
+        self.__init_configs()
         self.__feature_construction()
         self.__write_dataFrame()
 
     def __init_configs(self):
         '''Inizializza variabili in base al file di configurazione.'''
-        
+
         # Leggi file di configurazione
         with open(self.__config, 'r') as f:
             features = json.load(f)
@@ -40,29 +40,29 @@ class featureConstruction():
 
         # Lista tag POS (Part-of-speech)
         self.__POS_LIST = [
-            "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ", 
-            "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ", 
+            "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
+            "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ",
             "SYM", "VERB", "X", "SPACE"
         ]
 
         # Lista di vocaboli italiani e inglesi in minuscolo
         if "italianness" in self.__features_enabled:
             self.__italian_words = {w.lower() for w in self.__nlp_it.vocab.strings}
-        
+
         if "englishness" in self.__features_enabled:
             self.__english_words = {w.lower() for w in self.__nlp_en.vocab.strings}
 
         # Inizializza sentiment/emotion classifier
         if "sentiment" in self.__features_enabled:
             self.__sentiment_classifier = SentimentClassifier()
-            self.__sentiment_mapping = {'negative':0, 'positive':1}
+            self.__sentiment_mapping = {'negative': 0, 'positive': 1}
 
-        if "emotion" in self.__features_enabled:   
+        if "emotion" in self.__features_enabled:
             self.__emotion_classifier = EmotionClassifier()
-            self.__emotion_mapping = {"anger":0, "fear":1 , "joy":2, "sadness":3 }
+            self.__emotion_mapping = {"anger": 0, "fear": 1, "joy": 2, "sadness": 3}
 
     def __feature_construction(self):
-        '''Crea nuove feature: un insieme di metadati relativo ad ogni messaggio.'''
+        """Crea nuove feature: un insieme di metadati relativo ad ogni messaggio."""
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -76,7 +76,7 @@ class featureConstruction():
 
                 # Chiama la funzione e aggiunge alla lista il valore di ritorno
                 features[feature_name].append(featureFunction(message))
-            
+
         # Aggiungi nuove colonne al dataframe
         for feature_name in self.__features_enabled:
             self.__dataFrame[feature_name] = features[feature_name]
@@ -87,10 +87,10 @@ class featureConstruction():
         self.__bag_of_words()
 
     def __get_nlp_it_message(self, m):
-        '''Metodo che serve per non ricalcolare nlp_it_message in feature diverse.'''
-        if self.__nlp_it_message == None:
-            self.__nlp_it_message = self.__nlp_it(m)  
-        
+        """Metodo che serve per non ricalcolare nlp_it_message in feature diverse."""
+        if self.__nlp_it_message is None:
+            self.__nlp_it_message = self.__nlp_it(m)
+
         return self.__nlp_it_message
 
     def __bag_of_words(self):
@@ -111,7 +111,7 @@ class featureConstruction():
                 hash_object.update(s.encode('utf-8'))
                 hashed_strings.append(hash_object.hexdigest())
             return hashed_strings
-        
+
         hashed_words = hash_strings(vec.get_feature_names_out())
 
         # Unisci la matrice al dataframe
@@ -119,7 +119,7 @@ class featureConstruction():
         self.__dataFrame = pd.concat([self.__dataFrame, df_words_count], axis=1)
 
     def __write_dataFrame(self):
-        '''Salva il dataframe aggiornato in formato parquet.'''
+        """Salva il dataframe aggiornato in formato parquet."""
 
         # Rimuovi features inutili in fase di training
         df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
@@ -127,25 +127,24 @@ class featureConstruction():
         # Esporta file
         df_to_export.to_parquet(self.DATASET_PATH)
 
-
     def uppercase_count(self, m):
-            """Conta il numero di caratteri in maiuscolo in un messaggio."""
-            return sum(1 for c in m if c.isupper())
+        """Conta il numero di caratteri in maiuscolo in un messaggio."""
+        return sum(1 for c in m if c.isupper())
 
-    def char_count(self, m): 
+    def char_count(self, m):
         """Conta il numero di caratteri in un message."""
         return len(m)
 
     def word_length(self, m):
         """Conta la lunghezza media delle parole in un messaggio."""
         parole = m.split()
-        
+
         if not parole:
             return 0  # Restituisce 0 se la stringa è vuota
-        
+
         lunghezza_totale = sum(len(parola) for parola in parole)
         lunghezza_media = lunghezza_totale / len(parole)
-        
+
         return round(lunghezza_media, 2)
 
     def emoji_count(self, m):
@@ -168,7 +167,7 @@ class featureConstruction():
         total_count = 0
 
         for token in nlp_message:
-            if token.is_alpha: # per filtrare numeri e simboli
+            if token.is_alpha:  # per filtrare numeri e simboli
                 total_count += 1
 
                 if token.text.lower() in vocabulary:
@@ -178,18 +177,18 @@ class featureConstruction():
         if total_count == 0:
             return 0
 
-        return round(count/total_count, 2)
+        return round(count / total_count, 2)
 
     def englishness(self, m):
-        '''
+        """
             Indica quanto un utente usa inglesismi all'interno di un messaggio.
-        '''
+        """
         return self.vocabulary_count(self.__nlp_en(m), self.__english_words)
-    
+
     def italianness(self, m):
-        '''
+        """
             Indica quanto un utente parla italiano "pulito" all'interno di un messaggio.
-        '''
+        """
         return self.vocabulary_count(self.__get_nlp_it_message(m), self.__italian_words)
 
     def message_composition(self, m):
@@ -221,18 +220,18 @@ class featureConstruction():
             SPACE: Space.
         """
         # Conta token per tipo
-        c = Counter(([token.pos_ for token in self.__get_nlp_it_message(m)])) 
+        c = Counter(([token.pos_ for token in self.__get_nlp_it_message(m)]))
 
         # Numero totale di token
         sbase = sum(c.values())
 
         # Calcola percentuale di quel tipo di token nel messaggio
-        d = defaultdict(int) # dizionario con valori di default 0
+        d = defaultdict(int)  # dizionario con valori di default 0
         for el, cnt in c.items():
-            d[el] = round(cnt/sbase, 2)
+            d[el] = round(cnt / sbase, 2)
 
         return d
-    
+
     def first_word_type(self, m):
         """Restituisce l'id del tag POS della prima parola di un messaggio."""
         self.__get_nlp_it_message(m)
@@ -241,11 +240,11 @@ class featureConstruction():
             return -1
 
         return self.__POS_LIST.index(self.__nlp_it_message[0].pos_)
-    
+
     def sentiment(self, m):
         """Restituisce l'id del sentiment del messaggio descritto in sentiment_mapping."""
         return self.__sentiment_mapping[self.__sentiment_classifier.predict([m])[0]]
-    
+
     def emotion(self, m):
         """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
         return self.__emotion_mapping[self.__emotion_classifier.predict([m])[0]]
