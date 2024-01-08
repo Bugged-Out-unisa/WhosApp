@@ -3,7 +3,6 @@ import emojis
 import json
 from tqdm import tqdm
 import pandas as pd
-import hashlib
 import numpy as np
 from collections import Counter, defaultdict
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
@@ -64,6 +63,12 @@ class featureConstruction():
 
     def __feature_construction(self):
         '''Crea nuove feature: un insieme di metadati relativo ad ogni messaggio.'''
+        # Applica bag of words solo se abilitato
+        if "bag_of_words" in self.__features_enabled:
+            print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
+            self.bag_of_words()
+            self.__features_enabled.remove("bag_of_words")
+
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -85,8 +90,6 @@ class featureConstruction():
         for pos in self.__POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
-        self.__bag_of_words()
-
     def __get_nlp_it_message(self, m):
         '''Metodo che serve per non ricalcolare nlp_it_message in feature diverse.'''
         if self.__nlp_it_message == None:
@@ -94,7 +97,7 @@ class featureConstruction():
         
         return self.__nlp_it_message
 
-    def __bag_of_words(self, max_accuracy=False):
+    def bag_of_words(self, max_accuracy=False):
         """
             Trasforma il messaggio in una matrice di frequenza delle parole (bag of words).
             In questo modo, il modello capisce le parole più utilizzate da un utente
