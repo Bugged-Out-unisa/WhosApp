@@ -1,6 +1,8 @@
 import sys
 import os
 import argparse
+import time
+import calendar
 import pandas as pd
 from utility.featureConstruction import featureConstruction
 from utility.rawDataReader import rawDataReader
@@ -9,7 +11,7 @@ from utility.data_framing import DataFrameProcessor
 
 
 # HOW TO USE
-# datasetCreation.py <datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
+# datasetCreation.py -dN <datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
 #   if datasetName exists
 #       if refactor is specified then create dataset with said name
 #       else return already made dataset
@@ -17,67 +19,58 @@ from utility.data_framing import DataFrameProcessor
 
 # [W I P] you can use config.json to choose which function to run...
 
+
 class datasetCreation:
+    DATA_PATH = "../rawdata"
+    DATASET_PATH = "../datasets/"
+    CONFIG_PATH = "../configs/"
 
     def __init__(self, datasetName: str = None, configFile="config.json", aliasFile=None, refactor: bool = False):
-        self.DATA_PATH = "../rawdata"
-        self.DATASET_PATH = "../datasets/"
-        self.CONFIG_PATH = "../configs/"
-
-        if aliasFile:
-            self.__aliasFile = aliasFile if aliasFile.endswith(".json") else aliasFile + ".json"
+        # Controlla se il nome del dataset è stato inserito
+        if datasetName:
+            self.__datasetName = self.__check_extension_file(datasetName, ".parquet")
         else:
-            self.__aliasFile = aliasFile
+            timestamp = calendar.timegm(time.gmtime())
+            self.__datasetName = "dataset_" + str(timestamp) + ".parquet"
 
-        self.__configFile = configFile
-        self.__datasetName = datasetName
+        # Controlla se configFile è stato inserito
+        if configFile:
+            self.__configFile = self.__check_extension_file(datasetName, ".json")
+        else:
+            self.__configFile = configFile
 
-        try:
-            self.__datasetName = datasetName if datasetName.endswith(".parquet") else datasetName + ".parquet"
-        except Exception:
-            pass
+        # Controlla se aliasFile è stato inserito
+        if aliasFile:
+            self.__aliasFile = self.__check_extension_file(datasetName, ".json")
+        else:
+            self.__aliasFile = None
 
-        self.__isToRefactor = refactor
+        # Controlla se refactor è stato inserito
+        if refactor:
+            self.__isToRefactor = True if refactor == "refactor" else False
+        else:
+            self.__isToRefactor = False
+
         self.__dataFrame = None
+        self.__check_dataset_path()
 
-        # Crea cartella dataset se non esiste
-        if not os.path.exists(self.DATASET_PATH):
-            os.makedirs(self.DATASET_PATH)
-
+        # Crea il dataset
         self.__main__()
 
+    @staticmethod
+    def __check_extension_file(filename: str, ext: str):
+        """Controlla se l'estensione del file è quella specificata"""
+        if not filename.endswith(ext):
+            filename += ext
+        return filename
+
+    @classmethod
+    def __check_dataset_path(cls):
+        """Crea cartella dataset se non esiste"""
+        if not os.path.exists(cls.DATASET_PATH):
+            os.makedirs(cls.DATASET_PATH)
+
     def __main__(self):
-        # Se non passato per funzione controlla args da cmd line
-        parser = argparse.ArgumentParser()
-
-        # mandatory argument
-        parser.add_argument("datasetName", help="Nome dataset")
-
-        # optional arguments
-        parser.add_argument("-c", "--config", help="File config", required=False)
-        parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
-        parser.add_argument("-r", "--refactor", help="Opzione di refactor", required=False)
-
-        args = None
-
-        if self.__datasetName is None:
-            try:
-                args = parser.parse_args()
-
-                self.__datasetName = args.datasetName if args.datasetName.endswith(
-                    ".parquet") else args.datasetName + ".parquet"
-            except:
-                raise Exception("Non è stato inserito un nome per il dataset")
-
-            if args.config:
-                self.__configFile = args.config if args.config.endswith(".cfg") else args.config + ".cfg"
-
-            if args.aliases:
-                self.__aliasFile = args.aliases if args.aliases.endswith(".json") else args.aliases + ".json"
-
-            if args.refactor:
-                self.__isToRefactor = True if args.refactor == "refactor" else False
-
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
         if not os.path.exists(self.DATASET_PATH + self.__datasetName) or self.__isToRefactor:
 
@@ -106,9 +99,26 @@ class datasetCreation:
             print("[INFO] Trovato dataset esistente")
             self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__datasetName)
 
-    def getDataframe(self):
+    # -------- Getter --------
+    @property
+    def dataFrame(self):
         return self.__dataFrame
 
 
+def args_cmdline():
+    # Se non passato per funzione controlla args da cmd line
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False)
+    parser.add_argument("-c", "--config", help="File config", required=False)
+    parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
+    parser.add_argument("-r", "--refactor", help="Opzione di refactor", required=False)
+
+    args = parser.parse_args()
+
+    return {k: v for k, v in vars(args).items() if v is not None}
+
+
 if __name__ == "__main__":
-    datasetCreation()
+    input_cmd_line = args_cmdline()
+    datasetCreation(*input_cmd_line)
