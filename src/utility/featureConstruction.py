@@ -1,6 +1,7 @@
 import json
 import spacy
 import emojis
+import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -98,7 +99,7 @@ class featureConstruction():
 
     def __get_nlp_it_message(self, m):
         """Metodo che serve per non ricalcolare nlp_it_message in feature diverse."""
-        if self.__nlp_it_message == None:
+        if self.__nlp_it_message is None:
             self.__nlp_it_message = self.__nlp_it(m)
 
         return self.__nlp_it_message
@@ -131,7 +132,7 @@ class featureConstruction():
         self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
 
     def __write_dataFrame(self):
-        '''Salva il dataframe aggiornato in formato parquet.'''
+        """Salva il dataframe aggiornato in formato parquet."""
 
         # Rimuovi features inutili in fase di training
         df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
@@ -142,15 +143,18 @@ class featureConstruction():
         # Esporta file
         df_to_export.to_parquet(self.DATASET_PATH)
 
-    def uppercase_count(self, m):
+    @staticmethod
+    def uppercase_count(m):
         """Conta il numero di caratteri in maiuscolo in un messaggio."""
         return sum(1 for c in m if c.isupper())
 
-    def char_count(self, m):
+    @staticmethod
+    def char_count(m):
         """Conta il numero di caratteri in un message."""
         return len(m)
 
-    def word_length(self, m):
+    @staticmethod
+    def word_length(m):
         """Conta la lunghezza media delle parole in un messaggio."""
         parole = m.split()
 
@@ -162,22 +166,25 @@ class featureConstruction():
 
         return round(lunghezza_media, 2)
 
-    def emoji_count(self, m):
+    @staticmethod
+    def emoji_count(m):
         """Conta il numero di emoji in un messaggio."""
         return emojis.count(m)
 
-    def unique_emoji_count(self, m):
+    @staticmethod
+    def unique_emoji_count(m):
         """Conta il numero di emoji uniche in un messaggio."""
         return emojis.count(m, unique=True)
 
-    def vocabulary_count(self, nlp_message, vocabulary):
-        '''
+    @staticmethod
+    def vocabulary_count(nlp_message, vocabulary):
+        """
             Indica quanto una persona parla italiano "pulito"
                 oppure quanti inglesismi usa (in base al vocabolario in input)
 
             cioè il rapporto fra parole presenti nel vocabolario
                 e il numero totale di parole in un messaggio.
-        '''
+        """
         count = 0
         total_count = 0
 
@@ -195,15 +202,15 @@ class featureConstruction():
         return round(count / total_count, 2)
 
     def englishness(self, m):
-        '''
+        """
             Indica quanto un utente usa inglesismi all'interno di un messaggio.
-        '''
+        """
         return self.vocabulary_count(self.__nlp_en(m), self.__english_words)
 
     def italianness(self, m):
-        '''
+        """
             Indica quanto un utente parla italiano "pulito" all'interno di un messaggio.
-        '''
+        """
         return self.vocabulary_count(self.__get_nlp_it_message(m), self.__italian_words)
 
     def message_composition(self, m):
@@ -251,7 +258,7 @@ class featureConstruction():
         """Restituisce l'id del tag POS della prima parola di un messaggio."""
         self.__get_nlp_it_message(m)
 
-        if (self.__nlp_it_message.text == ""):
+        if self.__nlp_it_message.text == "":
             return -1
 
         return self.__POS_LIST.index(self.__nlp_it_message[0].pos_)
