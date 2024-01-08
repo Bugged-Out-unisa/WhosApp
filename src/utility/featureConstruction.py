@@ -3,11 +3,10 @@ import emojis
 import json
 from tqdm import tqdm
 import pandas as pd
-import hashlib
+import numpy as np
 from collections import Counter, defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 #from feel_it import EmotionClassifier, SentimentClassifier
-
 
 class featureConstruction():
 
@@ -68,6 +67,12 @@ class featureConstruction():
 
     def __feature_construction(self):
         '''Crea nuove feature: un insieme di metadati relativo ad ogni messaggio.'''
+        # Applica bag of words solo se abilitato
+        if "bag_of_words" in self.__features_enabled:
+            print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
+            self.bag_of_words()
+            self.__features_enabled.remove("bag_of_words")
+
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -89,7 +94,6 @@ class featureConstruction():
         for pos in self.__POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
-        self.__bag_of_words()
 
         # Rimuovi features inutili in fase di training
         self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
@@ -102,33 +106,38 @@ class featureConstruction():
         
         return self.__nlp_it_message
 
-    def __bag_of_words(self):
+    def bag_of_words(self, max_accuracy=False):
         """
             Trasforma il messaggio in una matrice di frequenza delle parole (bag of words).
             In questo modo, il modello capisce le parole più utilizzate da un utente
         """
-        # Vettorizza le parole presenti nel messaggio
-        vec = CountVectorizer()
-        message_matrix = vec.fit_transform(self.__dataFrame['message'])
+        # Numero di feature di default (compromesso fra velocità e accuratezza)
+        n = 2**10
 
-        # Converti le parole nel corrispondente hash 
-        #   per evitare conflitti di nomi fra features e per privacy
-        def hash_strings(strings, algorithm='md5'):
-            hashed_strings = []
-            for s in strings:
-                hash_object = hashlib.new(algorithm)
-                hash_object.update(s.encode('utf-8'))
-                hashed_strings.append(hash_object.hexdigest())
-            return hashed_strings
-        
-        hashed_words = hash_strings(vec.get_feature_names_out())
+        # Se si vuole usare il numero di feature ottimale per non avere collisioni
+        # ma si vuole sacrificare la velocità di esecuzione
+        if max_accuracy:
+            # Tokenizza il testo e conta il numero di parole uniche
+            count_vec = CountVectorizer()
+            count_vec.fit(self.__dataFrame['message'])
+            n_unique_words = len(count_vec.vocabulary_)
+
+            # Imposta n_features come la potenza di 2 successiva che è maggiore di n_unique_words
+            n = int(2**np.ceil(np.log2(n_unique_words)))
+
+        # Inizializza l'HashingVectorizer con il numero di features calcolato
+        hashing_vec = HashingVectorizer(n_features=n)
+        hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
 
         # Unisci la matrice al dataframe
-        df_words_count = pd.DataFrame(message_matrix.toarray(), columns=hashed_words)
-        self.__dataFrame = pd.concat([self.__dataFrame, df_words_count], axis=1)
+        df_hashed_text = pd.DataFrame(hashed_text.toarray())
+        self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
 
     def __write_dataFrame(self):
         '''Salva il dataframe aggiornato in formato parquet.'''
+
+        # Assicurati che le nuove colonne siano stringhe
+        self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
 
         # Esporta file
         self.__dataFrame.to_parquet(self.DATASET_PATH)
