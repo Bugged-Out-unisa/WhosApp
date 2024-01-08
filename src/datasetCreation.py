@@ -26,7 +26,6 @@ class datasetCreation:
     CONFIG_PATH = "../configs/"
 
     def __init__(self, datasetName: str = None, configFile="config.json", aliasFile=None, refactor: bool = False):
-        print("Input:", datasetName, configFile, aliasFile, refactor)
         # Controlla se il nome del dataset è stato inserito
         if datasetName:
             self.__datasetName = self.__check_extension_file(datasetName, ".parquet")
