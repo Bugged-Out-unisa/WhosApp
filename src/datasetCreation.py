@@ -1,13 +1,15 @@
-import sys
 import os
-import argparse
 import time
+import logging
+import argparse
+import datetime
 import calendar
 import pandas as pd
-from utility.featureConstruction import featureConstruction
-from utility.rawDataReader import rawDataReader
 from utility.extractChat import ExtractChat
+from utility.rawDataReader import rawDataReader
 from utility.data_framing import DataFrameProcessor
+from utility.featureConstruction import featureConstruction
+from utility.logging import init_logging
 
 
 # HOW TO USE
@@ -46,10 +48,9 @@ class datasetCreation:
             self.__aliasFile = aliasFile
 
         # Controlla se refactor è stato inserito
-        if refactor:
-            self.__isToRefactor = True if refactor == "refactor" else False
-        else:
-            self.__isToRefactor = False
+        if not isinstance(refactor, bool):
+            raise TypeError("refactor deve essere un booleano")
+        self.__isToRefactor = True if refactor else False
 
         self.__dataFrame = None
         self.__check_dataset_path()
@@ -71,6 +72,12 @@ class datasetCreation:
             os.makedirs(cls.DATASET_PATH)
 
     def __main__(self):
+
+        # LOGGING:: Stampa il nome del dataset
+        logging.info(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}")
+        logging.info(f"!!NEW DATASET CREATION!! ")
+        logging.info(f"Dataset name: {self.__datasetName}")
+
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
         if not os.path.exists(self.DATASET_PATH + self.__datasetName) or self.__isToRefactor:
 
@@ -112,7 +119,7 @@ def args_cmdline():
     parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False)
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
-    parser.add_argument("-r", "--refactor", help="Opzione di refactor", required=False)
+    parser.add_argument("-r", "--refactor", help="Opzione di refactor", action="store_true", required=False)
 
     args = parser.parse_args()
 
@@ -121,4 +128,5 @@ def args_cmdline():
 
 if __name__ == "__main__":
     input_cmd_line = args_cmdline()
+    init_logging("dataset-creation.log")
     datasetCreation(*input_cmd_line)
