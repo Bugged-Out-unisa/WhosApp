@@ -6,19 +6,24 @@ import pandas as pd
 import hashlib
 from collections import Counter, defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
-from feel_it import EmotionClassifier, SentimentClassifier
+#from feel_it import EmotionClassifier, SentimentClassifier
 
 
 class featureConstruction():
 
-    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.json"):
+    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.json", createDataFrame :bool = True):
         self.DATASET_PATH = datasetPath
         self.__dataFrame = dataFrame
         self.__config = config
 
         self.__init_configs()        
         self.__feature_construction()
-        self.__write_dataFrame()
+        
+        if(createDataFrame):
+            self.__write_dataFrame()
+
+    def get_dataframe(self):
+        return self.__dataFrame
 
     def __init_configs(self):
         '''Inizializza variabili in base al file di configurazione.'''
@@ -86,6 +91,10 @@ class featureConstruction():
 
         self.__bag_of_words()
 
+        # Rimuovi features inutili in fase di training
+        self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
+
+
     def __get_nlp_it_message(self, m):
         '''Metodo che serve per non ricalcolare nlp_it_message in feature diverse.'''
         if self.__nlp_it_message == None:
@@ -121,11 +130,8 @@ class featureConstruction():
     def __write_dataFrame(self):
         '''Salva il dataframe aggiornato in formato parquet.'''
 
-        # Rimuovi features inutili in fase di training
-        df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
-
         # Esporta file
-        df_to_export.to_parquet(self.DATASET_PATH)
+        self.__dataFrame.to_parquet(self.DATASET_PATH)
 
 
     def uppercase_count(self, m):
