@@ -26,6 +26,7 @@ class datasetCreation:
     CONFIG_PATH = "../configs/"
 
     def __init__(self, datasetName: str = None, configFile="config.json", aliasFile=None, refactor: bool = False):
+        print("Input:", datasetName, configFile, aliasFile, refactor)
         # Controlla se il nome del dataset è stato inserito
         if datasetName:
             self.__datasetName = self.__check_extension_file(datasetName, ".parquet")
@@ -35,15 +36,15 @@ class datasetCreation:
 
         # Controlla se configFile è stato inserito
         if configFile:
-            self.__configFile = self.__check_extension_file(datasetName, ".json")
+            self.__configFile = self.__check_extension_file(configFile, ".json")
         else:
-            self.__configFile = configFile
+            self.__configFile = "config.json"
 
         # Controlla se aliasFile è stato inserito
         if aliasFile:
-            self.__aliasFile = self.__check_extension_file(datasetName, ".json")
+            self.__aliasFile = self.__check_extension_file(aliasFile, ".json")
         else:
-            self.__aliasFile = None
+            self.__aliasFile = aliasFile
 
         # Controlla se refactor è stato inserito
         if refactor:
@@ -116,7 +117,7 @@ def args_cmdline():
 
     args = parser.parse_args()
 
-    return {k: v for k, v in vars(args).items() if v is not None}
+    return [v if v is not None else None for k, v in vars(args).items()]
 
 
 if __name__ == "__main__":
