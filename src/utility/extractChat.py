@@ -1,7 +1,8 @@
 import re
 import json
-from datetime import datetime
+import logging
 from tqdm import tqdm
+from datetime import datetime
 
 
 class ExtractChat:
@@ -90,5 +91,8 @@ class ExtractChat:
 
         if (len(self.__userDict)) >= 1:
             users = [self.__userDict.get(name, "test") for name in users]
+
+        # LOGGING:: Stampa gli utenti trovati
+        logging.info(f"Utenti trovati: \n" + "\n".join(f"\t{user} -> {i}" for i, user in enumerate(set(users))))
 
         return dates, users, messages

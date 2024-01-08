@@ -1,8 +1,9 @@
 import os
+import logging
 from tqdm import tqdm
 
 
-class rawDataReader():
+class rawDataReader:
     def __init__(self):
         # Path della cartella delle chat
         # dove verranno analizzati in automatico tutti i file al suo interno
@@ -26,5 +27,8 @@ class rawDataReader():
             f = open(os.path.join(self.DATA_PATH, file_name), 'r', encoding='utf-8')
             rawdata.append(f.read())
             f.close()
+
+        # LOGGING:: Stampa i file utilizzati per l'estrazione dati
+        logging.info("File grezzi usati: \n" + "\n".join(f"\t{file}" for file in files))
 
         return rawdata

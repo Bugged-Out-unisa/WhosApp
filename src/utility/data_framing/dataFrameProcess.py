@@ -1,5 +1,6 @@
-import pandas as pd
 import re
+import logging
+import pandas as pd
 from sklearn.utils import resample
 
 
@@ -58,6 +59,9 @@ class DataFrameProcessor:
         print(", ".join(
             f"{i}: {len(df[df['user'] == i])}" for i in range(len(self.__unique_users))
         ))
+
+        # LOGGING:: Stampa il numero di istanze per utente
+        logging.info(f"{message}: \n" + "\n".join(f"\t{i}: {len(df[df['user'] == i])}" for i in range(len(self.__unique_users))))
 
     @classmethod
     def __cleaning_blacklist(cls, df: pd.DataFrame):

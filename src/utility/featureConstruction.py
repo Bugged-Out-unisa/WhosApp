@@ -1,12 +1,13 @@
+import json
 import spacy
 import emojis
-import json
-from tqdm import tqdm
-import pandas as pd
+import logging
 import hashlib
+import pandas as pd
+from tqdm import tqdm
 from collections import Counter, defaultdict
-from sklearn.feature_extraction.text import CountVectorizer
 from feel_it import EmotionClassifier, SentimentClassifier
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class featureConstruction:
@@ -21,7 +22,7 @@ class featureConstruction:
         self.__write_dataFrame()
 
     def __init_configs(self):
-        '''Inizializza variabili in base al file di configurazione.'''
+        """Inizializza variabili in base al file di configurazione."""
 
         # Leggi file di configurazione
         with open(self.__config, 'r') as f:
@@ -65,6 +66,12 @@ class featureConstruction:
         """Crea nuove feature: un insieme di metadati relativo ad ogni messaggio."""
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
+
+        # LOGGING:: Inserire le feature usate per la predizione
+        logging.info(
+            "Feature usate: \n" +
+            "\n".join(f"\t{feature_name}" for feature_name in self.__features_enabled)
+        )
 
         for message in tqdm(self.__dataFrame['message']):
             # Resetta analisi nlp per nuovo messaggio
