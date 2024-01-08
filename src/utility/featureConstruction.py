@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from feel_it import EmotionClassifier, SentimentClassifier
 
 
-class featureConstruction():
+class featureConstruction:
 
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json"):
         self.DATASET_PATH = datasetPath
@@ -156,13 +156,13 @@ class featureConstruction():
         return emojis.count(m, unique=True)
 
     def vocabulary_count(self, nlp_message, vocabulary):
-        '''
-            Indica quanto una persona parla italiano "pulito" 
+        """
+            Indica quanto una persona parla italiano "pulito"
                 oppure quanti inglesismi usa (in base al vocabolario in input)
-            
-            cioè il rapporto fra parole presenti nel vocabolario 
+
+            cioè il rapporto fra parole presenti nel vocabolario
                 e il numero totale di parole in un messaggio.
-        '''
+        """
         count = 0
         total_count = 0
 
@@ -236,7 +236,7 @@ class featureConstruction():
         """Restituisce l'id del tag POS della prima parola di un messaggio."""
         self.__get_nlp_it_message(m)
 
-        if (self.__nlp_it_message.text == ""):
+        if self.__nlp_it_message.text == "":
             return -1
 
         return self.__POS_LIST.index(self.__nlp_it_message[0].pos_)
