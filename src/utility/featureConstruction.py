@@ -114,7 +114,7 @@ class featureConstruction():
             n_unique_words = len(count_vec.vocabulary_)
 
             # Imposta n_features come la potenza di 2 successiva che è maggiore di n_unique_words
-            n = 2**np.ceil(np.log2(n_unique_words))
+            n = int(2**np.ceil(np.log2(n_unique_words)))
 
         # Inizializza l'HashingVectorizer con il numero di features calcolato
         hashing_vec = HashingVectorizer(n_features=n)
