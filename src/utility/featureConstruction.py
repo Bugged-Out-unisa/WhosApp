@@ -1,16 +1,15 @@
 import json
 import spacy
 import emojis
-import logging
-import hashlib
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
-class featureConstruction:
+class featureConstruction():
 
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json"):
         self.DATASET_PATH = datasetPath
@@ -32,7 +31,7 @@ class featureConstruction:
         self.__features_enabled = [k for k, v in features.items() if v]
 
         # Inizializza analizzatore NLP
-        # Bisogna prima scaricare i moduli (sm -> small, md -> medium, lg -> large): 
+        # Bisogna prima scaricare i moduli (sm -> small, md -> medium, lg -> large):
         #   python3 -m spacy download en_core_web_sm
         #   python3 -m spacy download it_core_news_lg
         # ATTENZIONE: Il vocabolario inglese contiene anche parole italiane e viceversa
@@ -64,6 +63,12 @@ class featureConstruction:
 
     def __feature_construction(self):
         """Crea nuove feature: un insieme di metadati relativo ad ogni messaggio."""
+        # Applica bag of words solo se abilitato
+        if "bag_of_words" in self.__features_enabled:
+            print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
+            self.bag_of_words()
+            self.__features_enabled.remove("bag_of_words")
+
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -91,45 +96,48 @@ class featureConstruction:
         for pos in self.__POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
-        self.__bag_of_words()
-
     def __get_nlp_it_message(self, m):
         """Metodo che serve per non ricalcolare nlp_it_message in feature diverse."""
-        if self.__nlp_it_message is None:
+        if self.__nlp_it_message == None:
             self.__nlp_it_message = self.__nlp_it(m)
 
         return self.__nlp_it_message
 
-    def __bag_of_words(self):
+    def bag_of_words(self, max_accuracy=False):
         """
             Trasforma il messaggio in una matrice di frequenza delle parole (bag of words).
             In questo modo, il modello capisce le parole più utilizzate da un utente
         """
-        # Vettorizza le parole presenti nel messaggio
-        vec = CountVectorizer()
-        message_matrix = vec.fit_transform(self.__dataFrame['message'])
+        # Numero di feature di default (compromesso fra velocità e accuratezza)
+        n = 2 ** 10
 
-        # Converti le parole nel corrispondente hash 
-        #   per evitare conflitti di nomi fra features e per privacy
-        def hash_strings(strings, algorithm='md5'):
-            hashed_strings = []
-            for s in strings:
-                hash_object = hashlib.new(algorithm)
-                hash_object.update(s.encode('utf-8'))
-                hashed_strings.append(hash_object.hexdigest())
-            return hashed_strings
+        # Se si vuole usare il numero di feature ottimale per non avere collisioni
+        # ma si vuole sacrificare la velocità di esecuzione
+        if max_accuracy:
+            # Tokenizza il testo e conta il numero di parole uniche
+            count_vec = CountVectorizer()
+            count_vec.fit(self.__dataFrame['message'])
+            n_unique_words = len(count_vec.vocabulary_)
 
-        hashed_words = hash_strings(vec.get_feature_names_out())
+            # Imposta n_features come la potenza di 2 successiva che è maggiore di n_unique_words
+            n = int(2 ** np.ceil(np.log2(n_unique_words)))
+
+        # Inizializza l'HashingVectorizer con il numero di features calcolato
+        hashing_vec = HashingVectorizer(n_features=n)
+        hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
 
         # Unisci la matrice al dataframe
-        df_words_count = pd.DataFrame(message_matrix.toarray(), columns=hashed_words)
-        self.__dataFrame = pd.concat([self.__dataFrame, df_words_count], axis=1)
+        df_hashed_text = pd.DataFrame(hashed_text.toarray())
+        self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
 
     def __write_dataFrame(self):
-        """Salva il dataframe aggiornato in formato parquet."""
+        '''Salva il dataframe aggiornato in formato parquet.'''
 
         # Rimuovi features inutili in fase di training
         df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
+
+        # Assicurati che le nuove colonne siano stringhe
+        df_to_export.columns = df_to_export.columns.astype(str)
 
         # Esporta file
         df_to_export.to_parquet(self.DATASET_PATH)
@@ -163,13 +171,13 @@ class featureConstruction:
         return emojis.count(m, unique=True)
 
     def vocabulary_count(self, nlp_message, vocabulary):
-        """
+        '''
             Indica quanto una persona parla italiano "pulito"
                 oppure quanti inglesismi usa (in base al vocabolario in input)
 
             cioè il rapporto fra parole presenti nel vocabolario
                 e il numero totale di parole in un messaggio.
-        """
+        '''
         count = 0
         total_count = 0
 
@@ -187,24 +195,24 @@ class featureConstruction:
         return round(count / total_count, 2)
 
     def englishness(self, m):
-        """
+        '''
             Indica quanto un utente usa inglesismi all'interno di un messaggio.
-        """
+        '''
         return self.vocabulary_count(self.__nlp_en(m), self.__english_words)
 
     def italianness(self, m):
-        """
+        '''
             Indica quanto un utente parla italiano "pulito" all'interno di un messaggio.
-        """
+        '''
         return self.vocabulary_count(self.__get_nlp_it_message(m), self.__italian_words)
 
     def message_composition(self, m):
         """
             Calcola la percentuale di tag POS (Part-of-speech) presenti in un messaggio.
-            Es. "Mario mangia la pasta" 
+            Es. "Mario mangia la pasta"
                 conta il numero di pronomi, verbi, articoli, sostantivi... -> {'PROPN': 1, 'VERB': 1, 'DET': 1, 'NOUN': 1}
                 calcola la percentuale di ognuno -> {'VERB': 0.2, 'SCONJ': 0.2, 'PROPN': 0.2, 'PUNCT': 0.2, 'DET': 0.2, 'NOUN': 0.2}
-            
+
             Lista di tag POS:
             ADJ: Adjective, e.g., big, old, green, incomprehensible, first.
             ADP: Adposition, e.g., in, to, during.
@@ -243,7 +251,7 @@ class featureConstruction:
         """Restituisce l'id del tag POS della prima parola di un messaggio."""
         self.__get_nlp_it_message(m)
 
-        if self.__nlp_it_message.text == "":
+        if (self.__nlp_it_message.text == ""):
             return -1
 
         return self.__POS_LIST.index(self.__nlp_it_message[0].pos_)
