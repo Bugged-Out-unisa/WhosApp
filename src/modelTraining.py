@@ -1,5 +1,7 @@
 import sys
 import os
+import time
+import calendar
 import argparse
 import numpy as np
 import pandas as pd
@@ -12,7 +14,7 @@ import skops.io as skio
 
 
 # HOW TO USE:
-# py modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>
+# py modelTraining.py <modelName> <datasetName> -oN <*outputName> -r <*retrain>
 
 # CHECKS IF SPECIFIED DATASET EXIST
 # (dataCreation.py return already existing DF)
@@ -25,43 +27,57 @@ import skops.io as skio
 class ModelTraining:
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
         self.MODEL_PATH = "../models/"
-        self.__outputName = outputName
-        self.__model = model
-        self.__dataFrame = dataFrame
-        self.__isToRetrain = retrain
 
-        # Crea cartella dataset se non esiste
-        if not os.path.exists(self.MODEL_PATH):
-            os.makedirs(self.MODEL_PATH)
+        if outputName:
+            self.__outputName = outputName
+        else:
+            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
+
+        if model:
+            self.__model = model
+        else:
+            self.__model = None
+
+        if dataFrame:
+            self.__dataFrame = dataFrame
+        else:
+            self.__dataFrame = None
+
+        self.__isToRetrain = retrain if retrain is not None else False
+        self.__check_model_path()
 
         self.__main__()
+
+    def __check_model_path(self):
+        """Controlla se il path del modello esiste, altrimenti lo crea."""
+        if not os.path.exists(self.MODEL_PATH):
+            os.makedirs(self.MODEL_PATH)
 
     def __main__(self):
         # Se non passato per funzione controlla args da cmd line
         parser = argparse.ArgumentParser()
 
         # mandatory arguments
-        parser.add_argument("outputName", help="Nome file del modello salvato")
         parser.add_argument("modelName", help="Nome del modello da trainare")
         parser.add_argument("datasetName", help="Nome del dataset da usare nel training")
 
         # optional arguments
+        parser.add_argument("-oN", "--outputName", help="Nome file del modello salvato")
         parser.add_argument("-r", "--retrain", help="Opzione di retraining", required=False)
 
         args = None
 
-        if any(value is None for value in [self.__outputName, self.__model, self.__dataFrame]):
+        if any(value is None for value in [self.__model, self.__dataFrame]):
             datasetName = modelName = ""
 
             try:
                 args = parser.parse_args()
-
-                self.__outputName = args.outputName
                 modelName = args.modelName
                 datasetName = args.datasetName
             except:
                 raise Exception(
-                    "--Errore esecuzione da linea di comando--\nIl comando dovrebbe essere eseguito così:\npy modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>")
+                    "--Errore esecuzione da linea di comando--\nIl comando dovrebbe essere eseguito così:\npy "
+                    "modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>")
 
             try:
                 self.__model = models[modelName]
@@ -69,7 +85,7 @@ class ModelTraining:
                 raise Exception("Modello specificato non trovato")
 
             try:
-                self.__dataFrame = datasetCreation(datasetName, False).getDataframe()
+                self.__dataFrame = datasetCreation(datasetName, False).dataFrame
             except:
                 raise Exception("##MODELLO## ERRORE INDIVIDUAZIONE DATASET")
 
@@ -79,7 +95,10 @@ class ModelTraining:
         yes_choices = ["yes", "y"]
         no_choices = ["no", "n"]
 
-        self.__outputName = self.__outputName if self.__outputName.endswith(".skops") else self.__outputName + ".skops"
+        if args.outputName:
+            self.__outputName = args.outputName if args.outputName.endswith(".skops") else args.outputName + ".skops"
+        else:
+            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
 
         # controllo in caso si voglia sovrascrivere comunque
         while os.path.exists(self.MODEL_PATH + self.__outputName) and not self.__isToRetrain:
@@ -99,7 +118,7 @@ class ModelTraining:
         self.__model_training()
 
     def __model_training(self):
-        '''Applica random forest sul dataframe.'''
+        """Applica random forest sul dataframe."""
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
