@@ -1,20 +1,18 @@
 import os
 import time
+import logging
 import calendar
-import argparse
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.preprocessing import MinMaxScaler
-from utility.model_list import models
-from utility.datasetCreation import datasetCreation
 import skops.io as skio
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import train_test_split, cross_validate
 
 
 class ModelTraining:
-    YES_CHOICES = ["yes", "y", ""]
-    NO_CHOICES = ["no", "n"]
+    __YES_CHOICES = ["yes", "y", ""]
+    __NO_CHOICES = ["no", "n"]
     MODEL_PATH = "../models/"
 
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
@@ -56,9 +54,9 @@ class ModelTraining:
             user_input = input("Il modello '{}' già esiste, sovrascriverlo? [Y/N]\n".format(self.__outputName))
             user_input = user_input.lower()
 
-            if user_input in self.YES_CHOICES:
+            if user_input in self.__YES_CHOICES:
                 break
-            elif user_input in self.NO_CHOICES:
+            elif user_input in self.__NO_CHOICES:
                 print("Operazione di Training annullata")
                 return 1
             else:
@@ -67,6 +65,10 @@ class ModelTraining:
 
     def __model_training(self):
         """Applica random forest sul dataframe."""
+
+        # LOGGING:: Stampa il nome del modello trainato
+        logging.info(f"Modello trainato: {self.__outputName}")
+
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
@@ -82,10 +84,15 @@ class ModelTraining:
 
         # Stampa un report sulle metriche di valutazione del modello
         print(f"[INFO] Media delle metriche di valutazione dopo {cv}-fold cross validation:")
+        # LOGGING:: Stampa un report sulle metriche di valutazione del modello
+        logging.info(f"Media delle metriche di valutazione dopo {cv}-fold cross validation:")
+
         indexes = list(scores.keys())
 
         for index in indexes:
-            print(f"{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+            # LOGGING:: Stampa le metriche di valutazione del modello
+            logging.info(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+            print(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
 
         # TRAINING CON SPLIT CLASSICO
         test_size = 0.2  # percentuale del dataset di test dopo lo split
@@ -99,10 +106,14 @@ class ModelTraining:
         # Calcola l'accuratezza del modello
         accuracy = accuracy_score(y_test, predictions)
         print(f'Accuracy: {round(accuracy, 2)}\n')
+        # LOGGING:: Stampa l'accuratezza del modello
+        logging.info(f"Accuracy: {round(accuracy, 2)}\n")
 
         # Stampa il classification report
         report = classification_report(y_test, predictions)
         print(report)
+        # LOGGING:: Stampa il classification report
+        logging.info(report)
 
         # Stampa le feature più predittive
         n = 20  # numero di feature

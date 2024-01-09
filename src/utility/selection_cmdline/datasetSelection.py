@@ -1,7 +1,8 @@
 import os
+import logging
 import pandas as pd
-from utility.exceptions import ExtensionError
 from simple_term_menu import TerminalMenu
+from utility.exceptions import ExtensionError
 
 
 class DatasetSelection:
@@ -40,6 +41,10 @@ class DatasetSelection:
 
         dataset_selected = cls.__load_dataset(menu_entry_index, datasets)
         print(f"Dataset selezionato: {datasets[menu_entry_index]}")
+
+        # LOGGING:: Stampa il dataset selezionato
+        logging.info(f"Dataset usato per il training: {datasets[menu_entry_index]}")
+
         return dataset_selected
 
     @property

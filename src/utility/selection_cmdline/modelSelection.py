@@ -1,7 +1,6 @@
-import pandas as pd
-from utility.model_list import models
+import logging
 from simple_term_menu import TerminalMenu
-from utility.exceptions import ExtensionError
+from utility.model.model_list import models
 
 
 class ModelSelection:
@@ -29,7 +28,12 @@ class ModelSelection:
         model_name = cls.model_names[menu_entry_index]
 
         model_selected = cls.__load_model(model_name)
+
         print(f"Modello selezionato: {model_name}")
+
+        # LOGGING:: Stampa il modello selezionato
+        logging.info(f"Modello usato per il training: {model_name}")
+
         return model_selected
 
     @property

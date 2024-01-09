@@ -60,8 +60,6 @@ class datasetCreation:
         """Avvia la creazione del dataset."""
 
         # LOGGING:: Stampa il nome del dataset
-        logging.info(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}")
-        logging.info(f"!!NEW DATASET CREATION!! ")
         logging.info(f"Dataset name: {self.__datasetName}")
 
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
