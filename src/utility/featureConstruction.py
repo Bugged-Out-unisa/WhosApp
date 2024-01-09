@@ -97,7 +97,8 @@ class featureConstruction():
 
 
         # Rimuovi features inutili in fase di training
-        self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
+        # errors='ignore' perché può capitare che una feature sia già stata rimossa
+        self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1, errors='ignore')
 
         # Assicurati che le nuove colonne siano stringhe
         self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
