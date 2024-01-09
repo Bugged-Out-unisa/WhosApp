@@ -1,5 +1,5 @@
 import sys
-from modelTraining import ModelTraining
+from newTraining import ModelTraining
 #from feel_it import EmotionClassifier, SentimentClassifie
 
 if __name__ == "__main__":

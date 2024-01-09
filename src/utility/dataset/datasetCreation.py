@@ -1,25 +1,12 @@
 import os
 import time
 import logging
-import argparse
-import datetime
 import calendar
 import pandas as pd
-from utility.extractChat import ExtractChat
-from utility.rawDataReader import rawDataReader
-from utility.data_framing import DataFrameProcessor
-from utility.featureConstruction import featureConstruction
-from utility.logging import init_logging
-
-
-# HOW TO USE
-# datasetCreation.py -dN <datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
-#   if datasetName exists
-#       if refactor is specified then create dataset with said name
-#       else return already made dataset
-#   else create dataset based on rawdata with that name
-
-# [W I P] you can use config.json to choose which function to run...
+from utility.dataset.extractChat import ExtractChat
+from utility.dataset.rawDataReader import rawDataReader
+from utility.dataset.dataFrameProcess import DataFrameProcessor
+from utility.dataset.featureConstruction import featureConstruction
 
 
 class datasetCreation:
@@ -55,9 +42,6 @@ class datasetCreation:
         self.__dataFrame = None
         self.__check_dataset_path()
 
-        # Crea il dataset
-        self.__main__()
-
     @staticmethod
     def __check_extension_file(filename: str, ext: str):
         """Controlla se l'estensione del file è quella specificata"""
@@ -71,11 +55,10 @@ class datasetCreation:
         if not os.path.exists(cls.DATASET_PATH):
             os.makedirs(cls.DATASET_PATH)
 
-    def __main__(self):
+    def run(self):
+        """Avvia la creazione del dataset."""
 
         # LOGGING:: Stampa il nome del dataset
-        logging.info(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}")
-        logging.info(f"!!NEW DATASET CREATION!! ")
         logging.info(f"Dataset name: {self.__datasetName}")
 
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
@@ -83,8 +66,6 @@ class datasetCreation:
 
             print("\n[LOADING] Leggendo le chat dai file grezzi...")
             rawdata = rawDataReader(self.DATA_PATH).read_all_files()
-
-            dates = users = messages = None
 
             print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
             if self.__aliasFile:
@@ -101,7 +82,7 @@ class datasetCreation:
 
             print("[INFO] Dataset creato con successo.")
 
-        # se il file esiste già allora salva  il DF esistente
+        # se il file esiste già allora salva il DF esistente
         elif os.path.exists(self.DATASET_PATH + self.__datasetName):
             print("[INFO] Trovato dataset esistente")
             self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__datasetName)
@@ -110,23 +91,3 @@ class datasetCreation:
     @property
     def dataFrame(self):
         return self.__dataFrame
-
-
-def args_cmdline():
-    # Se non passato per funzione controlla args da cmd line
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False)
-    parser.add_argument("-c", "--config", help="File config", required=False)
-    parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
-    parser.add_argument("-r", "--refactor", help="Opzione di refactor", action="store_true", required=False)
-
-    args = parser.parse_args()
-
-    return [v if v is not None else None for k, v in vars(args).items()]
-
-
-if __name__ == "__main__":
-    input_cmd_line = args_cmdline()
-    init_logging("dataset-creation.log")
-    datasetCreation(*input_cmd_line)

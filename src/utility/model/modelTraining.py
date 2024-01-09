@@ -1,124 +1,74 @@
-import sys
 import os
 import time
+import logging
 import calendar
-import argparse
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.preprocessing import MinMaxScaler
-from utility.model_list import models
-from datasetCreation import datasetCreation
 import skops.io as skio
-
-
-# HOW TO USE:
-# py modelTraining.py <modelName> <datasetName> -oN <*outputName> -r <*retrain>
-
-# CHECKS IF SPECIFIED DATASET EXIST
-# (dataCreation.py return already existing DF)
-
-# ELSE IT CREATES A NEW DATASET WITH SPECIFIED NAME from datasetCreation.py
-
-# ONCE A DATASET IS GIVEN, IT TRAINS MODEL THEN PERSISTS IT
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import train_test_split, cross_validate
 
 
 class ModelTraining:
+    __YES_CHOICES = ["yes", "y", ""]
+    __NO_CHOICES = ["no", "n"]
+    MODEL_PATH = "../models/"
+
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
-        self.MODEL_PATH = "../models/"
 
         if outputName:
             self.__outputName = outputName
         else:
             self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
 
-        if model:
+        if model is not None:
             self.__model = model
         else:
-            self.__model = None
+            raise ValueError("Inserire il modello da addestrare")
 
-        if dataFrame:
+        if dataFrame is not None:
             self.__dataFrame = dataFrame
         else:
-            self.__dataFrame = None
+            raise ValueError("Inserire il dataset da usare per l'addestramento")
 
         self.__isToRetrain = retrain if retrain is not None else False
         self.__check_model_path()
 
-        self.__main__()
+    def run(self):
+        """Avvia il training del modello."""
+        self.__check_duplicates()
+
+        print("[INFO] Training del modello in corso...\n")
+        self.__model_training()
 
     def __check_model_path(self):
         """Controlla se il path del modello esiste, altrimenti lo crea."""
         if not os.path.exists(self.MODEL_PATH):
             os.makedirs(self.MODEL_PATH)
 
-    def __main__(self):
-        # Se non passato per funzione controlla args da cmd line
-        parser = argparse.ArgumentParser()
-
-        # mandatory arguments
-        parser.add_argument("modelName", help="Nome del modello da trainare")
-        parser.add_argument("datasetName", help="Nome del dataset da usare nel training")
-
-        # optional arguments
-        parser.add_argument("-oN", "--outputName", help="Nome file del modello salvato")
-        parser.add_argument("-r", "--retrain", help="Opzione di retraining", required=False)
-
-        args = None
-
-        if any(value is None for value in [self.__model, self.__dataFrame]):
-            datasetName = modelName = ""
-
-            try:
-                args = parser.parse_args()
-                modelName = args.modelName
-                datasetName = args.datasetName
-            except:
-                raise Exception(
-                    "--Errore esecuzione da linea di comando--\nIl comando dovrebbe essere eseguito così:\npy "
-                    "modelTraining.py <outputName> <modelName> <datasetName> -r <*retrain>")
-
-            try:
-                self.__model = models[modelName]
-            except:
-                raise Exception("Modello specificato non trovato")
-
-            try:
-                self.__dataFrame = datasetCreation(datasetName, False).dataFrame
-            except:
-                raise Exception("##MODELLO## ERRORE INDIVIDUAZIONE DATASET")
-
-            if args.retrain:
-                self.__isToRetrain = True if args.retrain == "retrain" else False
-
-        yes_choices = ["yes", "y"]
-        no_choices = ["no", "n"]
-
-        if args.outputName:
-            self.__outputName = args.outputName if args.outputName.endswith(".skops") else args.outputName + ".skops"
-        else:
-            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
-
-        # controllo in caso si voglia sovrascrivere comunque
+    def __check_duplicates(self):
+        # Controllo in caso si voglia sovrascrivere comunque
         while os.path.exists(self.MODEL_PATH + self.__outputName) and not self.__isToRetrain:
+
             user_input = input("Il modello '{}' già esiste, sovrascriverlo? [Y/N]\n".format(self.__outputName))
             user_input = user_input.lower()
 
-            if user_input in yes_choices:
+            if user_input in self.__YES_CHOICES:
                 break
-            elif user_input in no_choices:
+            elif user_input in self.__NO_CHOICES:
                 print("Operazione di Training annullata")
                 return 1
             else:
-                print(' ')
+                print('Inserire \"Y\" o \"N\"')
                 continue
-
-        print("[INFO] Training del modello in corso...\n")
-        self.__model_training()
 
     def __model_training(self):
         """Applica random forest sul dataframe."""
+
+        # LOGGING:: Stampa il nome del modello trainato
+        logging.info(f"Modello trainato: {self.__outputName}")
+
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
@@ -134,10 +84,15 @@ class ModelTraining:
 
         # Stampa un report sulle metriche di valutazione del modello
         print(f"[INFO] Media delle metriche di valutazione dopo {cv}-fold cross validation:")
+        # LOGGING:: Stampa un report sulle metriche di valutazione del modello
+        logging.info(f"Media delle metriche di valutazione dopo {cv}-fold cross validation:")
+
         indexes = list(scores.keys())
 
         for index in indexes:
-            print(f"{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+            # LOGGING:: Stampa le metriche di valutazione del modello
+            logging.info(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+            print(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
 
         # TRAINING CON SPLIT CLASSICO
         test_size = 0.2  # percentuale del dataset di test dopo lo split
@@ -151,10 +106,14 @@ class ModelTraining:
         # Calcola l'accuratezza del modello
         accuracy = accuracy_score(y_test, predictions)
         print(f'Accuracy: {round(accuracy, 2)}\n')
+        # LOGGING:: Stampa l'accuratezza del modello
+        logging.info(f"Accuracy: {round(accuracy, 2)}\n")
 
         # Stampa il classification report
         report = classification_report(y_test, predictions)
         print(report)
+        # LOGGING:: Stampa il classification report
+        logging.info(report)
 
         # Stampa le feature più predittive
         n = 20  # numero di feature
@@ -169,11 +128,7 @@ class ModelTraining:
 
             for i in top_n_features:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
-        except:
+        except Exception:
             print("Il modello non verifica importanza delle features")
 
         skio.dump(self.__model, self.MODEL_PATH + self.__outputName)
-
-
-if __name__ == "__main__":
-    ModelTraining()
