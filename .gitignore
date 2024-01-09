@@ -3,6 +3,7 @@ rawdata/*
 models/*
 datasets/*
 logs/*
+testing/*
 
 # pycache
 src/__pycache__/
