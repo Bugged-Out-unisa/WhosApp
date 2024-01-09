@@ -19,12 +19,9 @@ class modelExecution:
         self.__trainedModel = skio.load(fileModel)
     
     def dataframe_for_messages(self, message):
-        df = pd.DataFrame({
-                "responsiveness": 600,
-                "message": message
-            })
+        df = pd.DataFrame({"message": message})
             
-        return featureConstruction(dataFrame= df, datasetPath="./", createDataFrame=False).get_dataframe()
+        return featureConstruction(dataFrame= df, datasetPath="./", saveDataFrame=False).get_dataframe()
 
     def __predict__(self):
         """

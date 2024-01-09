@@ -7,19 +7,20 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from collections import Counter, defaultdict
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-#from feel_it import EmotionClassifier, SentimentClassifier
+from feel_it import EmotionClassifier, SentimentClassifier
 
 class featureConstruction():
 
-    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.json", createDataFrame :bool = True):
+    def __init__(self, dataFrame : pd.DataFrame, datasetPath : str, config = "../configs/config.json", saveDataFrame :bool = True):
         self.DATASET_PATH = datasetPath
         self.__dataFrame = dataFrame
         self.__config = config
+        self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()        
         self.__feature_construction()
         
-        if(createDataFrame):
+        if saveDataFrame:
             self.__write_dataFrame()
 
     def get_dataframe(self):
@@ -74,6 +75,14 @@ class featureConstruction():
             self.bag_of_words()
             self.__features_enabled.remove("bag_of_words")
 
+        if "responsiveness" in self.__features_enabled:
+            # Rimuovi dalla lista perché è già calcolata in fase di training
+            self.__features_enabled.remove("responsiveness")
+        else:
+            # Rimuovi dal dataframe se non è abilitata
+            # (perché non ha senso per il messaggio in input in demo.py)
+            self.__columns_to_drop.append("responsiveness")
+
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -95,12 +104,12 @@ class featureConstruction():
         for pos in self.__POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
-
         # Rimuovi features inutili in fase di training
-        # errors='ignore' perché può capitare che una feature sia già stata rimossa
-        self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1, errors='ignore')
+        # errors='ignore' per evitare errori se la colonna non esiste
+        self.__dataFrame = self.__dataFrame.drop(self.__columns_to_drop, axis=1, errors='ignore')
 
-        # Assicurati che le nuove colonne siano stringhe
+        # Assicurati che il nome delle colonne siano stringhe
+        # (altrimenti ci sono problemi in fase di esportazione del file parquet)
         self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
 
         #scaler = MinMaxScaler()
@@ -133,7 +142,7 @@ class featureConstruction():
             n = int(2**np.ceil(np.log2(n_unique_words)))
 
         # Inizializza l'HashingVectorizer con il numero di features calcolato
-        hashing_vec = HashingVectorizer(n_features=n, ngram_range=(1,2))
+        hashing_vec = HashingVectorizer(n_features=n)
         hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
 
         # Unisci la matrice al dataframe
@@ -142,7 +151,6 @@ class featureConstruction():
 
     def __write_dataFrame(self):
         '''Salva il dataframe aggiornato in formato parquet.'''
-        # Esporta file
         self.__dataFrame.to_parquet(self.DATASET_PATH)
 
 
