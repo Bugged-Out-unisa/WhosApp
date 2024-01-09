@@ -1,19 +1,21 @@
 import os
+import logging
 from tqdm import tqdm
 
-class rawDataReader():
+
+class rawDataReader:
     def __init__(self):
         # Path della cartella delle chat
         # dove verranno analizzati in automatico tutti i file al suo interno
         self.DATA_PATH = "../rawdata"
-    
+
     def __init__(self, dataPath):
         self.DATA_PATH = dataPath
 
     def read_all_files(self):
-        '''Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH.'''
+        """Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH."""
         rawdata = []
-        
+
         # Ottieni lista dei file nella cartella
         files = [f for f in os.listdir(self.DATA_PATH) if os.path.isfile(os.path.join(self.DATA_PATH, f))]
 
@@ -25,5 +27,8 @@ class rawDataReader():
             f = open(os.path.join(self.DATA_PATH, file_name), 'r', encoding='utf-8')
             rawdata.append(f.read())
             f.close()
+
+        # LOGGING:: Stampa i file utilizzati per l'estrazione dati
+        logging.info("File grezzi usati: \n" + "\n".join(f"\t{file}" for file in files))
 
         return rawdata
