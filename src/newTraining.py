@@ -1,4 +1,5 @@
 import argparse
+from utility.logging import init_logging
 from utility.model.modelTraining import ModelTraining
 from utility.selection_cmdline.datasetSelection import DatasetSelection
 from utility.selection_cmdline.modelSelection import ModelSelection
@@ -15,6 +16,8 @@ from utility.selection_cmdline.modelSelection import ModelSelection
 
 
 if __name__ == "__main__":
+    # LOGGING:: Inizializza il logging
+    init_logging("training-report.log", "!! NEW TRAINING !!")
 
     # Argomenti da linea di comando
     parser = argparse.ArgumentParser()
