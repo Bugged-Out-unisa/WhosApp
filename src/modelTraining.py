@@ -67,7 +67,7 @@ class ModelTraining:
                 raise Exception("Modello specificato non trovato")
 
             try:
-                self.__dataFrame = datasetCreation(datasetName, False).getDataframe()
+                self.__dataFrame = datasetCreation(datasetName, aliasFile="aliases.json",refactor=False).getDataframe()
             except:
                 raise Exception("##MODELLO## ERRORE INDIVIDUAZIONE DATASET")
 
@@ -105,8 +105,8 @@ class ModelTraining:
         y = self.__dataFrame["user"]
 
         # FEATURE SCALING
-        scaler = MinMaxScaler()
-        X = pd.DataFrame(scaler.fit_transform(X))
+        # scaler = MinMaxScaler()
+        # X = pd.DataFrame(scaler.fit_transform(X))
 
         # TRAINING CON CROSS VALIDATION
         cv  = 5 # numero di fold (di solito 5 o 10)
@@ -123,7 +123,9 @@ class ModelTraining:
         # TRAINING CON SPLIT CLASSICO
         test_size = 0.2 # percentuale del dataset di test dopo lo split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+
         self.__model.fit(X_train, y_train)
+
         predictions = self.__model.predict(X_test)
 
         # Genera un report per il modello addestrato

@@ -4,8 +4,9 @@ import json
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from collections import Counter, defaultdict
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 #from feel_it import EmotionClassifier, SentimentClassifier
 
 class featureConstruction():
@@ -98,6 +99,11 @@ class featureConstruction():
         # Rimuovi features inutili in fase di training
         self.__dataFrame = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
 
+        # Assicurati che le nuove colonne siano stringhe
+        self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
+
+        #scaler = MinMaxScaler()
+        #self.__dataFrame = pd.DataFrame(scaler.fit_transform(self.__dataFrame))
 
     def __get_nlp_it_message(self, m):
         '''Metodo che serve per non ricalcolare nlp_it_message in feature diverse.'''
@@ -135,10 +141,6 @@ class featureConstruction():
 
     def __write_dataFrame(self):
         '''Salva il dataframe aggiornato in formato parquet.'''
-
-        # Assicurati che le nuove colonne siano stringhe
-        self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
-
         # Esporta file
         self.__dataFrame.to_parquet(self.DATASET_PATH)
 
