@@ -132,7 +132,7 @@ class featureConstruction():
             n = int(2**np.ceil(np.log2(n_unique_words)))
 
         # Inizializza l'HashingVectorizer con il numero di features calcolato
-        hashing_vec = HashingVectorizer(n_features=n)
+        hashing_vec = HashingVectorizer(n_features=n, ngram_range=(1,2))
         hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
 
         # Unisci la matrice al dataframe

@@ -38,7 +38,7 @@ class modelExecution:
                     probabilities[i][0]
                 except:
                     probabilities.append(list())
-                    
+
             for i, value in enumerate(predictedUser[0]):
                 probabilities[i].append(value)
 
@@ -46,8 +46,16 @@ class modelExecution:
             for user_prob in probabilities:
                 means.append(np.average(user_prob))
             
-            print("----SINGOLO----\nUSER 0: {} \nUSER 1: {}".format(probabilities[0][-1], probabilities[1][-1]))
-            print("-----MEDIA-----\nUSER 0: {} \nUSER 1: {}".format(means[0], means[1]))
+            print("----SINGOLO----")
+            for i in range(len(probabilities)):
+                print("USER {}: {}".format(i, probabilities[i][-1]))
+            
+            print("----MEDIA----")
+            for i in range(len(means)):
+                print("USER {}: {}".format(i, means[i]))
+
+            # print("----SINGOLO----\nUSER 0: {} \nUSER 1: {}".format(probabilities[0][-1], probabilities[1][-1]))
+            # print("-----MEDIA-----\nUSER 0: {} \nUSER 1: {}".format(means[0], means[1]))
 
             
 
