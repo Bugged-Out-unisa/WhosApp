@@ -1,7 +1,6 @@
 import os
 import time
 import logging
-import datetime
 import calendar
 import pandas as pd
 from utility.dataset.extractChat import ExtractChat
