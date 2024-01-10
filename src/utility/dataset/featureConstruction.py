@@ -10,7 +10,7 @@ from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
-class featureConstruction():
+class featureConstruction:
 
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json"):
         self.DATASET_PATH = datasetPath
@@ -20,6 +20,9 @@ class featureConstruction():
         self.__init_configs()
         self.__feature_construction()
         self.__write_dataFrame()
+
+        # Variabile che contiene il dataframe finale
+        self.__final_dataFrame = None
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
@@ -136,6 +139,9 @@ class featureConstruction():
 
         # Rimuovi features inutili in fase di training
         df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
+
+        # Salva il dataframe finale
+        self.__final_dataFrame = df_to_export
 
         # Assicurati che le nuove colonne siano stringhe
         df_to_export.columns = df_to_export.columns.astype(str)
