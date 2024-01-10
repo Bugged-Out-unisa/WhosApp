@@ -1,6 +1,7 @@
 import argparse
 from utility.logging import init_logging
 from utility.dataset.datasetCreation import datasetCreation
+from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
 
 
 # HOW TO USE
@@ -27,7 +28,17 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--refactor", help="Opzione di refactor", action="store_true", required=False)
 
     args = parser.parse_args()
-    dataset_name, config, aliases, refactor = args.datasetName, args.config, args.aliases, args.refactor
+    dataset_name, config, aliases_file, refactor = args.datasetName, args.config, args.aliases, args.refactor
+
+    # Selezione opzioni per l'utente "other"
+    placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
 
     # Creazione del dataset con i parametri passati da linea di comando
-    datasetCreation(dataset_name, config, aliases, refactor).run()
+    datasetCreation(
+        dataset_name,
+        config,
+        aliases_file,
+        placeholder_user,
+        remove_generic,
+        refactor
+    ).run()
