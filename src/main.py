@@ -48,6 +48,9 @@ def create_dataset_and_train_model():
     # Selezione opzioni per l'utente "other"
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
 
+    # Selezione del modello
+    selected_model = ModelSelection().model
+
     # Creazione del dataset con i parametri passati da linea di comando
     dataframe = datasetCreation(
         dataset_name,
@@ -58,11 +61,8 @@ def create_dataset_and_train_model():
         refactor
     ).run()
 
-    # Selezione del dataset
+    # Usa il dataset creato oppure effettua la selezione del dataset
     selected_dataset = dataframe if dataframe is not None else DatasetSelection().dataset
-
-    # Selezione del modello
-    selected_model = ModelSelection().model
 
     # Training del modello con i parametri passati da linea di comando
     ModelTraining(output_name, selected_model, selected_dataset, retrain).run()
