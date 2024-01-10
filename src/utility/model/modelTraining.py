@@ -73,9 +73,9 @@ class ModelTraining:
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
 
-        # FEATURE SCALING
-        scaler = MinMaxScaler()
-        X = pd.DataFrame(scaler.fit_transform(X))
+        # # FEATURE SCALING
+        # scaler = MinMaxScaler()
+        # X = pd.DataFrame(scaler.fit_transform(X))
 
         # TRAINING CON CROSS VALIDATION
         cv = 5  # numero di fold (di solito 5 o 10)
