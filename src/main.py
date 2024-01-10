@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
-import skops.io as skio
-from utility.model.modelTraining import ModelTraining
 from utility.dataset.featureConstruction import featureConstruction
+from utility.selection_cmdline.trainedModelSelection import TrainedModelSelection
 
 class modelExecution:
     """
@@ -14,9 +13,10 @@ class modelExecution:
     MODEL_PATH = "../models/"
 
     def __init__(self, model = None):
-        fileModel = self.MODEL_PATH + model
-
-        self.__trainedModel = skio.load(fileModel)
+        if model == None:
+            self.__trainedModel = TrainedModelSelection().model
+        else:
+            self.__trainedModel = model
 
     def dataframe_for_messages(self, message):
         df = pd.DataFrame({"message": message})
@@ -60,5 +60,4 @@ class modelExecution:
 
 
 if __name__ == "__main__":
-    print("[INFO] Caricamento del modello addestrato...")
-    modelExecution("model.skops").__predict__()
+    modelExecution().__predict__()

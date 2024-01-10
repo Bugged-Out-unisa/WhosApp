@@ -1,5 +1,6 @@
 # output
 rawdata/*
+rawdata_all/*
 models/*
 datasets/*
 logs/*
