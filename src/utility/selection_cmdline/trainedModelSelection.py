@@ -4,13 +4,15 @@ import pandas as pd
 from simple_term_menu import TerminalMenu
 from utility.exceptions import ExtensionError
 import skops.io as skio
+from joblib import load
+from utility.model.modelTraining import ModelTraining
 
 
 class TrainedModelSelection:
     MODEL_PATH = "../models/"
 
     def __init__(self):
-        self.__model = self.__select_model()
+        self.__model, self.__scaler = self.__select_model()
 
     @classmethod
     def __show_models(cls):
@@ -40,15 +42,27 @@ class TrainedModelSelection:
         menu = TerminalMenu(models)
         menu_entry_index = menu.show()
 
+        # Ottieni model
+        model_name = models[menu_entry_index]
         model_selected = cls.__load_model(menu_entry_index, models)
-        print(f"Modello selezionato: {models[menu_entry_index]}")
 
-        # LOGGING:: Stampa il modello selezionato
-        logging.info(f"Modello usato: {models[menu_entry_index]}")
+        # Ottieni scaler
+        scaler_name = ModelTraining.get_scaler_path(model_name)
+        scaler_selected = load(cls.MODEL_PATH + scaler_name)
 
-        return model_selected
+        print(f"Modello selezionato: {model_name}")
+        print(f"Scaler selezionato: {scaler_name}")
+
+        # LOGGING:: Stampa il modello (e lo scaler) selezionato
+        logging.info(f"Modello usato: {model_name}")
+        logging.info(f"Scaler usato: {scaler_name}")
+
+        return model_selected, scaler_selected
 
     @property
     def model(self):
         return self.__model
-
+    
+    @property
+    def scaler(self):
+        return self.__scaler

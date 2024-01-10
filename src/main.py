@@ -12,16 +12,24 @@ class modelExecution:
 
     MODEL_PATH = "../models/"
 
-    def __init__(self, model = None):
+    def __init__(self, model = None, scaler = None):
         if model == None:
-            self.__trainedModel = TrainedModelSelection().model
+            selection = TrainedModelSelection()
+            
+            self.__trainedModel = selection.model
+            self.__scaler = selection.scaler
         else:
             self.__trainedModel = model
+            self.__scaler = scaler
 
     def dataframe_for_messages(self, message):
-        df = pd.DataFrame({"message": message})
-
-        return featureConstruction(dataFrame=df, datasetPath="./", saveDataFrame=False).get_dataframe()
+        # Applica feature construction al messaggio
+        df = featureConstruction(dataFrame=pd.DataFrame({"message": message}),\
+                                 datasetPath="./", saveDataFrame=False)\
+                                .get_dataframe()
+        
+        # Applica scaling
+        return pd.DataFrame(self.__scaler.transform(df), columns=df.columns)
 
     def __predict__(self):
         """
