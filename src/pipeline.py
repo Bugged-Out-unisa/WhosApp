@@ -10,7 +10,7 @@ from utility.cmdlineManagement.modelSelection import ModelSelection
 Per eseguire il comando da linea di comando con gli argomenti opzionali:
 
 Comando per la creazione del dataset e il training del modello:
-    py main.py -oN <nome_modello> -dN <nome_dataset> -c <file_configurazione> -a <file_alias> -r -ref
+    py pipeline.py -oN <nome_modello> -dN <nome_dataset> -c <file_configurazione> -a <file_alias> -r -ref
 
 Dove:
     -oN/--outputName: Specifica il nome del file per il modello salvato.

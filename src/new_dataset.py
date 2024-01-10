@@ -5,7 +5,7 @@ from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserMana
 
 
 # HOW TO USE
-# py newDataset.py -dN <*datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
+# py new_dataset.py -dN <*datasetName> -c <*configFile> -a <*aliases> -r <*refactor>
 #   if datasetName exists
 #       if refactor is specified then create dataset with said name
 #       else return already made dataset
