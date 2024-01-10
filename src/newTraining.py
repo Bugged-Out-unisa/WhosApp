@@ -1,8 +1,8 @@
 import argparse
 from utility.logging import init_logging
 from utility.model.modelTraining import ModelTraining
-from utility.selection_cmdline.datasetSelection import DatasetSelection
-from utility.selection_cmdline.modelSelection import ModelSelection
+from utility.cmdlineManagement.datasetSelection import DatasetSelection
+from utility.cmdlineManagement.modelSelection import ModelSelection
 
 # HOW TO USE:
 # py newTraining.py -oN <*outputName> -r <*retrain>
