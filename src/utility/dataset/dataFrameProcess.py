@@ -1,11 +1,12 @@
-import pandas as pd
 import re
+import logging
+import pandas as pd
 from sklearn.utils import resample
 
 
 class DataFrameProcessor:
 
-    BLACKLIST = "./utility/data_framing/blacklist.txt"
+    BLACKLIST = "./utility/dataset/blacklist.txt"
 
     def __init__(self, dates=None, users=None, messages=None):
         self.__dates = dates
@@ -59,6 +60,9 @@ class DataFrameProcessor:
             f"{i}: {len(df[df['user'] == i])}" for i in range(len(self.__unique_users))
         ))
 
+        # LOGGING:: Stampa il numero di istanze per utente
+        logging.info(f"{message}: \n" + "\n".join(f"\t{i}: {len(df[df['user'] == i])}" for i in range(len(self.__unique_users))))
+
     @classmethod
     def __cleaning_blacklist(cls, df: pd.DataFrame):
         """
@@ -109,7 +113,7 @@ class DataFrameProcessor:
         """
         
         df = pd.DataFrame({
-            "date": self.__dates,
+            # "date": self.__dates,    # Inutile in fase di training
             "responsiveness": self.__responsiveness(),
             "user": self.__users,
             "message": self.__messages

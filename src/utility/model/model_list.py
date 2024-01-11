@@ -7,9 +7,9 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 models = {
-    "random_forest" : RandomForestClassifier(n_estimators=100, random_state=42),
+    "random_forest": RandomForestClassifier(n_estimators=100, random_state=42),
     "naive_bayes": GaussianNB(),
-    "svc" : LinearSVC(dual=True),
+    "svc": LinearSVC(dual=True),
     "neural_network": MLPClassifier(random_state=42),
     "gradient_boosting": GradientBoostingClassifier(random_state=0),
     "extra_trees": ExtraTreesClassifier(random_state=0),

@@ -1,7 +1,9 @@
 import re
 import json
-from datetime import datetime
+import logging
 from tqdm import tqdm
+from datetime import datetime
+from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager as Phum
 
 
 class ExtractChat:
@@ -9,17 +11,25 @@ class ExtractChat:
     REGEX_TIMESTAMP_FOR_ANDROID = REGEX_TIMESTAMP_BASE + r" - "
     REGEX_TIMESTAMP_FOR_IOS = r"\[" + REGEX_TIMESTAMP_BASE + r":\d{2}\] "
 
-    def __init__(self, rawdata :str, aliases :str = None):
+    def __init__(
+            self,
+            rawdata: str,
+            aliases: str = None,
+            placeholder_user: str = Phum.DEFAULT_PLACEHOLDER,
+            remove_generic_user: bool = False
+    ):
         self.__rawdata = rawdata
         self.__aliasesPath = aliases
         self.__userDict = dict()
         self.__regex_timestamp = None
+        self.__placeholder_user = placeholder_user
+        self.__remove_generic = remove_generic_user
         self.__loadAliases()
 
     def __loadAliases(self):
         try:
             f = open(self.__aliasesPath, "r", encoding="utf8")
-        except Exception: 
+        except Exception:
             return
 
         data = json.load(f)
@@ -27,9 +37,8 @@ class ExtractChat:
         for name in data:
             for value in data[name]:
                 self.__userDict[value] = name
-                
-        f.close()
 
+        f.close()
 
     def __set_datatime(self, file):
         """
@@ -60,19 +69,19 @@ class ExtractChat:
         for file in tqdm(self.__rawdata):
             # Ottieni regex adeguata
             self.__set_datatime(file)
-            
+
             for match in re.findall(self.__regex_timestamp, file):
                 # Estrai lista di numeri contenuti nella data "grezza"
                 numbers = [int(num) for num in re.findall(r'\d+', match)]
 
                 # Rimuovi i secondi presenti in IOS per omologarsi ad Android
-                if (len(numbers) == 6): numbers = numbers[:-1]
+                if len(numbers) == 6: numbers = numbers[:-1]
 
                 # Estrai valori singoli
-                day, month, year, hour, minute  = numbers
+                day, month, year, hour, minute = numbers
 
                 # Espandi il formato dell'anno (yy -> yyyy)
-                if (len(str(year)) == 2): year += 2000
+                if len(str(year)) == 2: year += 2000
 
                 # Costruisci data e ottieni il suo timestamp
                 dates.append(int(datetime(year, month, day, hour, minute).timestamp()))
@@ -88,8 +97,16 @@ class ExtractChat:
                 else:
                     users.append('info')
                     messages.append(entry[0])
-        
-        if(len(self.__userDict)) >= 1:
-            users = [self.__userDict.get(name, "test") for name in users]
+
+        if (len(self.__userDict)) >= 1:
+            users = [self.__userDict.get(name, self.__placeholder_user) for name in users]
+            if self.__remove_generic:
+                # LOGGING:: Stampa la rimozione degli utenti non presenti in aliases
+                logging.info(f"Rimozione degli utenti non prensenti in {self.__aliasesPath}")
+                print(f"[INFO] Rimozione degli utenti non prensenti in {self.__aliasesPath}")
+                users = [user for user in users if user != self.__remove_generic]
+
+        # LOGGING:: Stampa gli utenti trovati
+        logging.info(f"Utenti trovati: \n" + "\n".join(f"\t{user} -> {i}" for i, user in enumerate(set(users))))
 
         return dates, users, messages
