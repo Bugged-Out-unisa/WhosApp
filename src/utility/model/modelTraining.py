@@ -4,10 +4,10 @@ import logging
 import calendar
 import numpy as np
 import pandas as pd
-import skops.io as skio
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.pipeline import Pipeline
 from joblib import dump
 
 
@@ -21,7 +21,7 @@ class ModelTraining:
         if outputName:
             self.__outputName = outputName
         else:
-            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
+            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".joblib"
 
         if model is not None:
             self.__model = model
@@ -44,7 +44,7 @@ class ModelTraining:
         self.__model_training()
 
     def __check_model_path(self):
-        """Controlla se il path del modello esiste, altrimenti lo crea."""
+        """Controlla se la cartella del modello esiste, altrimenti lo crea."""
         if not os.path.exists(self.MODEL_PATH):
             os.makedirs(self.MODEL_PATH)
 
@@ -75,7 +75,8 @@ class ModelTraining:
         y = self.__dataFrame["user"]
 
         # Applica feature scaling
-        X = self.__feature_scaling(X)
+        scaler = MinMaxScaler()
+        X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
         # TRAINING CON CROSS VALIDATION
         cv = 5  # numero di fold (di solito 5 o 10)
@@ -131,25 +132,11 @@ class ModelTraining:
         except Exception:
             print("Il modello non verifica importanza delle features")
 
-        skio.dump(self.__model, self.MODEL_PATH + self.__outputName)
+        # Crea una pipeline con lo scaler e il classificatore
+        pipeline = Pipeline([
+            ('scaler', scaler),
+            ('classifier', self.__model)
+        ])
 
-    def __feature_scaling(self, df: pd.DataFrame):
-        """     
-            Scala le feature in un range da 0 a 1 e 
-            salva lo scaler in un file avente lo stesso nome del modello.
-        """
-        # Applica minmax scaling
-        scaler = MinMaxScaler()
-        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-
-        # Salva lo scaler in un file avente lo stesso nome del modello
-        # (altrimenti in modelExecution non si potrebbe scalare il messaggio in input)
-        scaler_file_path = ModelTraining.get_scaler_path(self.MODEL_PATH + self.__outputName)
-        dump(scaler, scaler_file_path)
-
-        return df
-
-    @staticmethod
-    def get_scaler_path(model_path: str):
-        """Ottieni il path dello scaler associato al modello."""
-        return model_path.replace(".skops", "_scaler.joblib")
+        # Salva la pipeline (scaler e modello)
+        dump(pipeline, self.MODEL_PATH + self.__outputName)
