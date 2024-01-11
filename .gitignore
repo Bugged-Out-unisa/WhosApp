@@ -1,14 +1,13 @@
 # output
 rawdata/*
+rawdata_all/*
 models/*
 datasets/*
 logs/*
 testing/*
 
 # pycache
-src/__pycache__/
-src/utility/__pycache__/
-src/utility/data_framing/__pycache__/
+**/__pycache__/
 
 # other
 .idea/
