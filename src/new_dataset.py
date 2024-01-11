@@ -1,5 +1,7 @@
+import time
+import calendar
 import argparse
-from utility.logging import init_logging
+from utility.logging import Logger
 from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
 
@@ -15,9 +17,6 @@ from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserMana
 
 
 if __name__ == "__main__":
-    # LOGGING:: Inizializza il logging
-    init_logging("dataset-report.log", "!! NEW DATASET CREATION !!")
-
     # Argomenti da linea di comando
     parser = argparse.ArgumentParser()
 
@@ -32,6 +31,16 @@ if __name__ == "__main__":
 
     # Selezione opzioni per l'utente "other"
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
+
+    # Se il dataset_name non è None, lo imposta al timestamp. Altrimenti lo usa
+    dataset_name = dataset_name if dataset_name is not None else str(calendar.timegm(time.gmtime()))
+
+    # LOGGING:: Inizializza il logging
+    Logger(
+        name=dataset_name,
+        path=Logger.DATASET_LOGGING_PATH,
+        start_message="!! NEW DATASET CREATION !!"
+    ).run()
 
     # Creazione del dataset con i parametri passati da linea di comando
     datasetCreation(
