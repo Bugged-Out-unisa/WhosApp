@@ -52,17 +52,19 @@ def create_dataset_and_train_model():
     selected_model = ModelSelection().model
 
     # Creazione del dataset con i parametri passati da linea di comando
-    dataframe = datasetCreation(
+    dataset_creator = datasetCreation(
         dataset_name,
         config,
         aliases_file,
         placeholder_user,
         remove_generic,
         refactor
-    ).run()
+    )
+    
+    dataset_creator.run()
 
     # Usa il dataset creato oppure effettua la selezione del dataset
-    selected_dataset = dataframe if dataframe is not None else DatasetSelection().dataset
+    selected_dataset = dataset_creator.dataFrame if dataset_creator.dataFrame is not None else DatasetSelection().dataset
 
     # Training del modello con i parametri passati da linea di comando
     ModelTraining(output_name, selected_model, selected_dataset, retrain).run()

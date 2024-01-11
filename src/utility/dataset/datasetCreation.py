@@ -98,7 +98,7 @@ class datasetCreation:
                 self.__dataFrame,
                 self.DATASET_PATH + self.__datasetName,
                 self.CONFIG_PATH + self.__configFile
-            )
+            ).get_dataframe()
 
             print("[INFO] Dataset creato con successo.")
 
