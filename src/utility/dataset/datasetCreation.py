@@ -88,7 +88,7 @@ class datasetCreation:
                     remove_generic_user=self.__removeOther
                 ).extract()
             else:
-                dates, users, messages = ExtractChat(rawdata, ).extract()
+                dates, users, messages = ExtractChat(rawdata).extract()
 
             print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
             self.__dataFrame = DataFrameProcessor(dates, users, messages).get_dataframe()
