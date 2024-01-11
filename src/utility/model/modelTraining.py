@@ -17,9 +17,8 @@ class ModelTraining:
     MODEL_PATH = "../models/"
 
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
-
         if outputName:
-            self.__outputName = outputName
+            self.__outputName = self.__check_extension_file(outputName, ".skops", "model_")
         else:
             self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
 
@@ -47,6 +46,15 @@ class ModelTraining:
         """Controlla se il path del modello esiste, altrimenti lo crea."""
         if not os.path.exists(self.MODEL_PATH):
             os.makedirs(self.MODEL_PATH)
+
+    @staticmethod
+    def __check_extension_file(filename: str, ext: str, pre: str):
+        """Controlla se l'estensione del file è quella specificata"""
+        if not filename.endswith(ext):
+            filename += ext
+        if not filename.startswith(pre):
+            filename = pre + filename
+        return filename
 
     def __check_duplicates(self):
         # Controllo in caso si voglia sovrascrivere comunque
