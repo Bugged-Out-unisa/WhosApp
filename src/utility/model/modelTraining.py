@@ -18,7 +18,7 @@ class ModelTraining:
 
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
         if outputName:
-            self.__outputName = self.__check_extension_file(outputName, ".skops", "model_")
+            self.__outputName = self.__check_extension_file(outputName, ".joblib", "model_")
         else:
             self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
 
