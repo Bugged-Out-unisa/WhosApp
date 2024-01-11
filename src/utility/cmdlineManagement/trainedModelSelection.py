@@ -47,8 +47,9 @@ class TrainedModelSelection:
         model_selected = cls.__load_model(menu_entry_index, models)
 
         # Ottieni scaler
-        scaler_name = ModelTraining.get_scaler_path(model_name)
-        scaler_selected = load(cls.MODEL_PATH + scaler_name)
+        scaler_path = ModelTraining.get_scaler_path(model_name)
+        scaler_name = os.path.basename(scaler_path)
+        scaler_selected = load(scaler_path)
 
         print(f"Modello selezionato: {model_name}")
         print(f"Scaler selezionato: {scaler_name}")

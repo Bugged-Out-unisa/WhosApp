@@ -15,6 +15,8 @@ class ModelTraining:
     __YES_CHOICES = ["yes", "y", ""]
     __NO_CHOICES = ["no", "n"]
     MODEL_PATH = "../models/"
+    SCALER_PATH = MODEL_PATH + "scalers/"
+    SCALER_EXT = "joblib"
 
     def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
 
@@ -34,7 +36,8 @@ class ModelTraining:
             raise ValueError("Inserire il dataset da usare per l'addestramento")
 
         self.__isToRetrain = retrain if retrain is not None else False
-        self.__check_model_path()
+        self.__check_path(self.MODEL_PATH)
+        self.__check_path(self.SCALER_PATH)
 
     def run(self):
         """Avvia il training del modello."""
@@ -43,10 +46,10 @@ class ModelTraining:
         print("[INFO] Training del modello in corso...\n")
         self.__model_training()
 
-    def __check_model_path(self):
-        """Controlla se il path del modello esiste, altrimenti lo crea."""
-        if not os.path.exists(self.MODEL_PATH):
-            os.makedirs(self.MODEL_PATH)
+    def __check_path(self, path: str = None):
+        """Controlla se il path del modello/scaler esiste, altrimenti lo crea."""
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     def __check_duplicates(self):
         # Controllo in caso si voglia sovrascrivere comunque
@@ -144,12 +147,17 @@ class ModelTraining:
 
         # Salva lo scaler in un file avente lo stesso nome del modello
         # (altrimenti in modelExecution non si potrebbe scalare il messaggio in input)
-        scaler_file_path = ModelTraining.get_scaler_path(self.MODEL_PATH + self.__outputName)
+        scaler_file_path = ModelTraining.get_scaler_path(self.__outputName)
         dump(scaler, scaler_file_path)
 
         return df
 
     @staticmethod
-    def get_scaler_path(model_path: str):
+    def get_scaler_path(model_name: str):
         """Ottieni il path dello scaler associato al modello."""
-        return model_path.replace(".skops", "_scaler.joblib")
+        # Rimpiazza estensione del nome del file
+        base = os.path.splitext(model_name)[0]
+        file_name = f"{base}.{ModelTraining.SCALER_EXT}"
+
+        # Restituisci intero path
+        return os.path.join(ModelTraining.SCALER_PATH, file_name)
