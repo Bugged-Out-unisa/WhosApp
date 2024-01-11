@@ -1,0 +1,6 @@
+express
+ejs
+body-parser
+axios
+jquery
+jsdom
