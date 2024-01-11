@@ -5,9 +5,10 @@ import calendar
 import numpy as np
 import pandas as pd
 import skops.io as skio
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.preprocessing import MinMaxScaler
+from joblib import dump
 
 
 class ModelTraining:
@@ -73,9 +74,8 @@ class ModelTraining:
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
 
-        # FEATURE SCALING
-        scaler = MinMaxScaler()
-        X = pd.DataFrame(scaler.fit_transform(X))
+        # Applica feature scaling
+        X = self.__feature_scaling(X)
 
         # TRAINING CON CROSS VALIDATION
         cv = 5  # numero di fold (di solito 5 o 10)
@@ -132,3 +132,24 @@ class ModelTraining:
             print("Il modello non verifica importanza delle features")
 
         skio.dump(self.__model, self.MODEL_PATH + self.__outputName)
+
+    def __feature_scaling(self, df: pd.DataFrame):
+        """     
+            Scala le feature in un range da 0 a 1 e 
+            salva lo scaler in un file avente lo stesso nome del modello.
+        """
+        # Applica minmax scaling
+        scaler = MinMaxScaler()
+        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+
+        # Salva lo scaler in un file avente lo stesso nome del modello
+        # (altrimenti in modelExecution non si potrebbe scalare il messaggio in input)
+        scaler_file_path = ModelTraining.get_scaler_path(self.MODEL_PATH + self.__outputName)
+        dump(scaler, scaler_file_path)
+
+        return df
+
+    @staticmethod
+    def get_scaler_path(model_path: str):
+        """Ottieni il path dello scaler associato al modello."""
+        return model_path.replace(".skops", "_scaler.joblib")

@@ -12,17 +12,20 @@ from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 class featureConstruction:
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json"):
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
         self.DATASET_PATH = datasetPath
         self.__dataFrame = dataFrame
         self.__config = config
+        self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
         self.__feature_construction()
-        self.__write_dataFrame()
+        
+        if saveDataFrame:
+            self.__write_dataFrame()
 
-        # Variabile che contiene il dataframe finale
-        self.__final_dataFrame = None
+    def get_dataframe(self):
+        return self.__dataFrame
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
@@ -73,6 +76,14 @@ class featureConstruction:
             self.bag_of_words()
             self.__features_enabled.remove("bag_of_words")
 
+        if "responsiveness" in self.__features_enabled:
+            # Rimuovi dalla lista perché è già calcolata in fase di training
+            self.__features_enabled.remove("responsiveness")
+        else:
+            # Rimuovi dal dataframe se non è abilitata
+            # (perché non ha senso per il messaggio in input in demo.py)
+            self.__columns_to_drop.append("responsiveness")
+
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
 
@@ -99,6 +110,14 @@ class featureConstruction:
 
         for pos in self.__POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
+
+        # Rimuovi features inutili in fase di training
+        # errors='ignore' per evitare errori se la colonna non esiste
+        self.__dataFrame = self.__dataFrame.drop(self.__columns_to_drop, axis=1, errors='ignore')
+
+        # Assicurati che il nome delle colonne siano stringhe
+        # (altrimenti ci sono problemi in fase di esportazione del file parquet)
+        self.__dataFrame.columns = self.__dataFrame.columns.astype(str)
 
     def __get_nlp_it_message(self, m):
         """Metodo che serve per non ricalcolare nlp_it_message in feature diverse."""
@@ -136,18 +155,7 @@ class featureConstruction:
 
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
-
-        # Rimuovi features inutili in fase di training
-        df_to_export = self.__dataFrame.drop(['date', 'message_composition', 'message'], axis=1)
-
-        # Salva il dataframe finale
-        self.__final_dataFrame = df_to_export
-
-        # Assicurati che le nuove colonne siano stringhe
-        df_to_export.columns = df_to_export.columns.astype(str)
-
-        # Esporta file
-        df_to_export.to_parquet(self.DATASET_PATH)
+        self.__dataFrame.to_parquet(self.DATASET_PATH)
 
     @staticmethod
     def uppercase_count(m):

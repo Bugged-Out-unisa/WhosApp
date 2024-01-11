@@ -113,7 +113,7 @@ class DataFrameProcessor:
         """
         
         df = pd.DataFrame({
-            "date": self.__dates,
+            # "date": self.__dates,    # Inutile in fase di training
             "responsiveness": self.__responsiveness(),
             "user": self.__users,
             "message": self.__messages
