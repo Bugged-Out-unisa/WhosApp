@@ -17,8 +17,12 @@ class TrainedModelSelection:
     @classmethod
     def __show_models(cls):
         print("Elenco dei modelli disponibili:")
-        models = [model for model in os.listdir(cls.MODEL_PATH)
-                  if model.endswith(".skops") or model.endswith(".onnx")]
+
+        # Seleziona solo i file
+        all_file = [file for file in os.listdir(cls.MODEL_PATH) if os.path.isfile(os.path.join(cls.MODEL_PATH, file))]
+
+        # Seleziona solo i modelli
+        models = [model for model in all_file if model.endswith(".skops") or model.endswith(".onnx")]
 
         # Ordina i modelli in base alla data di creazione
         models = sorted(models, key=lambda x: os.path.getctime(os.path.join(cls.MODEL_PATH, x)), reverse=True)
