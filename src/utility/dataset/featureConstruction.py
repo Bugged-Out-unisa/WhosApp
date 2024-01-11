@@ -10,7 +10,7 @@ from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
-class featureConstruction():
+class featureConstruction:
 
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
         self.DATASET_PATH = datasetPath

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from utility.dataset.featureConstruction import featureConstruction
-from utility.selection_cmdline.trainedModelSelection import TrainedModelSelection
+from utility.cmdlineManagement.trainedModelSelection import TrainedModelSelection
 
 class modelExecution:
     """

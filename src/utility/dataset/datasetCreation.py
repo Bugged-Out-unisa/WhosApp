@@ -14,7 +14,15 @@ class datasetCreation:
     DATASET_PATH = "../datasets/"
     CONFIG_PATH = "../configs/"
 
-    def __init__(self, datasetName: str = None, configFile="config.json", aliasFile=None, refactor: bool = False):
+    def __init__(
+            self,
+            datasetName: str = None,
+            configFile: str = "config.json",
+            aliasFile: str = None,
+            otherUser: str = None,
+            remove_other: bool = False,
+            refactor: bool = False
+    ):
         # Controlla se il nome del dataset è stato inserito
         if datasetName:
             self.__datasetName = self.__check_extension_file(datasetName, ".parquet")
@@ -31,8 +39,12 @@ class datasetCreation:
         # Controlla se aliasFile è stato inserito
         if aliasFile:
             self.__aliasFile = self.__check_extension_file(aliasFile, ".json")
+            self.__otherUser = otherUser
+            self.__removeOther = remove_other
         else:
             self.__aliasFile = aliasFile
+            self.__otherUser = None
+            self.__removeOther = False
 
         # Controlla se refactor è stato inserito
         if not isinstance(refactor, bool):
@@ -69,7 +81,12 @@ class datasetCreation:
 
             print("\n[LOADING] Estraendo informazioni dai dati grezzi...")
             if self.__aliasFile:
-                dates, users, messages = ExtractChat(rawdata, self.CONFIG_PATH + self.__aliasFile).extract()
+                dates, users, messages = ExtractChat(
+                    rawdata,
+                    self.CONFIG_PATH + self.__aliasFile,
+                    placeholder_user=self.__otherUser,
+                    remove_generic_user=self.__removeOther
+                ).extract()
             else:
                 dates, users, messages = ExtractChat(rawdata).extract()
 
@@ -77,8 +94,11 @@ class datasetCreation:
             self.__dataFrame = DataFrameProcessor(dates, users, messages).get_dataframe()
 
             print("\n[LOADING] Applicando feature construction...")
-            featureConstruction(self.__dataFrame, self.DATASET_PATH + self.__datasetName,
-                                self.CONFIG_PATH + self.__configFile)
+            self.__dataFrame = featureConstruction(
+                self.__dataFrame,
+                self.DATASET_PATH + self.__datasetName,
+                self.CONFIG_PATH + self.__configFile
+            ).get_dataframe()
 
             print("[INFO] Dataset creato con successo.")
 
