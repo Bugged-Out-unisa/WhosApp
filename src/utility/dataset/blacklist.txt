@@ -1,6 +1,6 @@
 ^I messaggi e le chiamate sono crittografati end-to-end\. Nessuno al di fuori di questa chat, nemmeno WhatsApp, può leggerne o ascoltarne il contenuto\.
-^Hai creato il gruppo \\"(?:\\"|[^"])+?\\"\.
-^Questo messaggio è stato eliminato\.
+^Hai creato il gruppo\\"(?:\\"|[^"])+?\\"\.
+^Questo messaggio è stato eliminato\ .
 ^Hai cambiato la descrizione del gruppo\.
 \S+ ha cambiato il nome del gruppo in \\"(?:\\"|[^"])+?\\"\.
 \S+ ha cambiato l'immagine del gruppo\.

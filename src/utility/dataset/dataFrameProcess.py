@@ -77,9 +77,10 @@ class DataFrameProcessor:
             blacklist_patterns = [re.compile(line.strip()) for line in file]
 
         # Funzione per controllare se un messaggio matcha una regex nella blacklist
-        def matches_blacklist(message):
+        def matches_blacklist(message: str):
             for pattern in blacklist_patterns:
-                if pattern.fullmatch(message):
+                if pattern.fullmatch(message) or "‎" in message:
+                    # il carattere "‎" è presente nei messaggi informativi di IOS
                     return True
             return False
 
