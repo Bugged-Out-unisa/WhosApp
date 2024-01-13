@@ -5,10 +5,25 @@ import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from lexicalrichness import LexicalRichness
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
+# TODO:: Chiedere a Daniele come è strutturato il codice
+
+# Esempio di codice per usare la ricchezza di vocabolario
+
+# from lexicalrichness import LexicalRichness
+# Esempio di codice per usare MATTR
+# from lexicalrichness import LexicalRichness
+#
+# def mattr(text):
+#     lex = LexicalRichness(text)
+#     return lex.mattr()
+#
+# text = "Questo è un esempio di testo per il calcolo del MATTR."
+# print(f"Il valore di MATTR per il testo '{text}' è: {mattr(text)}")
 
 class featureConstruction:
 
@@ -156,6 +171,34 @@ class featureConstruction:
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
         self.__dataFrame.to_parquet(self.DATASET_PATH)
+
+    @staticmethod
+    def mattr(m):
+        """Calcola il MATTR di un messaggio."""
+        try:
+            return LexicalRichness(m).mattr()
+        except ValueError:
+            return 0
+
+    @staticmethod
+    def msttr(m):
+        """Calcola il MSTTR di un messaggio"""
+        try:
+            return LexicalRichness(m).msttr(segment_window=50)
+        except ValueError:
+            return 0
+
+    @staticmethod
+    def unique_word_count(m):
+        """Conta il numero di parole uniche in un messaggio."""
+        return len(set(m.split()))
+
+    @staticmethod
+    def type_token_ratio(m):
+        """Calcola la ricchezza lessicale di un messaggio."""
+        if len(m.split()) == 0:
+            return 0
+        return round(len(set(m.split())) / len(m.split()), 2)
 
     @staticmethod
     def uppercase_count(m):
