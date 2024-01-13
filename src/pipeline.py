@@ -52,7 +52,7 @@ def create_dataset_and_train_model():
 
     # LOGGING:: Inizializza il logging
     Logger(
-        name=timestamp,
+        name=output_name,
         start_message="!! START NEW PIPELINE !!",
         path=Logger.PIPELINE_LOGGING_PATH
     ).run()
