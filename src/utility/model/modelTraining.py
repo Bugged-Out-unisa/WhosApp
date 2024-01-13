@@ -39,7 +39,7 @@ class ModelTraining:
         """Avvia il training del modello."""
         self.__check_duplicates()
 
-        print("[INFO] Training del modello in corso...\n")
+        print("[INFO] Training del modello in corso...")
         self.__model_training()
 
     def __check_model_path(self):
