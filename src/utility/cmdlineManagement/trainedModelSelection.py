@@ -1,7 +1,8 @@
 import os
 import logging
 import pandas as pd
-from simple_term_menu import TerminalMenu
+#from simple_term_menu import TerminalMenu
+import inquirer
 from utility.exceptions import ExtensionError
 import skops.io as skio
 from joblib import load
@@ -16,7 +17,7 @@ class TrainedModelSelection:
 
     @classmethod
     def __show_models(cls):
-        print("Elenco dei modelli disponibili:")
+        #print("Elenco dei modelli disponibili:")
         models = os.listdir(cls.MODEL_PATH)
         return models
 
@@ -39,11 +40,25 @@ class TrainedModelSelection:
     @classmethod
     def __select_model(cls):
         models = cls.__show_models()
-        menu = TerminalMenu(models)
-        menu_entry_index = menu.show()
+
+        model_selection = [
+            inquirer.List('model',
+                message="Seleziona il modello da usare",
+                choices=models
+            ),
+        ]
+
+        model = inquirer.prompt(model_selection)
+
+        # menu = TerminalMenu(models)
+        # menu_entry_index = menu.show()
 
         # Ottieni model
-        model_name = models[menu_entry_index]
+        # model_name = models[menu_entry_index]
+        model_name = model["model"]
+
+        menu_entry_index = models.index(model_name)
+        
         model_selected = cls.__load_model(menu_entry_index, models)
 
         # Ottieni scaler

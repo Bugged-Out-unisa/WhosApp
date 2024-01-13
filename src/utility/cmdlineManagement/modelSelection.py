@@ -1,5 +1,6 @@
 import logging
-from simple_term_menu import TerminalMenu
+#from simple_term_menu import TerminalMenu
+import inquirer
 from utility.model.model_list import models
 
 
@@ -21,11 +22,22 @@ class ModelSelection:
 
     @classmethod
     def __select_model(cls):
-        print("Elenco dei modelli disponibili:")
-        menu = TerminalMenu(cls.model_names)
-        menu_entry_index = menu.show()
+        # print("Elenco dei modelli disponibili:")
+        # menu = TerminalMenu(cls.model_names)
+        # menu_entry_index = menu.show()
 
-        model_name = cls.model_names[menu_entry_index]
+        # model_name = cls.model_names[menu_entry_index]
+
+        model_selection = [
+            inquirer.List('model',
+                message="Elenco dei modelli disponibili:",
+                choices= cls.model_names
+            ),
+        ]
+
+        model = inquirer.prompt(model_selection)
+
+        model_name = model["model"]
 
         model_selected = cls.__load_model(model_name)
 

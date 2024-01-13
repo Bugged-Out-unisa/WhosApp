@@ -133,9 +133,18 @@ body{
     resize: none;
 }
 
+#emoji-btn{
+    cursor: pointer;
+}
+
 #emoji-btn img{
     height: 1.5rem;
     filter: invert(.5);
+    transition: .5s ease;
+}
+
+#emoji-btn:hover img{
+    filter: invert(.25);
 }
 
 #send-btn{
@@ -163,6 +172,14 @@ body{
     width: auto;
     filter: invert(1);
     transform: translate(-7.5%, 7.5%);
+}
+
+emoji-picker{
+    display: none;
+    position: fixed;
+    bottom: 4rem;
+    left: 1rem;
+    z-index: 1;
 }
 
 /*    Text Bubbles   */

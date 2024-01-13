@@ -5,19 +5,27 @@ $(function() {
 
     isThinking.css("opacity", "0");
 
+    $("emoji-picker").on("emoji-click", (event) => {
+        userInput.val(userInput.val() + event.detail.unicode);
+    });
+
+    $("#emoji-btn").on("click", () => {
+        $("emoji-picker").toggle();
+    });
+
     const getResponse = (text) => {
         $.ajax({
-            url: '/getResponse',
+            url: "/getResponse",
             data: { text: text },
-            type: 'POST',
+            type: "POST",
             success: function(response) {
-                $('#message-display').append(response);
+                $("#message-display").append(response);
                 isWaiting = false;
                 isThinking.css("opacity","0");
             },
             
             error: () =>{
-                alert("Errore nella comunicazione con il modello.");
+                alert("Nessuna risposta ricevuta dal modello.");
                 isWaiting = false;
                 isThinking.css("opacity","0");
             }
@@ -28,16 +36,16 @@ $(function() {
         if(text == "" || text == "\n") return;
         if(isWaiting) return;
 
-        text = text.replace(/\n/g, '\\n');
+        text = text.replace(/\n/g, "\\n");
 
         userInput.val("");
         
         $.ajax({
-            url: '/newUserMessage',
+            url: "/newUserMessage",
             data: { text: text },
-            type: 'POST',
+            type: "POST",
             success: function(response) {
-                $('#message-display').append(response);
+                $("#message-display").append(response);
                 isWaiting = true;
                 isThinking.css("opacity", "1");
                 getResponse(text);

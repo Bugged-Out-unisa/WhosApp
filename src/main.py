@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
+import requests
+from flask import Flask, jsonify, request
 from utility.dataset.featureConstruction import featureConstruction
 from utility.cmdlineManagement.trainedModelSelection import TrainedModelSelection
+
+app = Flask(__name__)
 
 class modelExecution:
     """
@@ -21,6 +25,8 @@ class modelExecution:
         else:
             self.__trainedModel = model
             self.__scaler = scaler
+        
+        self.predictions = [[] for _ in range(self.__trainedModel.n_classes_)]
 
     def dataframe_for_messages(self, message):
         # Applica feature construction al messaggio
@@ -30,6 +36,38 @@ class modelExecution:
         
         # Applica scaling
         return pd.DataFrame(self.__scaler.transform(df), columns=df.columns)
+
+    @app.route("/WhosApp", methods=["POST"])
+    def __rest_predict__(self):
+        if request.method == "POST":
+
+            num_users = self.__trainedModel.n_classes_
+            data = request.get_json()
+
+            # Ottieni il messaggio da input
+            #message = input("\nScrivi un messaggio:\n")
+
+            # Crea il dataframe e costruisci le feature su quel messaggio
+            df = self.dataframe_for_messages([data["text"]])
+
+            # Ottieni probabilità per ogni utente
+            # [0] perché resituisce una lista di previsioni (come se si aspettasse più messaggi)
+            users_prob = self.__trainedModel.predict_proba(df)[0]
+
+            # Per ogni utente, ottieni probabilità per il messaggio inserito e salva in lista
+            for i in range(num_users):
+                self.predictions[i].append(users_prob[i])
+
+            # Stampa report
+            # Solo per l'ultima previsione [-1]
+            message = "<b>SINGOLO</b>"
+            message += "<br>".join([f"USER {i}: {self.predictions[i][-1]:.2f}" for i in range(num_users)])
+
+            # Media delle previsioni
+            message += "<br><b>MEDIA</b>"
+            message += "<br>".join([f"USER {i}: {np.average(self.predictions[i]):.2f}" for i in range(num_users)])
+
+            requests.post("localhost:3000/getResponse", json = jsonify({"text": message}))
 
     def __predict__(self):
         """
@@ -68,4 +106,7 @@ class modelExecution:
 
 
 if __name__ == "__main__":
-    modelExecution().__predict__()
+    #modelExecution().__predict__()
+    print("Modello pronto all'uso\n[In ascolto sulla porta 5000]")
+    me = modelExecution()
+    app.run(port = 5000)

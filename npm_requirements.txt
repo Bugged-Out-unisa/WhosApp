@@ -1,6 +1,7 @@
 express
 ejs
 body-parser
-axios
 jquery
 jsdom
+emoji-picker-element
+cors

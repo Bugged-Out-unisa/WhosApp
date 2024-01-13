@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
+const cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: false }));
 var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
@@ -9,11 +10,14 @@ const { window } = new JSDOM();
 const { document } = (new JSDOM("")).window;
 global.document = document;
 
+
+
 var $ = jQuery = require("jquery")(window);
 
 app.set("view engine", "ejs");
 app.engine("ejs", require("ejs").__express);
 app.use(express.static(path.join(__dirname, "public")));
+app.use(cors());
 
 app.get("/", (request, response) => {
     response.render("index");
@@ -29,13 +33,22 @@ app.post("/getResponse", async (req, res) => {
     let userText = req.body.text
 
     try {
-        const result = await axios.get(
-          ``
-        );
+        $.ajax({
+            url: 'http://localhost:5000/WhosApp',
+            data: { text: userText },
+            type: 'POST',
+            success: function(response) {
+                res.render("bot-bubble.ejs", {responseText : response})
+            },
+            
+            error: () =>{
+                console.log("Errore nella comunicazione con il modello.");
+            }
+        });
         
-        response = result.data;
+        //response = result.data;
 
-        res.render("bot-bubble.ejs", {responseText : response});
+        //res.render("bot-bubble.ejs", {responseText : response});
 
       } catch (error) {
         console.log(error);
