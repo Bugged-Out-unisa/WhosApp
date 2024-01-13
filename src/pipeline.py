@@ -12,11 +12,10 @@ from utility.cmdlineManagement.modelSelection import ModelSelection
 Per eseguire il comando da linea di comando con gli argomenti opzionali:
 
 Comando per la creazione del dataset e il training del modello:
-    py pipeline.py -oN <nome_modello> -dN <nome_dataset> -c <file_configurazione> -a <file_alias> -r -ref
+    py pipeline.py -oN <nome_modello_dataset> -c <file_configurazione> -a <file_alias> -r -ref
 
 Dove:
-    -oN/--outputName: Specifica il nome del file per il modello salvato.
-    -dN/--datasetName: Specifica il nome del dataset.
+    -oN/--outputName: Specifica il nome del file per il modello salvato e del modello.
     -c/--config: Specifica il file di configurazione per la creazione del dataset.
     -a/--aliases: Specifica il file degli alias per l'utente "other".
     -r/--retrain: Opzione per indicare il retraining del modello (opzionale).
@@ -36,7 +35,6 @@ def create_dataset_and_train_model():
     # Argomenti comuni a entrambi gli script
     parser.add_argument("-oN", "--outputName", help="Nome del dataset e del modello", required=False, default=timestamp)
     parser.add_argument("-r", "--retrain", action="store_true", help="Opzione di retraining", required=False)
-    parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False)
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
     parser.add_argument("-ref", "--refactor", help="Opzione di refactor", action="store_true", required=False)
