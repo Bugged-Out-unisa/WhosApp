@@ -20,8 +20,10 @@ if __name__ == "__main__":
     # Argomenti da linea di comando
     parser = argparse.ArgumentParser()
 
+    timestamp = str(calendar.timegm(time.gmtime()))
+
     # Optional arguments
-    parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False)
+    parser.add_argument("-dN", "--datasetName", help="Nome dataset", required=False, default=timestamp)
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
     parser.add_argument("-r", "--refactor", help="Opzione di refactor", action="store_true", required=False)
@@ -31,9 +33,6 @@ if __name__ == "__main__":
 
     # Selezione opzioni per l'utente "other"
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
-
-    # Se il dataset_name non è None, lo imposta al timestamp. Altrimenti lo usa
-    dataset_name = dataset_name if dataset_name is not None else str(calendar.timegm(time.gmtime()))
 
     # LOGGING:: Inizializza il logging
     Logger(

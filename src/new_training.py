@@ -21,15 +21,14 @@ if __name__ == "__main__":
     # Argomenti da linea di comando
     parser = argparse.ArgumentParser()
 
+    timestamp = str(calendar.timegm(time.gmtime()))
+
     # Optional arguments
-    parser.add_argument("-oN", "--outputName", help="Nome file del modello salvato")
+    parser.add_argument("-oN", "--outputName", help="Nome file del modello salvato" , required=False, default=timestamp)
     parser.add_argument("-r", "--retrain", action="store_true", help="Opzione di retraining", required=False)
 
     args = parser.parse_args()
     output_name, retrain = args.outputName, args.retrain
-
-    # Se il output_name non è None, lo imposta al timestamp. Altrimenti lo usa
-    output_name = args.outputName if args.outputName is not None else str(calendar.timegm(time.gmtime()))
 
     # LOGGING:: Inizializza il logging
     Logger(
