@@ -10,20 +10,6 @@ from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
-# TODO:: Chiedere a Daniele come è strutturato il codice
-
-# Esempio di codice per usare la ricchezza di vocabolario
-
-# from lexicalrichness import LexicalRichness
-# Esempio di codice per usare MATTR
-# from lexicalrichness import LexicalRichness
-#
-# def mattr(text):
-#     lex = LexicalRichness(text)
-#     return lex.mattr()
-#
-# text = "Questo è un esempio di testo per il calcolo del MATTR."
-# print(f"Il valore di MATTR per il testo '{text}' è: {mattr(text)}")
 
 class featureConstruction:
 
