@@ -7,7 +7,7 @@ from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.modelSelection import ModelSelection
 
 # HOW TO USE:
-# py new_training.py -oN <*outputName> -r <*retrain>
+# py new_training.py -oN <*outputName> -c <*configFile> -r <*retrain>
 
 # CHECKS IF SPECIFIED DATASET EXIST
 # (dataCreation.py return already existing DF)
@@ -23,10 +23,11 @@ if __name__ == "__main__":
 
     # Optional arguments
     parser.add_argument("-oN", "--outputName", help="Nome file del modello salvato")
+    parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-r", "--retrain", action="store_true", help="Opzione di retraining", required=False)
 
     args = parser.parse_args()
-    output_name, retrain = args.outputName, args.retrain
+    output_name, config, retrain = args.outputName, args.config, args.retrain
 
     # Se il output_name non è None, lo imposta al timestamp. Altrimenti lo usa
     output_name = args.outputName if args.outputName is not None else str(calendar.timegm(time.gmtime()))
@@ -45,4 +46,4 @@ if __name__ == "__main__":
     model = ModelSelection().model
 
     # Training del modello con i parametri passati da linea di comando
-    ModelTraining(output_name, model, dataset, retrain).run()
+    ModelTraining(output_name, model, dataset, config, retrain).run()
