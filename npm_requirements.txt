@@ -4,4 +4,4 @@ body-parser
 jquery
 jsdom
 emoji-picker-element
-cors
+axios

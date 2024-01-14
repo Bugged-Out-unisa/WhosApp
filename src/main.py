@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
 import requests
+import json
+from threading import Lock
 from flask import Flask, jsonify, request
 from utility.dataset.featureConstruction import featureConstruction
 from utility.cmdlineManagement.trainedModelSelection import TrainedModelSelection
 
 app = Flask(__name__)
+lock = Lock()
 
 class modelExecution:
     """
@@ -37,18 +40,16 @@ class modelExecution:
         # Applica scaling
         return pd.DataFrame(self.__scaler.transform(df), columns=df.columns)
 
-    @app.route("/WhosApp", methods=["POST"])
-    def __rest_predict__(self):
+    def __rest_predict__(self, data):
         if request.method == "POST":
 
             num_users = self.__trainedModel.n_classes_
-            data = request.get_json()
 
             # Ottieni il messaggio da input
             #message = input("\nScrivi un messaggio:\n")
 
             # Crea il dataframe e costruisci le feature su quel messaggio
-            df = self.dataframe_for_messages([data["text"]])
+            df = self.dataframe_for_messages([data])
 
             # Ottieni probabilità per ogni utente
             # [0] perché resituisce una lista di previsioni (come se si aspettasse più messaggi)
@@ -60,14 +61,16 @@ class modelExecution:
 
             # Stampa report
             # Solo per l'ultima previsione [-1]
-            message = "<b>SINGOLO</b>"
+            message = "<b>SINGOLO</b><br>"
             message += "<br>".join([f"USER {i}: {self.predictions[i][-1]:.2f}" for i in range(num_users)])
 
             # Media delle previsioni
-            message += "<br><b>MEDIA</b>"
+            message += "<br><b>MEDIA</b><br>"
             message += "<br>".join([f"USER {i}: {np.average(self.predictions[i]):.2f}" for i in range(num_users)])
 
-            requests.post("localhost:3000/getResponse", json = jsonify({"text": message}))
+            print(message)
+
+            return message
 
     def __predict__(self):
         """
@@ -104,9 +107,18 @@ class modelExecution:
             print("\n----MEDIA----")
             print("\n".join([f"USER {i}: {np.average(predictions[i]):.2f}" for i in range(num_users)]))
 
+@app.route("/WhosApp", methods=["POST"])
+def serverModelExecution():
+    with lock:       
+        data = request.get_json()
+        message = execution.__rest_predict__(data["text"])
+
+        response = {"text": message}
+    
+    return jsonify(response), 200
 
 if __name__ == "__main__":
-    #modelExecution().__predict__()
+    global execution 
+    execution = modelExecution()
     print("Modello pronto all'uso\n[In ascolto sulla porta 5000]")
-    me = modelExecution()
     app.run(port = 5000)

@@ -2,8 +2,7 @@ const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
-const cors = require('cors');
-app.use(bodyParser.urlencoded({ extended: false }));
+const axios = require("axios");
 var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const { window } = new JSDOM();
@@ -17,7 +16,9 @@ var $ = jQuery = require("jquery")(window);
 app.set("view engine", "ejs");
 app.engine("ejs", require("ejs").__express);
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const backend = "http://localhost:5000/WhosApp";
 
 app.get("/", (request, response) => {
     response.render("index");
@@ -25,30 +26,37 @@ app.get("/", (request, response) => {
 
 app.post("/newUserMessage", (req, res) => {
     let text = req.body.text;
+
     text = text.replace(/\\n/g, "<br>")
     res.render("user-bubble.ejs", {userText: text});
+
 });
 
-app.post("/getResponse", async (req, res) => {
+app.post("/getResponse", (req, res) => {
     let userText = req.body.text
 
+    let data = {
+        text: userText
+    }
+
     try {
-        $.ajax({
-            url: 'http://localhost:5000/WhosApp',
-            data: { text: userText },
-            type: 'POST',
-            success: function(response) {
-                res.render("bot-bubble.ejs", {responseText : response})
-            },
+        console.log("Sending request to " + backend + "\nWith text: " + userText + "\n");
+
+        axios.post(backend, data)
+        .then(function (response) {
+            // handle success
+
+            result = response.data.text;
+            console.log("Response from backend: " + result + "\n");
+            res.render("bot-bubble.ejs", {responseText : result});
+        })
+        .catch(function (error) {
+            console.log("Error from backend: " + error + "\n")
             
-            error: () =>{
-                console.log("Errore nella comunicazione con il modello.");
-            }
+            res.render("bot-bubble.ejs", {responseText : "<b>ERRORE</b>"});
         });
         
-        //response = result.data;
-
-        //res.render("bot-bubble.ejs", {responseText : response});
+        
 
       } catch (error) {
         console.log(error);

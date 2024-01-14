@@ -1,16 +1,19 @@
 $(function() {
     const userInput = $("#user-input");
     const isThinking = $("#is-thinking");
+    const emojiPicker = $("#emoji-picker");
+    const msgSent = new Audio('/assets/sent.mp3');
+    const msgArrived = new Audio('/assets/arrived.mp3');
     let isWaiting = false;
 
     isThinking.css("opacity", "0");
 
-    $("emoji-picker").on("emoji-click", (event) => {
+    emojiPicker.on("emoji-click", (event) => {
         userInput.val(userInput.val() + event.detail.unicode);
     });
 
     $("#emoji-btn").on("click", () => {
-        $("emoji-picker").toggle();
+        emojiPicker.toggle();
     });
 
     const getResponse = (text) => {
@@ -20,20 +23,24 @@ $(function() {
             type: "POST",
             success: function(response) {
                 $("#message-display").append(response);
-                isWaiting = false;
-                isThinking.css("opacity","0");
             },
             
             error: () =>{
-                alert("Nessuna risposta ricevuta dal modello.");
+                alert("Errore nella ricezione della risposta.");
+            },
+
+            complete: () => {
                 isWaiting = false;
                 isThinking.css("opacity","0");
+
+                msgArrived.play();
             }
         });
     }
 
     const sendMessage = (text) => {
-        if(text == "" || text == "\n") return;
+        text = text.trim();
+        if(text == "" || (/^[\n\r]*$/.test(text))) return;
         if(isWaiting) return;
 
         text = text.replace(/\n/g, "\\n");
@@ -48,7 +55,13 @@ $(function() {
                 $("#message-display").append(response);
                 isWaiting = true;
                 isThinking.css("opacity", "1");
+
+                msgSent.play();        
+
                 getResponse(text);
+            },
+            error: () =>{
+                alert("Errore nell'invio del messaggio.");
             }
           });
     }
