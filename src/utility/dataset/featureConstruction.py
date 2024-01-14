@@ -12,6 +12,12 @@ from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
 class featureConstruction:
+    # Lista tag POS (Part-of-speech)
+    POS_LIST = [
+        "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
+        "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ",
+        "SYM", "VERB", "X", "SPACE"
+    ]
 
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
         self.DATASET_PATH = datasetPath
@@ -45,13 +51,6 @@ class featureConstruction:
         # ATTENZIONE: Il vocabolario inglese contiene anche parole italiane e viceversa
         self.__nlp_it = spacy.load("it_core_news_lg")
         self.__nlp_en = spacy.load("en_core_web_sm")
-
-        # Lista tag POS (Part-of-speech)
-        self.__POS_LIST = [
-            "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
-            "NOUN", "NUM", "PART", "PRON", "PROPN", "PUNCT", "SCONJ",
-            "SYM", "VERB", "X", "SPACE"
-        ]
 
         # Lista di vocaboli italiani e inglesi in minuscolo
         if "italianness" in self.__features_enabled:
@@ -109,7 +108,7 @@ class featureConstruction:
         for feature_name in self.__features_enabled:
             self.__dataFrame[feature_name] = features[feature_name]
 
-        for pos in self.__POS_LIST:
+        for pos in self.POS_LIST:
             self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
         # Rimuovi features inutili in fase di training
@@ -304,7 +303,7 @@ class featureConstruction:
         if self.__nlp_it_message.text == "":
             return -1
 
-        return self.__POS_LIST.index(self.__nlp_it_message[0].pos_)
+        return self.POS_LIST.index(self.__nlp_it_message[0].pos_)
 
     def sentiment(self, m):
         """Restituisce l'id del sentiment del messaggio descritto in sentiment_mapping."""
