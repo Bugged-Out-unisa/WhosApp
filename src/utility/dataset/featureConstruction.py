@@ -1,3 +1,4 @@
+import os
 import json
 import spacy
 import emojis
@@ -19,10 +20,10 @@ class featureConstruction:
         "SYM", "VERB", "X", "SPACE"
     ]
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
-        self.DATASET_PATH = datasetPath
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="../configs/config.json", saveDataFrame :bool = True):
+        self.DATASET_PATH = self.__check_dataset_path(datasetPath)
         self.__dataFrame = dataFrame
-        self.__config = config
+        self.__config = self.__check_config_file(config_path)
         self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
@@ -33,6 +34,21 @@ class featureConstruction:
 
     def get_dataframe(self):
         return self.__dataFrame
+
+    @staticmethod
+    def __check_dataset_path(dataset_path: str) -> str:
+        """Controlla se il percorso del dataset esiste"""
+        if dataset_path and os.path.exists(dataset_path):
+            return dataset_path
+        else:
+            raise ValueError("Percorso del dataset non valido")
+
+    @staticmethod
+    def __check_config_file(config_path: str) -> str:
+        if config_path and os.path.exists(config_path):
+            return config_path
+        else:
+            raise ValueError("File di configurazione non valido")
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
@@ -89,7 +105,7 @@ class featureConstruction:
 
         # LOGGING:: Inserire le feature usate per la predizione
         logging.info(
-            "Feature usate: \n" +
+            "Feature selezionate in Dataset Creation: \n" +
             "\n".join(f"\t{feature_name}" for feature_name in self.__features_enabled)
         )
 
