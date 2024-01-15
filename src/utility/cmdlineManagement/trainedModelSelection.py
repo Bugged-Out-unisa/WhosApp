@@ -58,7 +58,3 @@ class TrainedModelSelection:
     @property
     def model(self):
         return self.__model
-    
-    @property
-    def scaler(self):
-        return self.__scaler
