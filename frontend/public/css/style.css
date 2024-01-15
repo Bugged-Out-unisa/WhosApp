@@ -240,6 +240,10 @@ emoji-picker{
     border-bottom: .5rem solid transparent;
 }
 
+meter{
+    min-width: 20vw;
+}
+
 /*    Index    */
 
 #app{

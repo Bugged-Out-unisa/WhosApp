@@ -45,6 +45,12 @@ class modelExecution:
 
             num_users = self.__trainedModel.n_classes_
 
+            output = {
+                "mappedUsers": {},
+                "single": [],
+                "average": []
+            }
+
             # Ottieni il messaggio da input
             #message = input("\nScrivi un messaggio:\n")
 
@@ -61,16 +67,20 @@ class modelExecution:
 
             # Stampa report
             # Solo per l'ultima previsione [-1]
-            message = "<b>SINGOLO</b><br>"
-            message += "<br>".join([f"USER {i}: {self.predictions[i][-1]:.2f}" for i in range(num_users)])
+            # message = "<b>SINGOLO</b><br>"
+            # message += "<br>".join([f"USER {i}: {self.predictions[i][-1]:.2f}" for i in range(num_users)])
+
+            output["single"] = [self.predictions[i][-1] for i in range(num_users)]
 
             # Media delle previsioni
-            message += "<br><b>MEDIA</b><br>"
-            message += "<br>".join([f"USER {i}: {np.average(self.predictions[i]):.2f}" for i in range(num_users)])
+            # message += "<br><b>MEDIA</b><br>"
+            # message += "<br>".join([f"USER {i}: {np.average(self.predictions[i]):.2f}" for i in range(num_users)])
 
-            print(message)
+            output["average"] = [np.average(self.predictions[i]) for i in range(num_users)]
 
-            return message
+            print(output)
+
+            return output
 
     def __predict__(self):
         """
@@ -111,9 +121,9 @@ class modelExecution:
 def serverModelExecution():
     with lock:       
         data = request.get_json()
-        message = execution.__rest_predict__(data["text"])
+        response = execution.__rest_predict__(data["text"])
 
-        response = {"text": message}
+        # response = {"text": message}
     
     return jsonify(response), 200
 

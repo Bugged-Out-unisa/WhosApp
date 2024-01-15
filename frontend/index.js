@@ -46,9 +46,9 @@ app.post("/getResponse", (req, res) => {
         .then(function (response) {
             // handle success
 
-            result = response.data.text;
+            result = response.data;
             console.log("Response from backend: " + result + "\n");
-            res.render("bot-bubble.ejs", {responseText : result});
+            res.render("bot-bubble.ejs", {single : result["single"], average : result["average"]});
         })
         .catch(function (error) {
             console.log("Error from backend: " + error + "\n")
