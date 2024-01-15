@@ -9,3 +9,4 @@ pyarrow
 skops
 requests
 flask
+inquirer

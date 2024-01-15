@@ -6,11 +6,14 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from collections import Counter, defaultdict
-#from feel_it import EmotionClassifier, SentimentClassifier
+from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+import re
 
 
 class featureConstruction:
+    WORDLIST_PATH = "../wordlists/"
+
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
         "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
@@ -57,6 +60,14 @@ class featureConstruction:
 
         if "englishness" in self.__features_enabled:
             self.__english_words = {w.lower() for w in self.__nlp_en.vocab.strings}
+
+        # Carica wordlist
+        if "swear_words" in self.__features_enabled:
+            with open(self.WORDLIST_PATH + "swear_words.txt", 'r') as f:
+                self.__swear_words = set(f.read().splitlines())
+
+                # rimuovi l'ultimo carattere di ogni parola (per parole in dialetto)
+                self.__swear_words.update([word[:-1] for word in self.__swear_words])
 
         # Inizializza sentiment/emotion classifier
         if "sentiment" in self.__features_enabled:
@@ -283,3 +294,8 @@ class featureConstruction:
     def emotion(self, m):
         """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
         return self.__emotion_mapping[self.__emotion_classifier.predict([m])[0]]
+    
+    def swear_words(self, m):
+        """Count the number of swear words in a message."""
+        matches = re.compile(r"\b(" + "|".join(self.__swear_words) + r")\b", re.IGNORECASE).findall(m)
+        return len(matches)
