@@ -44,7 +44,7 @@ class modelExecution:
             num_users = self.__trainedModel.n_classes_
 
             output = {
-                "mappedUsers": {},
+                "mappedUsers": ["Marco Aurelio", "Platone", "Socrate", "Aristotele"],
                 "single": [],
                 "average": []
             }

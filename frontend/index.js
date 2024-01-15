@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
+const ejs = require("ejs");
 const axios = require("axios");
 var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
@@ -44,11 +45,25 @@ app.post("/getResponse", (req, res) => {
 
         axios.post(backend, data)
         .then(function (response) {
-            // handle success
 
             result = response.data;
             console.log("Response from backend: " + result + "\n");
-            res.render("bot-bubble.ejs", {single : result["single"], average : result["average"]});
+
+            ejs.renderFile('./views/bot-bubble.ejs', {single : result["single"], average : result["average"], mappedUsers : result["mappedUsers"]}, (err, str) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send({ error: 'Errore nel caricamento del template' });
+                } else {
+                    let unrelatedData = {
+                        mappedUsers: result["mappedUsers"],
+                        average: result["average"]
+                    };
+
+                    res.send({ template: str, data: unrelatedData });
+                }
+              });
+
+            // res.render("bot-bubble.ejs", {single : result["single"], average : result["average"], mappedUsers : result["mappedUsers"]});
         })
         .catch(function (error) {
             console.log("Error from backend: " + error + "\n")

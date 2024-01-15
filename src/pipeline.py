@@ -90,7 +90,7 @@ def create_dataset_and_train_model():
     ).run()
 
     # Training del modello con i parametri passati da linea di comando
-    ModelTraining(output_name, selected_model, selected_dataset, retrain).run()
+    ModelTraining(output_name, selected_model, selected_dataset, config, retrain).run()
 
 
 if __name__ == "__main__":

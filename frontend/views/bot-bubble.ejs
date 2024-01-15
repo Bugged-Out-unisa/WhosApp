@@ -2,19 +2,37 @@
     <div class="bubble-direction"></div>
 
     <div class="text">
-        <b>Singolo</b> <br>
+        <p>Credo che tu sia... 🤔 
+               
+            <% //key of max item in array
+                let maxAverage = average
+                    .reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+            %>     
 
-        <% single.forEach((element, index) => { %>
-            User <%= index %>:
-            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
-        <% }) %>
+            <b><%= mappedUsers[maxAverage] %>!</b>
+        </p>
 
+        <b>Predizione su messaggio singolo:</b> <br>
+        <% let maxIndex = single.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);%>
+
+        <table>
+            <tbody>
+                <% single.forEach((element, index) => { %>
+                  <tr>
+                    <td><%= mappedUsers[index] %>:</td>
+
+                    <td>
+                        <meter class="<%= index === maxIndex ? 'highestPrediction' : '' %>" value="<%= element %>" min="0" max="1"></meter>
+                    </td>
+
+                    <td><%= (element * 100).toFixed(2) %>%</td>
+                  </tr>
+                <% }) %>
+            </tbody>
+        </table>
         
-        <b>Media</b> <br>
-
-        <% average.forEach((element, index) => { %>
-            User <%= index %>:
-            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
-        <% }) %>
+        <% if(typeof responseText !== "undefined") { %>
+            <%= responseText %>
+        <% } %>
     </div>
 </div>
