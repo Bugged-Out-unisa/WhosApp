@@ -49,6 +49,9 @@ class DataFrameProcessor:
 
         print("[INFO] Utenti:", end=" ")
         print(", ".join(f"{i}:{u}" for i, u in enumerate(self.__unique_users)))
+        
+        # LOGGING:: Stampa gli utenti trovati
+        logging.info(f"Utenti trovati: \n" + "\n".join(f"\t{user} -> {i}" for i, user in enumerate(self.__unique_users)))
 
     def __print_instances_count(self, df: pd.DataFrame, message=None):
         """

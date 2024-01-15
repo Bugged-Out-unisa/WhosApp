@@ -4,24 +4,33 @@ import logging
 import calendar
 import numpy as np
 import pandas as pd
-import skops.io as skio
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.pipeline import Pipeline
+from utility.dataset.featureConstruction import featureConstruction
 from joblib import dump
+import json
 
 
 class ModelTraining:
     __YES_CHOICES = ["yes", "y", ""]
     __NO_CHOICES = ["no", "n"]
     MODEL_PATH = "../models/"
+    CONFIG_PATH = "../configs/"
 
-    def __init__(self, outputName: str = None, model=None, dataFrame: pd.DataFrame = None, retrain: bool = None):
-
+    def __init__(
+            self, 
+            outputName: str = None, 
+            model=None, 
+            dataFrame: pd.DataFrame = None, 
+            configFile: str = None,
+            retrain: bool = None
+    ):
         if outputName:
-            self.__outputName = outputName
+            self.__outputName = self.__check_extension_file(outputName, ".joblib", "model_")
         else:
-            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".skops"
+            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".joblib"
 
         if model is not None:
             self.__model = model
@@ -32,6 +41,13 @@ class ModelTraining:
             self.__dataFrame = dataFrame
         else:
             raise ValueError("Inserire il dataset da usare per l'addestramento")
+        
+        # Imposta configurazione di default
+        if configFile == None:
+            configFile = "config.json"
+        
+        self.__configFile = self.__check_extension_file(configFile, ".json")
+        self.__init_configs()
 
         self.__isToRetrain = retrain if retrain is not None else False
         self.__check_model_path()
@@ -43,10 +59,32 @@ class ModelTraining:
         print("[INFO] Training del modello in corso...\n")
         self.__model_training()
 
+    def __init_configs(self):
+        """Inizializza i parametri di configurazione."""
+        # Leggi file di configurazione
+        with open(self.CONFIG_PATH + self.__configFile, 'r') as f:
+            features = json.load(f)
+
+        # Estrai i nomi delle feature con valore falso (cioè le feature da filtrare)
+        self.__features_disabled = [k for k, v in features.items() if not(v)]
+
+        if "message_composition" in self.__features_disabled:
+            self.__features_disabled.remove("message_composition")
+            self.__features_disabled.extend(featureConstruction.POS_LIST)
+
     def __check_model_path(self):
-        """Controlla se il path del modello esiste, altrimenti lo crea."""
+        """Controlla se la cartella del modello esiste, altrimenti lo crea."""
         if not os.path.exists(self.MODEL_PATH):
             os.makedirs(self.MODEL_PATH)
+
+    @staticmethod
+    def __check_extension_file(filename: str, ext: str, pre: str = ""):
+        """Controlla se l'estensione del file è quella specificata"""
+        if not filename.endswith(ext):
+            filename += ext
+        if not filename.startswith(pre):
+            filename = pre + filename
+        return filename
 
     def __check_duplicates(self):
         # Controllo in caso si voglia sovrascrivere comunque
@@ -64,7 +102,7 @@ class ModelTraining:
                 print('Inserire \"Y\" o \"N\"')
                 continue
 
-    def __model_training(self):
+    def __model_training(self, kfold: int = 0):
         """Applica random forest sul dataframe."""
 
         # LOGGING:: Stampa il nome del modello trainato
@@ -74,25 +112,35 @@ class ModelTraining:
         X = self.__dataFrame.drop(['user'], axis=1)
         y = self.__dataFrame["user"]
 
+        # Rimuovi le feature da filtrare (specificate nel file di configurazione)
+        if self.__features_disabled:
+            # Droppa tutte le colonne generate da bag of words (cioè con nomi numerici)
+            if "bag_of_words" in self.__features_disabled:
+                self.__features_disabled.extend([col for col in X.columns if col.isdigit()])
+
+            X = X.drop(self.__features_disabled, axis=1, errors='ignore')
+
         # Applica feature scaling
-        X = self.__feature_scaling(X)
+        scaler = MinMaxScaler()
+        X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
         # TRAINING CON CROSS VALIDATION
-        cv = 5  # numero di fold (di solito 5 o 10)
-        scoring = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted']
-        scores = cross_validate(self.__model, X, y, cv=cv, scoring=scoring)
+        # (numero di fold di solito 5 o 10)
+        if kfold > 0:
+            scoring = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted']
+            scores = cross_validate(self.__model, X, y, cv=kfold, scoring=scoring)
 
-        # Stampa un report sulle metriche di valutazione del modello
-        print(f"[INFO] Media delle metriche di valutazione dopo {cv}-fold cross validation:")
-        # LOGGING:: Stampa un report sulle metriche di valutazione del modello
-        logging.info(f"Media delle metriche di valutazione dopo {cv}-fold cross validation:")
+            # Stampa un report sulle metriche di valutazione del modello
+            print(f"[INFO] Media delle metriche di valutazione dopo {kfold}-fold cross validation:")
+            # LOGGING:: Stampa un report sulle metriche di valutazione del modello
+            logging.info(f"Media delle metriche di valutazione dopo {kfold}-fold cross validation:")
 
-        indexes = list(scores.keys())
+            indexes = list(scores.keys())
 
-        for index in indexes:
-            # LOGGING:: Stampa le metriche di valutazione del modello
-            logging.info(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
-            print(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+            for index in indexes:
+                # LOGGING:: Stampa le metriche di valutazione del modello
+                logging.info(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
+                print(f"\t{index}: %0.2f (+/- %0.2f)" % (scores[index].mean(), scores[index].std() * 2))
 
         # TRAINING CON SPLIT CLASSICO
         test_size = 0.2  # percentuale del dataset di test dopo lo split
@@ -131,25 +179,11 @@ class ModelTraining:
         except Exception:
             print("Il modello non verifica importanza delle features")
 
-        skio.dump(self.__model, self.MODEL_PATH + self.__outputName)
+        # Crea una pipeline con lo scaler e il classificatore
+        pipeline = Pipeline([
+            ('scaler', scaler),
+            ('classifier', self.__model)
+        ])
 
-    def __feature_scaling(self, df: pd.DataFrame):
-        """     
-            Scala le feature in un range da 0 a 1 e 
-            salva lo scaler in un file avente lo stesso nome del modello.
-        """
-        # Applica minmax scaling
-        scaler = MinMaxScaler()
-        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-
-        # Salva lo scaler in un file avente lo stesso nome del modello
-        # (altrimenti in modelExecution non si potrebbe scalare il messaggio in input)
-        scaler_file_path = ModelTraining.get_scaler_path(self.MODEL_PATH + self.__outputName)
-        dump(scaler, scaler_file_path)
-
-        return df
-
-    @staticmethod
-    def get_scaler_path(model_path: str):
-        """Ottieni il path dello scaler associato al modello."""
-        return model_path.replace(".skops", "_scaler.joblib")
+        # Salva la pipeline (scaler e modello)
+        dump(pipeline, self.MODEL_PATH + self.__outputName)

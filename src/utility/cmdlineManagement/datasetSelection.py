@@ -14,8 +14,11 @@ class DatasetSelection:
 
     @classmethod
     def __show_datasets(cls):
-        #print("Elenco dei dataset disponibili:")
-        datasets = os.listdir(cls.DATASET_PATH)
+        datasets = [file for file in os.listdir(cls.DATASET_PATH) if file.endswith(".parquet")]
+
+        # Ordina i dataset in base alla data di creazione
+        datasets = sorted(datasets, key=lambda x: os.path.getctime(os.path.join(cls.DATASET_PATH, x)), reverse=True)
+
         return datasets
 
     @classmethod
@@ -37,8 +40,6 @@ class DatasetSelection:
     @classmethod
     def __select_dataset(cls):
         datasets = cls.__show_datasets()
-        # menu = TerminalMenu(datasets)
-        # menu_entry_index = menu.show()
 
         dataset_selection = [
             inquirer.List('dataset',
@@ -64,4 +65,3 @@ class DatasetSelection:
     @property
     def dataset(self):
         return self.__dataset
-

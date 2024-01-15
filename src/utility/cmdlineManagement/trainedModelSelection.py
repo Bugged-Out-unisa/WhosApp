@@ -1,24 +1,28 @@
 import os
 import logging
 import pandas as pd
-#from simple_term_menu import TerminalMenu
 import inquirer
 from utility.exceptions import ExtensionError
-import skops.io as skio
 from joblib import load
-from utility.model.modelTraining import ModelTraining
 
 
 class TrainedModelSelection:
     MODEL_PATH = "../models/"
 
     def __init__(self):
-        self.__model, self.__scaler = self.__select_model()
+        self.__model = self.__select_model()
 
     @classmethod
     def __show_models(cls):
-        #print("Elenco dei modelli disponibili:")
-        models = os.listdir(cls.MODEL_PATH)
+        # Seleziona solo i file
+        all_file = [file for file in os.listdir(cls.MODEL_PATH) if os.path.isfile(os.path.join(cls.MODEL_PATH, file))]
+
+        # Seleziona solo i modelli
+        models = [model for model in all_file if model.endswith(".joblib") or model.endswith(".onnx")]
+
+        # Ordina i modelli in base alla data di creazione
+        models = sorted(models, key=lambda x: os.path.getctime(os.path.join(cls.MODEL_PATH, x)), reverse=True)
+        
         return models
 
     @classmethod
@@ -26,14 +30,13 @@ class TrainedModelSelection:
         if 0 <= index < len(models):
             selected_model = models[index]
 
-            if not selected_model.endswith(".skops"):
-                raise ExtensionError("Il modello deve essere in formato .skops")
+            if not selected_model.endswith(".joblib"):
+                raise ExtensionError("Il modello deve essere in formato .joblib")
 
             path = f"{cls.MODEL_PATH}{selected_model}"
 
             # Carica il model
-            model = skio.load(path)
-            return model
+            return load(path)
         else:
             raise ValueError("ID del modello non valido.")
 
@@ -50,15 +53,9 @@ class TrainedModelSelection:
 
         model = inquirer.prompt(model_selection)
 
-        # menu = TerminalMenu(models)
-        # menu_entry_index = menu.show()
-
         # Ottieni model
-        # model_name = models[menu_entry_index]
         model_name = model["model"]
-
         menu_entry_index = models.index(model_name)
-        
         model_selected = cls.__load_model(menu_entry_index, models)
 
         # Ottieni scaler
@@ -66,13 +63,10 @@ class TrainedModelSelection:
         scaler_selected = load(cls.MODEL_PATH + scaler_name)
 
         print(f"Modello selezionato: {model_name}")
-        print(f"Scaler selezionato: {scaler_name}")
-
         # LOGGING:: Stampa il modello (e lo scaler) selezionato
         logging.info(f"Modello usato: {model_name}")
-        logging.info(f"Scaler usato: {scaler_name}")
 
-        return model_selected, scaler_selected
+        return cls.__load_model(menu_entry_index, models)
 
     @property
     def model(self):

@@ -19,16 +19,14 @@ class modelExecution:
 
     MODEL_PATH = "../models/"
 
-    def __init__(self, model = None, scaler = None):
-        if model == None:
-            selection = TrainedModelSelection()
-            
-            self.__trainedModel = selection.model
-            self.__scaler = selection.scaler
-        else:
-            self.__trainedModel = model
-            self.__scaler = scaler
-        
+    
+    def __init__(self, pipeline = None):
+        if pipeline == None:
+            pipeline = TrainedModelSelection().model
+
+        # Carica il modello e lo scaler dalla pipeline
+        self.__trainedModel = pipeline.named_steps['classifier']
+        self.__scaler = pipeline.named_steps['scaler']
         self.predictions = [[] for _ in range(self.__trainedModel.n_classes_)]
 
     def dataframe_for_messages(self, message):

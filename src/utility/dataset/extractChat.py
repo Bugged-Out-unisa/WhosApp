@@ -106,7 +106,4 @@ class ExtractChat:
                 print(f"[INFO] Rimozione degli utenti non prensenti in {self.__aliasesPath}")
                 users = [user for user in users if user != self.__remove_generic]
 
-        # LOGGING:: Stampa gli utenti trovati
-        logging.info(f"Utenti trovati: \n" + "\n".join(f"\t{user} -> {i}" for i, user in enumerate(set(users))))
-
         return dates, users, messages

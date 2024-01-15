@@ -1,5 +1,7 @@
+import time
+import calendar
 import argparse
-from utility.logging import init_logging
+from utility.logging import Logger
 from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
 from utility.model.modelTraining import ModelTraining
@@ -26,8 +28,6 @@ Esempio di utilizzo:
 
 
 def create_dataset_and_train_model():
-    # LOGGING:: Inizializza il logging
-    init_logging("combined-report.log", "!! COMBINED PROCESS !!")
 
     parser = argparse.ArgumentParser()
 
@@ -51,6 +51,19 @@ def create_dataset_and_train_model():
     # Selezione del modello
     selected_model = ModelSelection().model
 
+    # Definizione del timestamp
+    timestamp = str(calendar.timegm(time.gmtime()))
+
+    # Se il dataset_name non è None, lo imposta al timestamp. Altrimenti lo usa
+    dataset_name = dataset_name if dataset_name is not None else timestamp
+
+    # LOGGING:: Inizializza il logging
+    Logger(
+        name=dataset_name,
+        path=Logger.DATASET_LOGGING_PATH,
+        start_message="!! NEW DATASET CREATION !!"
+    ).run()
+
     # Creazione del dataset con i parametri passati da linea di comando
     dataset_creator = datasetCreation(
         dataset_name,
@@ -60,11 +73,21 @@ def create_dataset_and_train_model():
         remove_generic,
         refactor
     )
-    
+
     dataset_creator.run()
 
     # Usa il dataset creato oppure effettua la selezione del dataset
     selected_dataset = dataset_creator.dataFrame if dataset_creator.dataFrame is not None else DatasetSelection().dataset
+
+    # Se il output_name non è None, lo imposta al timestamp. Altrimenti lo usa
+    output_name = args.outputName if args.outputName is not None else timestamp
+
+    # LOGGING:: Re-inizializza il logging
+    Logger(
+        name=output_name,
+        start_message="!! NEW TRAINING !!",
+        path=Logger.TRAINING_LOGGING_PATH
+    ).run()
 
     # Training del modello con i parametri passati da linea di comando
     ModelTraining(output_name, selected_model, selected_dataset, retrain).run()

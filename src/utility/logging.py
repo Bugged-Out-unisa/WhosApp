@@ -2,24 +2,67 @@ import os
 import logging
 import datetime
 
-LOGGING_PATH = "../logs/"
 
+class Logger:
+    """
+    Classe che gestisce i logger statici del programma
+    """
 
-def init_logging(filename: str = "log.log", start_message: str = None):
-    if not os.path.exists(LOGGING_PATH):
-        os.makedirs(LOGGING_PATH)
+    DEFAULT_LOGGING_PATH = "../logs/"
+    DATASET_LOGGING_PATH = DEFAULT_LOGGING_PATH + "dataset/"
+    TRAINING_LOGGING_PATH = DEFAULT_LOGGING_PATH + "training/"
 
-    filename = filename if filename.endswith(".log") else filename + ".log"
+    def __init__(
+            self,
+            name: str = "unknown",
+            start_message: str = "!! START NEW LOG !!",
+            path: str = DEFAULT_LOGGING_PATH
+    ):
+        self.__name = name if name is not None else "unknown"
+        self.__start_message = start_message if start_message is not None else "!! START NEW LOG !!"
+        self.__path = path if path in (self.DATASET_LOGGING_PATH, self.TRAINING_LOGGING_PATH) else self.DEFAULT_LOGGING_PATH
+        self.__filelog = None
 
-    logging.basicConfig(
-        filename=LOGGING_PATH + filename,
-        level=logging.INFO,
-        format='%(message)s'
-    )
+        # Controlla se le path esistono
+        self.__check_path()
+        self.__check_path(self.__path)
 
-    # Controllo del messaggio di log
-    message = start_message if start_message and isinstance(start_message, str) \
-        else "Avvio programma"
+        # Crea il file di log
+        self.__check_filelog()
 
-    logging.info(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}")
-    logging.info(message)
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, name: str):
+        self.__name = name
+        self.__check_filelog()
+
+    @staticmethod
+    def __check_path(path: str = DEFAULT_LOGGING_PATH):
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    def __check_filelog(self):
+        if not self.__name.endswith(".log"):
+            self.__name += ".log"
+
+        if self.__path == self.DATASET_LOGGING_PATH:
+            name = f"report-dataset_{self.__name}"
+        elif self.__path == self.TRAINING_LOGGING_PATH:
+            name = f"report-training_{self.__name}"
+        else:
+            name = f"report-{self.__name}"
+
+        self.__filelog = self.__path + name
+
+    def run(self):
+        logging.basicConfig(
+            filename=self.__filelog,
+            level=logging.INFO,
+            format='%(message)s'
+        )
+
+        logging.info(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}")
+        logging.info(self.__start_message)
