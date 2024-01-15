@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import inquirer
 from utility.exceptions import ExtensionError
+from utility.model.modelTraining import ModelTraining
 from joblib import load
 
 
@@ -56,11 +57,6 @@ class TrainedModelSelection:
         # Ottieni model
         model_name = model["model"]
         menu_entry_index = models.index(model_name)
-        model_selected = cls.__load_model(menu_entry_index, models)
-
-        # Ottieni scaler
-        scaler_name = ModelTraining.get_scaler_path(model_name)
-        scaler_selected = load(cls.MODEL_PATH + scaler_name)
 
         print(f"Modello selezionato: {model_name}")
         # LOGGING:: Stampa il modello (e lo scaler) selezionato
@@ -71,7 +67,3 @@ class TrainedModelSelection:
     @property
     def model(self):
         return self.__model
-    
-    @property
-    def scaler(self):
-        return self.__scaler

@@ -33,6 +33,7 @@ body{
     font-size: .9rem;
     overflow: hidden;
     box-sizing: border-box;
+    z-index: 3;
 }
 
 #top-bar>div{
@@ -259,7 +260,11 @@ meter{
     height: 80vh;
     margin-top: 4rem;
     margin-bottom: 5rem;
-    overflow-y: scroll;
+}
+
+#inside-wrapper{
+    height: fit-content;
+    overflow-y: auto;
 }
 
 #message-display{

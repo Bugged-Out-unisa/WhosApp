@@ -28,6 +28,7 @@ $(function() {
             type: "POST",
             success: function(response) {
                 $("#message-display").append(response);
+                $("#inside-wrapper")[0].scrollTop = $("#inside-wrapper")[0].scrollHeight;
             },
             
             error: () =>{
@@ -60,7 +61,9 @@ $(function() {
             data: { text: text },
             type: "POST",
             success: function(response) {
-                $("#message-display").append(response);
+                $("#message-display").append(response);7
+                $("#inside-wrapper")[0].scrollTop = $("#inside-wrapper")[0].scrollHeight;
+                
                 isWaiting = true;
                 isThinking.css("opacity", "1");
 
