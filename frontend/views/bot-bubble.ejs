@@ -1,0 +1,20 @@
+<div class="bubble left-bubble">
+    <div class="bubble-direction"></div>
+
+    <div class="text">
+        <b>Singolo</b> <br>
+
+        <% single.forEach((element, index) => { %>
+            User <%= index %>:
+            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
+        <% }) %>
+
+        
+        <b>Media</b> <br>
+
+        <% average.forEach((element, index) => { %>
+            User <%= index %>:
+            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
+        <% }) %>
+    </div>
+</div>
