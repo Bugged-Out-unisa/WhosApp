@@ -1,16 +1,17 @@
 import os
+import json
 import time
 import logging
 import calendar
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.pipeline import Pipeline
-from utility.dataset.featureConstruction import featureConstruction
 from joblib import dump
-import json
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score, classification_report
+from utility.dataset.featureConstruction import featureConstruction
+from sklearn.model_selection import train_test_split, cross_validate
+from utility.exceptions import DatasetNotFoundError, ModelNotFoundError
 
 
 class ModelTraining:
@@ -58,7 +59,7 @@ class ModelTraining:
         if model is not None:
             return model
         else:
-            raise ValueError("Inserire il modello da addestrare")
+            raise ModelNotFoundError("Inserire il modello da addestrare")
 
     @staticmethod
     def __check_dataframe(dataFrame):
@@ -66,8 +67,7 @@ class ModelTraining:
         if dataFrame is not None:
             return dataFrame
         else:
-            raise ValueError("Inserire il dataset da usare per l'addestramento")
-
+            raise DatasetNotFoundError("Inserire il dataset da usare per l'addestramento")
 
     def run(self):
         """Avvia il training del modello."""
