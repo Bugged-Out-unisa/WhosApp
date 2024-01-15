@@ -27,30 +27,47 @@ class ModelTraining:
             configFile: str = None,
             retrain: bool = None
     ):
-        if outputName:
-            self.__outputName = self.__check_extension_file(outputName, ".joblib", "model_")
-        else:
-            self.__outputName = "model_" + str(calendar.timegm(time.gmtime())) + ".joblib"
-
-        if model is not None:
-            self.__model = model
-        else:
-            raise ValueError("Inserire il modello da addestrare")
-
-        if dataFrame is not None:
-            self.__dataFrame = dataFrame
-        else:
-            raise ValueError("Inserire il dataset da usare per l'addestramento")
+        self.__outputName = self.__check_output_name(outputName)
+        self.__model = self.__check_model(model)
+        self.__dataFrame = self.__check_dataframe(dataFrame)
         
         # Imposta configurazione di default
-        if configFile == None:
-            configFile = "config.json"
-        
-        self.__configFile = self.__check_extension_file(configFile, ".json")
+        self.__configFile = self.__check_config_file(configFile)
         self.__init_configs()
 
         self.__isToRetrain = retrain if retrain is not None else False
         self.__check_model_path()
+
+    def __check_output_name(self, outputName: str) -> str:
+        """Controlla se il nome del modello è stato inserito"""
+        if outputName:
+            return self.__check_extension_file(outputName, ".joblib", "model_")
+        else:
+            return "model_" + str(calendar.timegm(time.gmtime())) + ".joblib"
+
+    def __check_config_file(self, configFile: str) -> str:
+        """Controlla se il file di configurazione è stato inserito"""
+        if configFile and os.path.exists(self.CONFIG_PATH + configFile):
+            return self.__check_extension_file(configFile, ".json")
+        else:
+            return "config.json"
+
+    @staticmethod
+    def __check_model(model):
+        """Controlla se il modello è stato inserito"""
+        if model is not None:
+            return model
+        else:
+            raise ValueError("Inserire il modello da addestrare")
+
+    @staticmethod
+    def __check_dataframe(dataFrame):
+        """Controlla se il dataframe è stato inserito"""
+        if dataFrame is not None:
+            return dataFrame
+        else:
+            raise ValueError("Inserire il dataset da usare per l'addestramento")
+
 
     def run(self):
         """Avvia il training del modello."""
@@ -66,7 +83,13 @@ class ModelTraining:
             features = json.load(f)
 
         # Estrai i nomi delle feature con valore falso (cioè le feature da filtrare)
-        self.__features_disabled = [k for k, v in features.items() if not(v)]
+        self.__features_disabled = [k for k, v in features.items() if not v]
+
+        # LOGGING: Stampa le feature usate in fase di training
+        logging.info(
+            f"Feature usate in fare di training: \n",
+            "\n".join(f"\t{k}" for k, v in features.items() if v)
+        )
 
         if "message_composition" in self.__features_disabled:
             self.__features_disabled.remove("message_composition")
@@ -167,6 +190,9 @@ class ModelTraining:
         n = 20  # numero di feature
         print("\n[INFO] Top {} feature più predittive:".format(n))
 
+        # LOGGING:: Didascalia per le feature più predittive
+        logging.info(f"Top {n} feature più predittive:")
+
         feature_names = X.columns.tolist()  # Estrai i nomi di tutte le feature
 
         try:
@@ -176,6 +202,10 @@ class ModelTraining:
 
             for i in top_n_features:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
+
+                # LOGGING:: Stampa le feature più predittive
+                logging.info(f"\t{feature_names[i]}: %0.5f" % importances[i])
+
         except Exception:
             print("Il modello non verifica importanza delle features")
 
