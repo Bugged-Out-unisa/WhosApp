@@ -93,7 +93,8 @@ class datasetCreation:
             if self.__alias_file:
                 dates, users, messages = ExtractChat(
                     rawdata,
-                    self.CONFIG_PATH + self.__alias_file
+                    self.CONFIG_PATH + self.__alias_file,
+                    self.__other_user
                 ).extract()
             else:
                 dates, users, messages = ExtractChat(rawdata).extract()

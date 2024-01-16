@@ -81,7 +81,7 @@ class DataFrameProcessor:
         # Funzione per controllare se un messaggio matcha una regex nella blacklist
         def matches_blacklist(message: str):
             for pattern in blacklist_patterns:
-                if pattern.fullmatch(message) or "‎" in message:
+                if pattern.fullmatch(message):
                     # il carattere "‎" è presente nei messaggi informativi di IOS
                     return True
             return False
@@ -94,7 +94,7 @@ class DataFrameProcessor:
         df = df[~df['message'].apply(matches_blacklist)]
 
         # Rimuove anche i messaggi che contengono "(file attached)"
-        df = df[~df['message'].str.contains("\(file attached\)")]
+        df = df[~df['message'].str.contains("\\(file attached\\)")]
 
         return df
 

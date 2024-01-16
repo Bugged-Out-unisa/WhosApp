@@ -16,12 +16,12 @@ class ExtractChat:
             rawdata: str,
             aliases: str = None,
             placeholder_user: str = Phum.DEFAULT_PLACEHOLDER,
-            remove_generic_user: bool = False
     ):
         self.__rawdata = rawdata
         self.__aliasesPath = aliases
         self.__userDict = dict()
         self.__regex_timestamp = None
+        self.__placeholder_user = placeholder_user
         self.__loadAliases()
 
     def __loadAliases(self):
