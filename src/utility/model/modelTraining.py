@@ -187,24 +187,27 @@ class ModelTraining:
         logging.info(report)
 
         # Stampa le feature più predittive
-        n = 20  # numero di feature
+        n = 20  # numero di feature per cmdlin
+        m = 100 # numero di feature per logging
         print("\n[INFO] Top {} feature più predittive:".format(n))
 
         # LOGGING:: Didascalia per le feature più predittive
-        logging.info(f"Top {n} feature più predittive:")
+        logging.info(f"Top {m} feature più predittive:")
 
         feature_names = X.columns.tolist()  # Estrai i nomi di tutte le feature
 
         try:
             importances = self.__model.feature_importances_
             important_features = np.argsort(importances)[::-1]
-            top_n_features = important_features[:n]
+            top_n_features_cmdline = important_features[:n]
+            top_n_features_logging = important_features[:m]
 
-            for i in top_n_features:
+            for i in top_n_features_cmdline:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
 
+            for i in top_n_features_logging:
                 # LOGGING:: Stampa le feature più predittive
-                logging.info(f"\t{feature_names[i]}: %0.5f" % importances[i])
+                logging.info(f"\t {i}) {feature_names[i]}: %0.5f" % importances[i])
 
         except Exception:
             print("Il modello non verifica importanza delle features")

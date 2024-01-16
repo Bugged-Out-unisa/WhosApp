@@ -180,7 +180,21 @@ class featureConstruction:
         if len(lemmas) == 0:
             return 0
         return len(set(lemmas)) / len(lemmas)
-        #return LexicalRichness(" ".join(lemmas)).ttr
+
+    def simpsons_index(self, m):
+        """Calcola l'indice di Simpson di un messaggio."""
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+
+        lemma_counts = Counter(lemmas)
+        try:
+            N = len(lemmas)
+            D = sum(n * (n - 1) for n in lemma_counts.values())
+            simpson_index = D / (N * (N - 1))
+
+            return simpson_index
+        except ZeroDivisionError:
+            return 0
 
     @staticmethod
     def uppercase_count(m):
