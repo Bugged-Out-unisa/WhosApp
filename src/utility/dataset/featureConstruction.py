@@ -1,3 +1,4 @@
+import os
 import json
 import spacy
 import emojis
@@ -5,6 +6,7 @@ import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from lexicalrichness import LexicalRichness
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
@@ -21,10 +23,10 @@ class featureConstruction:
         "SYM", "VERB", "X", "SPACE"
     ]
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
-        self.DATASET_PATH = datasetPath
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="../configs/config.json", saveDataFrame :bool = True):
+        self.DATASET_PATH = self.__check_dataset_path(datasetPath)
         self.__dataFrame = dataFrame
-        self.__config = config
+        self.__config = self.__check_config_file(config_path)
         self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
@@ -35,6 +37,21 @@ class featureConstruction:
 
     def get_dataframe(self):
         return self.__dataFrame
+
+    @staticmethod
+    def __check_dataset_path(dataset_path: str) -> str:
+        """Controlla se il percorso del dataset esiste"""
+        if dataset_path is not None:
+            return dataset_path
+        else:
+            raise ValueError("Percorso del dataset non valido")
+
+    @staticmethod
+    def __check_config_file(config_path: str) -> str:
+        if config_path and os.path.exists(config_path):
+            return config_path
+        else:
+            raise ValueError("File di configurazione non valido")
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
@@ -103,7 +120,7 @@ class featureConstruction:
 
         # LOGGING:: Inserire le feature usate per la predizione
         logging.info(
-            "Feature usate: \n" +
+            "Feature selezionate in Dataset Creation: \n" +
             "\n".join(f"\t{feature_name}" for feature_name in self.__features_enabled)
         )
 
@@ -170,6 +187,29 @@ class featureConstruction:
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
         self.__dataFrame.to_parquet(self.DATASET_PATH)
+
+    def type_token_ratio(self, m):
+        """Calcola la ricchezza lessicale di un messaggio."""
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+        if len(lemmas) == 0:
+            return 0
+        return len(set(lemmas)) / len(lemmas)
+
+    def simpsons_index(self, m):
+        """Calcola l'indice di Simpson di un messaggio."""
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+
+        lemma_counts = Counter(lemmas)
+        try:
+            N = len(lemmas)
+            D = sum(n * (n - 1) for n in lemma_counts.values())
+            simpson_index = D / (N * (N - 1))
+
+            return simpson_index
+        except ZeroDivisionError:
+            return 0
 
     @staticmethod
     def uppercase_count(m):

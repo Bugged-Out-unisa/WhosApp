@@ -16,14 +16,12 @@ class ExtractChat:
             rawdata: str,
             aliases: str = None,
             placeholder_user: str = Phum.DEFAULT_PLACEHOLDER,
-            remove_generic_user: bool = False
     ):
         self.__rawdata = rawdata
         self.__aliasesPath = aliases
         self.__userDict = dict()
         self.__regex_timestamp = None
         self.__placeholder_user = placeholder_user
-        self.__remove_generic = remove_generic_user
         self.__loadAliases()
 
     def __loadAliases(self):
@@ -100,10 +98,5 @@ class ExtractChat:
 
         if (len(self.__userDict)) >= 1:
             users = [self.__userDict.get(name, self.__placeholder_user) for name in users]
-            if self.__remove_generic:
-                # LOGGING:: Stampa la rimozione degli utenti non presenti in aliases
-                logging.info(f"Rimozione degli utenti non prensenti in {self.__aliasesPath}")
-                print(f"[INFO] Rimozione degli utenti non prensenti in {self.__aliasesPath}")
-                users = [user for user in users if user != self.__placeholder_user]
 
         return dates, users, messages
