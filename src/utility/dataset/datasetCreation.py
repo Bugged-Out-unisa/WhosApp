@@ -93,15 +93,13 @@ class datasetCreation:
             if self.__alias_file:
                 dates, users, messages = ExtractChat(
                     rawdata,
-                    self.CONFIG_PATH + self.__alias_file,
-                    placeholder_user=self.__other_user,
-                    remove_generic_user=self.__remove_other
+                    self.CONFIG_PATH + self.__alias_file
                 ).extract()
             else:
                 dates, users, messages = ExtractChat(rawdata).extract()
 
             print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
-            self.__dataFrame = DataFrameProcessor(dates, users, messages).get_dataframe()
+            self.__dataFrame = DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).get_dataframe()
 
             print("\n[LOADING] Applicando feature construction...")
             self.__dataFrame = featureConstruction(

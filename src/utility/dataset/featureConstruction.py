@@ -38,7 +38,7 @@ class featureConstruction:
     @staticmethod
     def __check_dataset_path(dataset_path: str) -> str:
         """Controlla se il percorso del dataset esiste"""
-        if dataset_path and os.path.exists(dataset_path):
+        if dataset_path is not None:
             return dataset_path
         else:
             raise ValueError("Percorso del dataset non valido")
@@ -173,33 +173,14 @@ class featureConstruction:
         """Salva il dataframe aggiornato in formato parquet."""
         self.__dataFrame.to_parquet(self.DATASET_PATH)
 
-    @staticmethod
-    def mattr(m):
-        """Calcola il MATTR di un messaggio."""
-        try:
-            return LexicalRichness(m).mattr()
-        except ValueError:
-            return 0
-
-    @staticmethod
-    def msttr(m):
-        """Calcola il MSTTR di un messaggio"""
-        try:
-            return LexicalRichness(m).msttr(segment_window=50)
-        except ValueError:
-            return 0
-
-    @staticmethod
-    def unique_word_count(m):
-        """Conta il numero di parole uniche in un messaggio."""
-        return len(set(m.split()))
-
-    @staticmethod
-    def type_token_ratio(m):
+    def type_token_ratio(self, m):
         """Calcola la ricchezza lessicale di un messaggio."""
-        if len(m.split()) == 0:
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+        if len(lemmas) == 0:
             return 0
-        return round(len(set(m.split())) / len(m.split()), 2)
+        return len(set(lemmas)) / len(lemmas)
+        #return LexicalRichness(" ".join(lemmas)).ttr
 
     @staticmethod
     def uppercase_count(m):
