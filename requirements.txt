@@ -6,7 +6,10 @@ spacy>=3.7.2
 emojis>=0.7.0
 feel-it>=1.0.5
 simple_term_menu
-pyarrow
 lexicalrichness~=0.5.1
 joblib~=1.3.2
 inquirer~=3.2.1
+pyarrow
+skops
+requests
+flask

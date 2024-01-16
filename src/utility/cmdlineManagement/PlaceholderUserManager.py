@@ -1,6 +1,7 @@
 from typing import Tuple
+import inquirer
 
-from simple_term_menu import TerminalMenu
+#from simple_term_menu import TerminalMenu
 
 
 class PlaceholderUserManager:
@@ -23,9 +24,21 @@ class PlaceholderUserManager:
             return self.DEFAULT_PLACEHOLDER, False
 
         # Mostra il menu delle opzioni per l'utente generico
-        print("Selezione azione per l'utente generico: ")
-        menu = TerminalMenu(self.__OPTIONS)
-        choice = menu.show()
+        # print("Selezione azione per l'utente generico: ")
+
+        operation_selection = [
+            inquirer.List('operation',
+                message="Seleziona azione per l'utente generico",
+                choices= self.__OPTIONS
+            ),
+        ]
+
+        operation = inquirer.prompt(operation_selection)
+
+        choice = self.__OPTIONS.index(operation["operation"])
+
+        # menu = TerminalMenu(self.__OPTIONS)
+        # choice = menu.show()
 
         # Gestione della selezione dell'utente generico
         if choice == 0:

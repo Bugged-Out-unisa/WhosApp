@@ -1,0 +1,7 @@
+express
+ejs
+body-parser
+jquery
+jsdom
+emoji-picker-element
+axios

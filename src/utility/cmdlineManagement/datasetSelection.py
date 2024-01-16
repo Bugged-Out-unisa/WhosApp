@@ -1,7 +1,8 @@
 import os
 import logging
 import pandas as pd
-from simple_term_menu import TerminalMenu
+# from simple_term_menu import TerminalMenu
+import inquirer
 from utility.exceptions import ExtensionError
 
 
@@ -13,7 +14,6 @@ class DatasetSelection:
 
     @classmethod
     def __show_datasets(cls):
-        print("Elenco dei dataset disponibili:")
         datasets = [file for file in os.listdir(cls.DATASET_PATH) if file.endswith(".parquet")]
 
         # Ordina i dataset in base alla data di creazione
@@ -40,8 +40,19 @@ class DatasetSelection:
     @classmethod
     def __select_dataset(cls):
         datasets = cls.__show_datasets()
-        menu = TerminalMenu(datasets)
-        menu_entry_index = menu.show()
+
+        dataset_selection = [
+            inquirer.List('dataset',
+                message="Elenco dei dataset disponibili",
+                choices= datasets
+            ),
+        ]
+
+        dataset = inquirer.prompt(dataset_selection)
+
+        dataset_name = dataset["dataset"]
+
+        menu_entry_index = datasets.index(dataset_name)
 
         dataset_selected = cls.__load_dataset(menu_entry_index, datasets)
         print(f"Dataset selezionato: {datasets[menu_entry_index]}")

@@ -1,0 +1,276 @@
+*{
+    --bar-color: #036058;
+    --main-font: "Helvetica", "Arial", sans-serif;
+    --user-chat-bg: #e2ffc7;
+} 
+
+html,body{
+    width: 100vw;
+    margin: 0;
+    font-family: var(--main-font);
+    color: white;
+    overflow-x: hidden;
+}
+
+body{
+    background-image: url("/images/whatsapp_background.png");
+    background-repeat: repeat;
+    background-size: 50% auto;
+}
+
+/*    Top Bar     */
+
+#top-bar{
+    width: 100%;
+    position: fixed;
+    top: 0;
+    background-color: var(--bar-color);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px;
+    font-weight: 600;
+    font-size: .9rem;
+    overflow: hidden;
+    box-sizing: border-box;
+    z-index: 3;
+}
+
+#top-bar>div{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#top-bar>div:first-child{
+    width: 10rem;
+}
+
+#logo{
+    border-radius: 50%;
+    background-color: greenyellow;
+    width: 2.75rem;
+    height: 2.75rem;
+}
+
+#name-status{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#name-status>p{
+    margin: 0;
+}
+
+#is-thinking{
+    opacity: 0;
+    padding-top: .25rem;
+    font-weight: 400;
+    transition: .35s ease;
+}
+
+#top-bar> div:last-child{
+    width: 10rem;
+}
+
+#top-bar>div:last-child img{
+    max-height: 1.5rem;
+    width: auto;
+    filter: invert(1);
+}
+
+#github-link{
+    display: inline-block;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#options{
+    background-color: transparent;
+    border: none;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#options div{
+    background-color: white;
+    width: .25rem;
+    height: .25rem;
+    border-radius: 50%;
+    margin: .1rem;
+}
+
+/*      Typing bar       */
+
+.typing-bar{
+    width: 98vw;
+    position: fixed;
+    bottom: .5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    box-sizing: border-box;
+    padding: 0 1rem;
+}
+
+#user-typing{
+    flex: 1;
+    background-color: white;
+    padding: .75rem 1rem;
+    border-radius: 2rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+#user-input{
+    font: var(--main-font);
+    margin: 0 1rem;
+    border: none;
+    outline: none;
+    width: 100%;
+    resize: none;
+}
+
+#emoji-btn{
+    cursor: pointer;
+}
+
+#emoji-btn img{
+    height: 1.5rem;
+    filter: invert(.5);
+    transition: .5s ease;
+}
+
+#emoji-btn:hover img{
+    filter: invert(.25);
+}
+
+#send-btn{
+    background-color: var(--bar-color);
+    border-radius: 50%;
+    margin-left: 1rem;
+    border: none;
+    outline: none;
+    height: 3rem;
+    width: 3rem;
+    cursor: pointer;
+}
+
+#send-btn:hover{
+    background-color: #05926a;
+    transition: .5s ease;
+}
+
+#send-btn:active{
+    transform: scale(.9);
+}
+
+#send-btn img{
+    height: 1.7rem;
+    width: auto;
+    filter: invert(1);
+    transform: translate(-7.5%, 7.5%);
+}
+
+emoji-picker{
+    display: none;
+    position: fixed;
+    bottom: 4rem;
+    left: 1rem;
+    z-index: 1;
+}
+
+/*    Text Bubbles   */
+
+.bubble{
+    color: #333333;
+    width: fit-content;
+    max-width: 70vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin: 1rem 0;
+}
+
+.bubble>div.text{
+    max-width: inherit;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    flex: 1;
+    padding: .65rem 1rem;
+    border-radius: .75rem;
+}
+
+.right-bubble{
+    margin-left: auto;
+    margin-right: 1.5rem;
+}
+
+.right-bubble div.text{
+    background-color: var(--user-chat-bg);
+    border-top-right-radius: 0 !important;
+}
+
+.right-bubble div.bubble-direction{
+    width: 0;
+    height: 0;
+    border: .5rem solid var(--user-chat-bg);
+    border-right: .5rem solid transparent;
+    border-bottom: .5rem solid transparent;
+}
+
+.left-bubble{
+    margin-right: auto;
+    margin-left: .65rem;
+}
+
+.left-bubble div.text{
+    background-color: white;
+    border-top-left-radius: 0 !important;
+}
+
+.left-bubble div.bubble-direction{
+    width: 0;
+    height: 0;
+    border: .5rem solid white;
+    border-left: .5rem solid transparent;
+    border-bottom: .5rem solid transparent;
+}
+
+meter{
+    min-width: 20vw;
+}
+
+/*    Index    */
+
+#app{
+    width: 100vw;
+    height: 100vh;
+    overflow-y: hidden;
+}
+
+#message-wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 80vh;
+    margin-top: 4rem;
+    margin-bottom: 5rem;
+}
+
+#inside-wrapper{
+    height: fit-content;
+    overflow-y: auto;
+}
+
+#message-display{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: padding-box;
+    width: inherit;
+}

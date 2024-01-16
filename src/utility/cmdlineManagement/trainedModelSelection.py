@@ -1,7 +1,9 @@
 import os
 import logging
-from simple_term_menu import TerminalMenu
+import pandas as pd
+import inquirer
 from utility.exceptions import ExtensionError
+from utility.model.modelTraining import ModelTraining
 from joblib import load
 
 
@@ -13,8 +15,6 @@ class TrainedModelSelection:
 
     @classmethod
     def __show_models(cls):
-        print("Elenco dei modelli disponibili:")
-
         # Seleziona solo i file
         all_file = [file for file in os.listdir(cls.MODEL_PATH) if os.path.isfile(os.path.join(cls.MODEL_PATH, file))]
 
@@ -23,6 +23,7 @@ class TrainedModelSelection:
 
         # Ordina i modelli in base alla data di creazione
         models = sorted(models, key=lambda x: os.path.getctime(os.path.join(cls.MODEL_PATH, x)), reverse=True)
+        
         return models
 
     @classmethod
@@ -43,11 +44,19 @@ class TrainedModelSelection:
     @classmethod
     def __select_model(cls):
         models = cls.__show_models()
-        menu = TerminalMenu(models)
-        menu_entry_index = menu.show()
+
+        model_selection = [
+            inquirer.List('model',
+                message="Seleziona il modello da usare",
+                choices=models
+            ),
+        ]
+
+        model = inquirer.prompt(model_selection)
 
         # Ottieni model
-        model_name = models[menu_entry_index]
+        model_name = model["model"]
+        menu_entry_index = models.index(model_name)
 
         print(f"Modello selezionato: {model_name}")
         # LOGGING:: Stampa il modello (e lo scaler) selezionato
