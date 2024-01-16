@@ -24,7 +24,7 @@ class ModelTraining:
             self, 
             outputName: str = None, 
             model=None, 
-            dataFrame: pd.DataFrame = None, 
+            dataFrame: pd.DataFrame = None,
             configFile: str = None,
             retrain: bool = None
     ):
@@ -87,8 +87,8 @@ class ModelTraining:
 
         # LOGGING: Stampa le feature usate in fase di training
         logging.info(
-            f"Feature usate in fare di training: \n",
-            "\n".join(f"\t{k}" for k, v in features.items() if v)
+            f"Feature usate in fare di training: \n" +
+            "\n".join(f"\t {k}" for k, v in features.items() if v)
         )
 
         if "message_composition" in self.__features_disabled:

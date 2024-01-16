@@ -45,4 +45,5 @@ if __name__ == "__main__":
     model = ModelSelection().model
 
     # Training del modello con i parametri passati da linea di comando
-    ModelTraining(output_name, model, dataset, config, retrain).run()
+    model_training = ModelTraining(output_name, model, dataset, config, retrain)
+    model_training.run()
