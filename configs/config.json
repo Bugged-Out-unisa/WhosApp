@@ -11,5 +11,9 @@
     "englishness" : true,
     "italianness" : true,
     "bag_of_words" : true,
-    "responsiveness": false
+    "responsiveness": true,
+    "swear_words" : true,
+    "common_words" : true,
+    "readability" : false,
+    "functional_words" : true
 }

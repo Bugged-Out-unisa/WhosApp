@@ -104,6 +104,6 @@ class ExtractChat:
                 # LOGGING:: Stampa la rimozione degli utenti non presenti in aliases
                 logging.info(f"Rimozione degli utenti non prensenti in {self.__aliasesPath}")
                 print(f"[INFO] Rimozione degli utenti non prensenti in {self.__aliasesPath}")
-                users = [user for user in users if user != self.__remove_generic]
+                users = [user for user in users if user != self.__placeholder_user]
 
         return dates, users, messages
