@@ -11,6 +11,8 @@ class Logger:
     DEFAULT_LOGGING_PATH = "../logs/"
     DATASET_LOGGING_PATH = DEFAULT_LOGGING_PATH + "dataset/"
     TRAINING_LOGGING_PATH = DEFAULT_LOGGING_PATH + "training/"
+    PIPELINE_LOGGING_PATH = DEFAULT_LOGGING_PATH + "pipeline/"
+    __logging_paths = (DATASET_LOGGING_PATH, TRAINING_LOGGING_PATH, PIPELINE_LOGGING_PATH)
 
     def __init__(
             self,
@@ -20,7 +22,7 @@ class Logger:
     ):
         self.__name = name if name is not None else "unknown"
         self.__start_message = start_message if start_message is not None else "!! START NEW LOG !!"
-        self.__path = path if path in (self.DATASET_LOGGING_PATH, self.TRAINING_LOGGING_PATH) else self.DEFAULT_LOGGING_PATH
+        self.__path = path if path in self.__logging_paths else self.DEFAULT_LOGGING_PATH
         self.__filelog = None
 
         # Controlla se le path esistono

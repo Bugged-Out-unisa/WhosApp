@@ -8,11 +8,13 @@ class DataFrameProcessor:
 
     BLACKLIST = "./utility/dataset/blacklist.txt"
 
-    def __init__(self, dates=None, users=None, messages=None):
+    def __init__(self, dates=None, users=None, messages=None, other_user: str = None, remove_other: bool = False):
         self.__dates = dates
         self.__users = users
         self.__unique_users = sorted(set(users))
         self.__messages = messages
+        self.__other_user = other_user
+        self.__remove_other = remove_other
 
     def __responsiveness(self):
         """
@@ -77,9 +79,10 @@ class DataFrameProcessor:
             blacklist_patterns = [re.compile(line.strip()) for line in file]
 
         # Funzione per controllare se un messaggio matcha una regex nella blacklist
-        def matches_blacklist(message):
+        def matches_blacklist(message: str):
             for pattern in blacklist_patterns:
                 if pattern.fullmatch(message):
+                    # il carattere "‎" è presente nei messaggi informativi di IOS
                     return True
             return False
 
@@ -91,7 +94,7 @@ class DataFrameProcessor:
         df = df[~df['message'].apply(matches_blacklist)]
 
         # Rimuove anche i messaggi che contengono "(file attached)"
-        df = df[~df['message'].str.contains("\(file attached\)")]
+        df = df[~df['message'].str.contains("\\(file attached\\)")]
 
         return df
 
@@ -110,7 +113,17 @@ class DataFrameProcessor:
 
         return pd.concat(user_class_list_downsampled)
 
-    def get_dataframe(self):
+    def __cleaning_remove_other(self, df: pd.DataFrame):
+        """
+        Rimuove i messaggi dell'utente "other"
+        """
+
+        logging.info(f"Rimozione degli utenti non prensenti nel alias file")
+        # LOGGING:: Stampa la rimozione degli utenti non presenti in aliases
+        print(f"[INFO] Rimozione degli utenti non prensenti nel alias file")
+        return df.loc[df['user'] != self.__unique_users.index(self.__other_user)]
+
+    def get_dataframe(self) -> pd.DataFrame:
         """
         Crea il dataframe e effettua le operazioni di pulizia e bilanciamento
         """
@@ -131,5 +144,8 @@ class DataFrameProcessor:
         df = self.__cleaning_blacklist(df)
         df = self.__undersampling(df)
 
-        self.__print_instances_count(df, "Numero di istanze per utente dopo cleaning e undersampling")
+        if self.__remove_other:
+            df = self.__cleaning_remove_other(df)
+
+        self.__print_instances_count(df, "Numero di istanze per utente dopo cleaning eundersampling")
         return df.reset_index(drop=True)

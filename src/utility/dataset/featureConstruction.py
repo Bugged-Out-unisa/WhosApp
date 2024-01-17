@@ -1,3 +1,4 @@
+import os
 import json
 import spacy
 import emojis
@@ -5,12 +6,16 @@ import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from lexicalrichness import LexicalRichness
 from collections import Counter, defaultdict
-#from feel_it import EmotionClassifier, SentimentClassifier
+from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+import re
 
 
 class featureConstruction:
+    WORDLIST_PATH = "../wordlists/"
+
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
         "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
@@ -18,10 +23,10 @@ class featureConstruction:
         "SYM", "VERB", "X", "SPACE"
     ]
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config="../configs/config.json", saveDataFrame :bool = True):
-        self.DATASET_PATH = datasetPath
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="../configs/config.json", saveDataFrame :bool = True):
+        self.DATASET_PATH = self.__check_dataset_path(datasetPath)
         self.__dataFrame = dataFrame
-        self.__config = config
+        self.__config = self.__check_config_file(config_path)
         self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
@@ -32,6 +37,21 @@ class featureConstruction:
 
     def get_dataframe(self):
         return self.__dataFrame
+
+    @staticmethod
+    def __check_dataset_path(dataset_path: str) -> str:
+        """Controlla se il percorso del dataset esiste"""
+        if dataset_path is not None:
+            return dataset_path
+        else:
+            raise ValueError("Percorso del dataset non valido")
+
+    @staticmethod
+    def __check_config_file(config_path: str) -> str:
+        if config_path and os.path.exists(config_path):
+            return config_path
+        else:
+            raise ValueError("File di configurazione non valido")
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
@@ -57,6 +77,18 @@ class featureConstruction:
 
         if "englishness" in self.__features_enabled:
             self.__english_words = {w.lower() for w in self.__nlp_en.vocab.strings}
+
+        # Carica wordlist
+        if "swear_words" in self.__features_enabled:
+            with open(self.WORDLIST_PATH + "swear_words.txt", 'r') as f:
+                self.__swear_words = set(f.read().splitlines())
+
+                # rimuovi l'ultimo carattere di ogni parola (per parole in dialetto)
+                self.__swear_words.update([word[:-1] for word in self.__swear_words])
+
+        if "common_words" in self.__features_enabled:
+            with open(self.WORDLIST_PATH + "common_words.txt", 'r') as f:
+                self.__common_words = set(f.read().splitlines())
 
         # Inizializza sentiment/emotion classifier
         if "sentiment" in self.__features_enabled:
@@ -88,7 +120,7 @@ class featureConstruction:
 
         # LOGGING:: Inserire le feature usate per la predizione
         logging.info(
-            "Feature usate: \n" +
+            "Feature selezionate in Dataset Creation: \n" +
             "\n".join(f"\t{feature_name}" for feature_name in self.__features_enabled)
         )
 
@@ -155,6 +187,29 @@ class featureConstruction:
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
         self.__dataFrame.to_parquet(self.DATASET_PATH)
+
+    def type_token_ratio(self, m):
+        """Calcola la ricchezza lessicale di un messaggio."""
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+        if len(lemmas) == 0:
+            return 0
+        return len(set(lemmas)) / len(lemmas)
+
+    def simpsons_index(self, m):
+        """Calcola l'indice di Simpson di un messaggio."""
+        message_nlp = self.__get_nlp_it_message(m)
+        lemmas = [token.lemma_ for token in message_nlp if token.is_alpha]
+
+        lemma_counts = Counter(lemmas)
+        try:
+            N = len(lemmas)
+            D = sum(n * (n - 1) for n in lemma_counts.values())
+            simpson_index = D / (N * (N - 1))
+
+            return simpson_index
+        except ZeroDivisionError:
+            return 0
 
     @staticmethod
     def uppercase_count(m):
@@ -283,3 +338,80 @@ class featureConstruction:
     def emotion(self, m):
         """Restituisce l'id dell'emotion del messaggio descritto in emotion_mapping."""
         return self.__emotion_mapping[self.__emotion_classifier.predict([m])[0]]
+    
+    def swear_words(self, m):
+        """Conta il numero di parolacce in un messaggio."""
+        matches = re.compile(r"\b(" + "|".join(self.__swear_words) + r")\b", re.IGNORECASE).findall(m)
+        return len(matches)
+    
+    def common_words(self, m):
+        """Conta il numero di parole comuni in un messaggio."""
+        lemmas = [token.lemma_ for token in self.__get_nlp_it_message(m)]
+        
+        count = 0
+        for lemma in lemmas:
+            if lemma in self.__common_words:
+                count += 1
+ 
+        if (len(lemmas) == 0):
+            return 0
+        
+        return count/len(lemmas)
+    
+    def readability(self, m):
+        """
+            Gulpease index: Questa metrica calcola la facilità di lettura di un testo su una scala da 100 punti. 
+ 
+            I risultati sono compresi tra 0 (leggibilità più bassa) e 100 (leggibilità più alta)
+
+            inferiore a 80 sono difficili da leggere per chi ha la licenza elementare
+            inferiore a 60 sono difficili da leggere per chi ha la licenza media
+            inferiore a 40 sono difficili da leggere per chi ha un diploma superiore
+
+            https://it.wikipedia.org/wiki/Indice_Gulpease
+        """
+
+        nlp = self.__get_nlp_it_message(m)
+
+        words = [token.text for token in nlp if not token.is_punct]
+        num_words = len(words)
+        num_letters = sum(len(word) for word in words)
+        num_sentences = len(list(nlp.sents))
+
+        if num_words == 0 or num_sentences == 0:
+            return 100
+
+        # Formula per calcolare l'indice di Gulpease
+        score = 89 + (300 * num_sentences - 10 * num_letters) / num_words
+
+        # Normalizza outliers (Se non si normalizza esce come predittivo)
+        # if score > 100:
+        #     score = 100
+        # elif score < 0:
+        #     score = 0
+
+        return score
+
+    def functional_words(self, m):
+        """
+            Conta il numero di parole funzionali (stop words) in un messaggio.
+            
+            Le parole funzionali sono parole che hanno poco significato lessicale o hanno un significato ambiguo, 
+                ma servono invece a esprimere relazioni grammaticali con altre parole all'interno di una frase o
+                a specificare l'atteggiamento o l'umore del parlante
+            
+            L'idea è che queste parole siano meno influenzate dall'argomento e più riflettano lo stile personale di un autore.
+        """
+        words = [token for token in self.__get_nlp_it_message(m) if not token.is_punct]
+        # functional_words = len([token.text.lower() for token in self.__get_nlp_it_message(m) if token.is_stop])
+        
+        # Define a list of functional word types (POS tags)
+        functional_pos_tags = ['ADP', 'AUX', 'CONJ', 'DET', 'PART', 'PRON', 'SCONJ']
+
+        # Count the functional words
+        functional_words = sum(token.pos_ in functional_pos_tags for token in self.__get_nlp_it_message(m))
+
+        if len(words) == 0:
+            return 0
+
+        return functional_words/len(words)
