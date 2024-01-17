@@ -88,6 +88,7 @@ body{
 }
 
 #options{
+    cursor: pointer;
     background-color: transparent;
     border: none;
     outline: none;
@@ -274,3 +275,35 @@ meter{
     box-sizing: padding-box;
     width: inherit;
 }
+
+/*    Meters   */
+.highestPrediction:-moz-meter-optimum::-moz-meter-bar{
+    background: aquamarine;
+}
+
+.highestPrediction::-webkit-meter-optimum-value {
+    background: aquamarine;
+}
+
+#global-meters{
+    display: none;
+    background-color: white;
+    color: black;
+    top: 5rem;
+    right: 2rem;
+    padding: 1rem;
+    position: fixed;
+}
+
+.globals::-webkit-meter-optimum-value{
+    transition: width 1s ease;
+}
+.globals:-moz-meter-optimum::-moz-meter-bar{
+    transition: width 1s ease;
+}
+
+#global-header{
+    text-align: center;
+}
+
+
