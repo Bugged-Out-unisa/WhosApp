@@ -49,7 +49,7 @@ app.post("/getResponse", (req, res) => {
             result = response.data;
             console.log("Response from backend: " + result + "\n");
 
-            ejs.renderFile('./views/bot-bubble.ejs', {single : result["single"], average : result["average"], mappedUsers : result["mappedUsers"]}, (err, str) => {
+            ejs.renderFile('./views/bot-bubble.ejs', {single : result["single"], mappedUsers : result["mappedUsers"]}, (err, str) => {
                 if (err) {
                     console.log(err);
                     res.status(500).send({ error: 'Errore nel caricamento del template' });
