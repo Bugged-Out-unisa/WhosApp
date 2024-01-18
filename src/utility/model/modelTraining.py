@@ -205,9 +205,9 @@ class ModelTraining:
             for i in top_n_features_cmdline:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
 
-            for i in top_n_features_logging:
+            for ranking_index, i in enumerate(top_n_features_logging):
                 # LOGGING:: Stampa le feature più predittive
-                logging.info(f"\t {i}) {feature_names[i]}: %0.5f" % importances[i])
+                logging.info(f"\t {ranking_index+1}) {feature_names[i]}: %0.5f" % importances[i])
 
         except Exception:
             print("Il modello non verifica importanza delle features")
