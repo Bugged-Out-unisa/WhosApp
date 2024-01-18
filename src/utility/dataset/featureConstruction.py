@@ -139,8 +139,9 @@ class featureConstruction:
         for feature_name in self.__features_enabled:
             self.__dataFrame[feature_name] = features[feature_name]
 
-        for pos in self.POS_LIST:
-            self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
+        if "message_composition" in self.__features_enabled:
+            for pos in self.POS_LIST:
+                self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
         # Rimuovi features inutili in fase di training
         # errors='ignore' per evitare errori se la colonna non esiste
