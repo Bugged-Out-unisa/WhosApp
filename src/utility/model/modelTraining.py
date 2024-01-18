@@ -189,10 +189,6 @@ class ModelTraining:
         # Stampa le feature più predittive
         n = 20  # numero di feature per cmdlin
         m = 100 # numero di feature per logging
-        print("\n[INFO] Top {} feature più predittive:".format(n))
-
-        # LOGGING:: Didascalia per le feature più predittive
-        logging.info(f"Top {m} feature più predittive:")
 
         feature_names = X.columns.tolist()  # Estrai i nomi di tutte le feature
 
@@ -201,6 +197,11 @@ class ModelTraining:
             important_features = np.argsort(importances)[::-1]
             top_n_features_cmdline = important_features[:n]
             top_n_features_logging = important_features[:m]
+
+            print("\n[INFO] Top {} feature più predittive:".format(n))
+
+            # LOGGING:: Didascalia per le feature più predittive
+            logging.info(f"Top {m} feature più predittive:")
 
             for i in top_n_features_cmdline:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
