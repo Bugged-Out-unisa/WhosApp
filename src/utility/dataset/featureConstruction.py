@@ -6,7 +6,6 @@ import logging
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from lexicalrichness import LexicalRichness
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
@@ -164,7 +163,7 @@ class featureConstruction:
             In questo modo, il modello capisce le parole più utilizzate da un utente
         """
         # Numero di feature di default (compromesso fra velocità e accuratezza)
-        n = 2 ** 10
+        n = 2 ** 12
 
         # Se si vuole usare il numero di feature ottimale per non avere collisioni
         # ma si vuole sacrificare la velocità di esecuzione

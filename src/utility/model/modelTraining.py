@@ -74,7 +74,7 @@ class ModelTraining:
         self.__check_duplicates()
 
         print("[INFO] Training del modello in corso...")
-        self.__model_training()
+        return self.__model_training()
 
     def __init_configs(self):
         """Inizializza i parametri di configurazione."""
@@ -87,7 +87,7 @@ class ModelTraining:
 
         # LOGGING: Stampa le feature usate in fase di training
         logging.info(
-            f"Feature usate in fare di training: \n" +
+            f"Feature usate in fase di training: \n" +
             "\n".join(f"\t {k}" for k, v in features.items() if v)
         )
 
@@ -221,3 +221,5 @@ class ModelTraining:
 
         # Salva la pipeline (scaler e modello)
         dump(pipeline, self.MODEL_PATH + self.__outputName)
+
+        return accuracy

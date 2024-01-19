@@ -1,7 +1,6 @@
 import os
 import logging
 import pandas as pd
-# from simple_term_menu import TerminalMenu
 import inquirer
 from utility.exceptions import ExtensionError
 
@@ -56,6 +55,7 @@ class DatasetSelection:
 
         dataset_selected = cls.__load_dataset(menu_entry_index, datasets)
         print(f"Dataset selezionato: {datasets[menu_entry_index]}")
+        cls.__dataset_name = datasets[menu_entry_index]
 
         # LOGGING:: Stampa il dataset selezionato
         logging.info(f"Dataset usato per il training: {datasets[menu_entry_index]}")
@@ -65,3 +65,7 @@ class DatasetSelection:
     @property
     def dataset(self):
         return self.__dataset
+
+    @property
+    def dataset_name(self):
+        return self.__dataset_name
