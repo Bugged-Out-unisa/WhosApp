@@ -13,7 +13,7 @@
     "bag_of_words" : true,
     "responsiveness": false,
     "type_token_ratio" : true,
-    "simpsons_index" : true
+    "simpsons_index" : true,
     "swear_words" : true,
     "common_words" : true,
     "readability" : false,
