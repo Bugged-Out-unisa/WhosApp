@@ -3,7 +3,7 @@ import logging
 import datetime
 
 
-class Logger:
+class LoggerReport:
     """
     Classe che gestisce i logger statici del programma
     """
