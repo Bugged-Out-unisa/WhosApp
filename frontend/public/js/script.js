@@ -9,6 +9,7 @@ $(function() {
 
     // Variabile per evitare l'invio di più messaggi contemporaneamente
     let isWaiting = false;
+    let isFirstResponse = true;
 
     // Listener per l'aggiunzione di un emoji al messaggio
     emojiPicker.on("emoji-click", (event) => {
@@ -20,6 +21,10 @@ $(function() {
         emojiPicker.toggle();
     });
 
+    $("#app").on("click", "#options" , (e) => {
+        $("#global-meters").toggle();
+    })
+
     // Funzione per l'invio del messaggio al modello
     const getResponse = (text) => {
         $.ajax({
@@ -27,8 +32,38 @@ $(function() {
             data: { text: text },
             type: "POST",
             success: function(response) {
-                $("#message-display").append(response);
+                $("#message-display").append(response.template);
                 $("#inside-wrapper")[0].scrollTop = $("#inside-wrapper")[0].scrollHeight;
+
+                let maxIndex = response.data.average.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+
+                if(isFirstResponse){
+                    isFirstResponse = false;
+
+                    response.data.average.forEach((element, index) => {
+                        let html = `<tr>\
+                          <td>${response.data.mappedUsers[index]}:</td>\
+                          <td>\
+                              <meter id="meter-${index}" class="${index === maxIndex ? 'highestPrediction' : '' } globals" value="${element}" min="0" max="1"></meter>\
+                          </td>\
+                          <td id="percent-${index}">${(element * 100).toFixed(2)}%</td>\
+                        </tr>`;
+
+                        $("#global-meters>tbody").append(html);
+                      })    
+                } else {
+                    $(".globals").removeClass("highestPrediction");
+
+                    response.data.average.forEach((element, index) => {
+                        
+                        $(`#meter-${index}`).attr("value", element);
+                        $(`#percent-${index}`).text(`${(element * 100).toFixed(2)}%`);
+
+                        if(index === maxIndex) 
+                            $(`#meter-${index}`).addClass("highestPrediction");
+                    })
+                }
+
             },
             
             error: () =>{

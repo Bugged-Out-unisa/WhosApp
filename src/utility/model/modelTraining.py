@@ -74,7 +74,7 @@ class ModelTraining:
         self.__check_duplicates()
 
         print("[INFO] Training del modello in corso...")
-        self.__model_training()
+        return self.__model_training()
 
     def __init_configs(self):
         """Inizializza i parametri di configurazione."""
@@ -88,7 +88,7 @@ class ModelTraining:
 
         # LOGGING: Stampa le feature usate in fase di training
         logging.info(
-            f"Feature usate in fare di training: \n" +
+            f"Feature usate in fase di training: \n" +
             "\n".join(f"\t {k}" for k, v in features.items() if v)
         )
 
@@ -190,10 +190,6 @@ class ModelTraining:
         # Stampa le feature più predittive
         n = 20  # numero di feature per cmdlin
         m = 100 # numero di feature per logging
-        print("\n[INFO] Top {} feature più predittive:".format(n))
-
-        # LOGGING:: Didascalia per le feature più predittive
-        logging.info(f"Top {m} feature più predittive:")
 
         feature_names = X.columns.tolist()  # Estrai i nomi di tutte le feature
 
@@ -203,12 +199,17 @@ class ModelTraining:
             top_n_features_cmdline = important_features[:n]
             top_n_features_logging = important_features[:m]
 
+            print("\n[INFO] Top {} feature più predittive:".format(n))
+
+            # LOGGING:: Didascalia per le feature più predittive
+            logging.info(f"Top {m} feature più predittive:")
+
             for i in top_n_features_cmdline:
                 print(f"{feature_names[i]}: %0.5f" % importances[i])
 
-            for i in top_n_features_logging:
+            for ranking_index, i in enumerate(top_n_features_logging):
                 # LOGGING:: Stampa le feature più predittive
-                logging.info(f"\t {i}) {feature_names[i]}: %0.5f" % importances[i])
+                logging.info(f"\t {ranking_index+1}) {feature_names[i]}: %0.5f" % importances[i])
 
         except Exception:
             print("Il modello non verifica importanza delle features")
@@ -221,3 +222,5 @@ class ModelTraining:
 
         # Salva la pipeline (scaler e modello)
         dump(pipeline, self.MODEL_PATH + self.__outputName)
+
+        return accuracy

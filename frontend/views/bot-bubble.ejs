@@ -2,19 +2,103 @@
     <div class="bubble-direction"></div>
 
     <div class="text">
-        <b>Singolo</b> <br>
+        <% 
+            const formatString = (template, name) => template.replace(/\[placeholder_name\]/g, `\<b>${name}\</b>`);
 
-        <% single.forEach((element, index) => { %>
-            User <%= index %>:
-            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
-        <% }) %>
+            
+            const averageDistance = (arr, maxProbability) => {
+                let differences = arr.filter(x => x !== maxProbability).map(x => maxProbability - x);
+                let averageDifference = differences.reduce((a, b) => a + b, 0) / differences.length;
 
+                return averageDifference;
+            }
+
+            const randomPhrase = (arr, probability, name) => {
+                let certainty = "";
+
+                let avgDistance = averageDistance(arr, probability);
+
+                if(avgDistance < 0.25) {
+                    certainty = "Doubtful";
+                } else if(avgDistance < 0.5) {
+                    certainty = "Probable";
+                } else {
+                    certainty = "Certain";
+                }
+
+                let phrases = guessPhrases[certainty];
+                let randomIndex = Math.floor(Math.random() * phrases.length);
+                
+                return formatString(phrases[randomIndex], name);
+            };
+
+            let maxIndex = single
+                .reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+            
+            let guessPhrases = {
+                "Doubtful": [
+                    `Non sono sicuro, ma credo che tu sia [placeholder_name] 🤔`,
+                    `Sono indeciso 😕, ma credo che tu sia [placeholder_name]`,
+                    `Non sono molto sicuro, ma penso che tu sia [placeholder_name]`,
+                    `Hmmm...🤔 Potresti essere [placeholder_name]?`,
+                    `Tiro il D20!🎲 Ed è... 1 naturale...😔 Sei [placeholder_name]?`,
+                    `🎶🐉Chi sei? [placeholder_name] non lo so(?)🎶`,
+                    `🚀🤖[placeholder_name], io sono tuo padre! Aspe, ma sei tu?`,
+                    `Ho gli occhiali sporchi... 🥸 sei [placeholder_name]?`,
+                ],
+
+                "Probable": [
+                    `Sei [placeholder_name], o mi sbaglio? 🤨`,
+                    `Sei per caso [placeholder_name]?`,
+                    `Hai le vibes da [placeholder_name]😉`,
+                    `[placeholder_name]? Sei tu?`,
+                    `Oh, ma certo, il veleno! 😯\
+                    Il veleno per [placeholder_name]! 😏\<br>\
+                    Il veleno scelto appositamente per uccidere [placeholder_name]! 😈\<br>\
+                    [placeholder_name] e il suo veleno!.... Quel veleno? 😌`,
+                    `Aspetta ma sei tu, [placeholder_name] di Rivia?😨`,
+                    `Ma tu sei il grande [placeholder_name], figlio di Kmer della tribù di Instar?`,
+                    `Hello there, General [placeholder_name].👾🚀`,
+                    `🚀La risposta è 42- cioè [placeholder_name]!📕`,
+                    `Hey Link! Ehm, volevo dire [placeholder_name]!🧝🛡️`
+                ],
+
+                "Certain": [
+                    `Sei [placeholder_name]!😁`,
+                    `Non c'è dubbio, sei [placeholder_name]!`,
+                    `Sei sicuramente [placeholder_name]😊`,
+                    `Sono sicuro che tu sia [placeholder_name]`,
+                    `Tu sei [placeholder_name], o il mio nome è Ugo, e non lo è!`,
+                    `It's-a you [placeholder_name]!`,
+                    `Vai [placeholder_name],🔴⚪️ scelgo te!`,
+                    `Say my name😎! [placeholder_name]! You're goddamn right.`
+                ]
+            };
+        %> 
+
+        <p><%- randomPhrase(single, single[maxIndex], mappedUsers[maxIndex])  %></p>
+
+        <b>Predizione su messaggio singolo:</b> <br>
         
-        <b>Media</b> <br>
 
-        <% average.forEach((element, index) => { %>
-            User <%= index %>:
-            <meter value="<%= element %>" min="0" max="1"></meter> <%= (element * 100).toFixed(2) %>% <br>
-        <% }) %>
+        <table>
+            <tbody>
+                <% single.forEach((element, index) => { %>
+                  <tr>
+                    <td><%= mappedUsers[index] %>:</td>
+
+                    <td>
+                        <meter class="<%= index === maxIndex ? 'highestPrediction' : '' %>" value="<%= element %>" min="0" max="1"></meter>
+                    </td>
+
+                    <td><%= (element * 100).toFixed(2) %>%</td>
+                  </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        
+        <% if(typeof responseText !== "undefined") { %>
+            <%= responseText %>
+        <% } %>
     </div>
 </div>
