@@ -1,12 +1,12 @@
 import time
 import calendar
 import argparse
-from utility.logging import Logger
-from utility.dataset.datasetCreation import datasetCreation
-from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
+from utility.logging import LoggerReport, LoggerUser, LoggerUserModelHistory
 from utility.model.modelTraining import ModelTraining
-from utility.cmdlineManagement.datasetSelection import DatasetSelection
+from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.modelSelection import ModelSelection
+from utility.cmdlineManagement.datasetSelection import DatasetSelection
+from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
 
 """
 Per eseguire il comando da linea di comando con gli argomenti opzionali:
@@ -41,8 +41,6 @@ def create_dataset_and_train_model():
 
     args = parser.parse_args()
 
-    # Definizione del timestamp
-
     # Parametri comuni
     output_name, retrain = args.outputName, args.retrain
     dataset_name, config, aliases_file, refactor = args.outputName, args.config, args.aliases, args.refactor
@@ -51,11 +49,13 @@ def create_dataset_and_train_model():
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
 
     # LOGGING:: Inizializza il logging
-    Logger(
+    LoggerReport(
         name=output_name,
         start_message="!! START NEW PIPELINE !!",
-        path=Logger.PIPELINE_LOGGING_PATH
+        path=LoggerReport.PIPELINE_LOGGING_PATH
     ).run()
+
+    LoggerUser.open(output_name)
 
     # Selezione del modello
     selected_model = ModelSelection().model
@@ -71,6 +71,8 @@ def create_dataset_and_train_model():
     )
     dataset_creator.run()
 
+    LoggerUserModelHistory.append_model_user(dataset_name, output_name)
+
     # Usa il dataset creato oppure effettua la selezione del dataset
     selected_dataset = dataset_creator.dataFrame if dataset_creator.dataFrame is not None else DatasetSelection().dataset
 
@@ -79,6 +81,8 @@ def create_dataset_and_train_model():
 
     # Training del modello con i parametri passati da linea di comando
     ModelTraining(output_name, selected_model, selected_dataset, None, retrain).run()
+
+    LoggerUser.close()
 
 
 if __name__ == "__main__":

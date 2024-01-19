@@ -1,7 +1,7 @@
 import time
 import calendar
 import argparse
-from utility.logging import Logger
+from utility.logging import LoggerReport, LoggerUser
 from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
 
@@ -35,11 +35,13 @@ if __name__ == "__main__":
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
 
     # LOGGING:: Inizializza il logging
-    Logger(
+    LoggerReport(
         name=dataset_name,
-        path=Logger.DATASET_LOGGING_PATH,
+        path=LoggerReport.DATASET_LOGGING_PATH,
         start_message="!! NEW DATASET CREATION !!"
     ).run()
+
+    LoggerUser.open(dataset_name)
 
     # Creazione del dataset con i parametri passati da linea di comando
     datasetCreation(
@@ -50,3 +52,5 @@ if __name__ == "__main__":
         remove_generic,
         refactor
     ).run()
+
+    LoggerUser.close()

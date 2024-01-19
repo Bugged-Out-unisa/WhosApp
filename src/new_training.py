@@ -1,7 +1,7 @@
 import time
 import calendar
 import argparse
-from utility.logging import Logger
+from utility.logging import LoggerReport, LoggerUserModelHistory
 from utility.model.modelTraining import ModelTraining
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.modelSelection import ModelSelection
@@ -32,17 +32,21 @@ if __name__ == "__main__":
     output_name, config, retrain = args.outputName, args.config, args.retrain
 
     # LOGGING:: Inizializza il logging
-    Logger(
+    LoggerReport(
         name=output_name,
         start_message="!! NEW TRAINING !!",
-        path=Logger.TRAINING_LOGGING_PATH
+        path=LoggerReport.TRAINING_LOGGING_PATH
     ).run()
 
     # Select dataset
-    dataset = DatasetSelection().dataset
+    dataset_selection = DatasetSelection()
+    dataset = dataset_selection.dataset
+    dataset_name = dataset_selection.dataset_name
 
     # Select model
     model = ModelSelection().model
+
+    LoggerUserModelHistory.append_model_user(dataset_name, output_name)
 
     # Training del modello con i parametri passati da linea di comando
     model_training = ModelTraining(output_name, model, dataset, config, retrain)

@@ -1,3 +1,4 @@
+import re
 import os
 import json
 import spacy
@@ -10,7 +11,6 @@ from lexicalrichness import LexicalRichness
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-import re
 
 
 class featureConstruction:
@@ -78,7 +78,7 @@ class featureConstruction:
         if "englishness" in self.__features_enabled:
             self.__english_words = {w.lower() for w in self.__nlp_en.vocab.strings}
 
-        # Carica wordlist
+        # Car   ica wordlist
         if "swear_words" in self.__features_enabled:
             with open(self.WORDLIST_PATH + "swear_words.txt", 'r') as f:
                 self.__swear_words = set(f.read().splitlines())

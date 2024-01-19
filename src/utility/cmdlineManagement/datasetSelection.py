@@ -1,7 +1,6 @@
 import os
 import logging
 import pandas as pd
-# from simple_term_menu import TerminalMenu
 import inquirer
 from utility.exceptions import ExtensionError
 
@@ -37,9 +36,8 @@ class DatasetSelection:
         else:
             raise ValueError("ID del dataset non valido.")
 
-    @classmethod
-    def __select_dataset(cls):
-        datasets = cls.__show_datasets()
+    def __select_dataset(self):
+        datasets = self.__show_datasets()
 
         dataset_selection = [
             inquirer.List('dataset',
@@ -50,11 +48,11 @@ class DatasetSelection:
 
         dataset = inquirer.prompt(dataset_selection)
 
-        dataset_name = dataset["dataset"]
+        self.__dataset_name = dataset["dataset"]
 
-        menu_entry_index = datasets.index(dataset_name)
+        menu_entry_index = datasets.index(self.__dataset_name)
 
-        dataset_selected = cls.__load_dataset(menu_entry_index, datasets)
+        dataset_selected = self.__load_dataset(menu_entry_index, datasets)
         print(f"Dataset selezionato: {datasets[menu_entry_index]}")
 
         # LOGGING:: Stampa il dataset selezionato
@@ -65,3 +63,7 @@ class DatasetSelection:
     @property
     def dataset(self):
         return self.__dataset
+
+    @property
+    def dataset_name(self):
+        return self.__dataset_name

@@ -2,6 +2,7 @@ import re
 import logging
 import pandas as pd
 from sklearn.utils import resample
+from utility.logging import LoggerUser
 
 
 class DataFrameProcessor:
@@ -53,7 +54,11 @@ class DataFrameProcessor:
         print(", ".join(f"{i}:{u}" for i, u in enumerate(self.__unique_users)))
         
         # LOGGING:: Stampa gli utenti trovati
-        logging.info(f"Utenti trovati: \n" + "\n".join(f"\t{user} -> {i}" for i, user in enumerate(self.__unique_users)))
+        logging.info(
+            f"Utenti trovati: \n" +
+            "\n".join(f"\t{user} -> {i}" for i, user in enumerate(self.__unique_users))
+        )
+        LoggerUser.write_user(self.__unique_users, range(len(self.__unique_users)))
 
     def __print_instances_count(self, df: pd.DataFrame, message=None):
         """
@@ -138,7 +143,6 @@ class DataFrameProcessor:
         df = self.__cleaning_info_record(df)
         self.__indexing_users(df)
 
-        self.__print_users()
         self.__print_instances_count(df, "Numero di istanze per utente")
 
         df = self.__cleaning_blacklist(df)
@@ -147,5 +151,6 @@ class DataFrameProcessor:
         if self.__remove_other:
             df = self.__cleaning_remove_other(df)
 
+        self.__print_users()
         self.__print_instances_count(df, "Numero di istanze per utente dopo cleaning eundersampling")
         return df.reset_index(drop=True)
