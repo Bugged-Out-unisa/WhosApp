@@ -5,6 +5,7 @@ models/*
 datasets/*
 logs/*
 testing/*
+configs/frontend_users.json
 
 # pycache
 **/__pycache__/
