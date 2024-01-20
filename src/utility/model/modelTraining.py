@@ -31,7 +31,7 @@ class ModelTraining:
         self.__outputName = self.__check_output_name(outputName)
         self.__model = self.__check_model(model)
         self.__dataFrame = self.__check_dataframe(dataFrame)
-        
+
         # Imposta configurazione di default
         self.__configFile = self.__check_config_file(configFile)
         self.__init_configs()
@@ -80,6 +80,7 @@ class ModelTraining:
         """Inizializza i parametri di configurazione."""
         # Leggi file di configurazione
         with open(self.CONFIG_PATH + self.__configFile, 'r') as f:
+            print()
             features = json.load(f)
 
         # Estrai i nomi delle feature con valore falso (cioè le feature da filtrare)
