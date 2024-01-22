@@ -8,10 +8,12 @@ import pandas as pd
 from joblib import dump
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
 from utility.dataset.featureConstruction import featureConstruction
 from sklearn.model_selection import train_test_split, cross_validate
 from utility.exceptions import DatasetNotFoundError, ModelNotFoundError
+import matplotlib.pyplot as plt
+from sklearn import metrics
 
 
 class ModelTraining:
@@ -212,6 +214,30 @@ class ModelTraining:
 
         except Exception:
             print("Il modello non verifica importanza delle features")
+
+
+        cm = confusion_matrix(y_test, predictions, labels=self.__model.classes_)
+
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.__model.classes_)
+        disp.plot()
+        plt.show()
+
+        # Predict probabilities
+        y_score = self.__model.predict_proba(X_test)[:,1]
+
+        # Compute ROC curve
+        fpr, tpr, _ = metrics.roc_curve(y_test, y_score)
+
+        # Plot ROC curve
+        plt.figure()
+        plt.plot(fpr, tpr)
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic curve')
+        plt.show()
 
         # Crea una pipeline con lo scaler e il classificatore
         pipeline = Pipeline([
