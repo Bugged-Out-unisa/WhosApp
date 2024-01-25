@@ -37,7 +37,7 @@ class TrainedModelSelection:
             path = f"{cls.MODEL_PATH}{selected_model}"
 
             # Carica il model
-            return load(path)
+            return selected_model, load(path)
         else:
             raise ValueError("ID del modello non valido.")
 

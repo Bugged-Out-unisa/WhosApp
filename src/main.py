@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import re
 import requests
 import json
 from threading import Lock
@@ -17,11 +19,20 @@ class modelExecution:
     """
 
     MODEL_PATH = "../models/"
+    CONFIG_PATH = "../configs/"
 
     
     def __init__(self, pipeline = None):
+        self.model_name = None
+
         if pipeline is None:
-            pipeline = TrainedModelSelection().model
+            self.model_name, pipeline = TrainedModelSelection().model
+
+            self.model_name = re.sub(r'model_|\.joblib', '', self.model_name)
+
+        json_file = json.load(open(f"{self.CONFIG_PATH}frontend_users.json", "r"))
+
+        self.mapped_users = list(json_file[self.model_name].values())
 
         # Carica il modello e lo scaler dalla pipeline
         self.__trainedModel = pipeline.named_steps['classifier']
@@ -43,7 +54,7 @@ class modelExecution:
             num_users = self.__trainedModel.n_classes_
 
             output = {
-                "mappedUsers": ["Marco Aurelio", "Platone", "Socrate", "Aristotele"],
+                "mappedUsers": self.mapped_users,
                 "single": [],
                 "average": []
             }
@@ -123,8 +134,6 @@ def serverModelExecution():
     with lock:       
         data = request.get_json()
         response = execution.__rest_predict__(data["text"])
-
-        # response = {"text": message}
     
     return jsonify(response), 200
 
