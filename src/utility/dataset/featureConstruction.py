@@ -8,12 +8,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from collections import Counter, defaultdict
-#from feel_it import EmotionClassifier, SentimentClassifier
+from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
 class featureConstruction:
-    WORDLIST_PATH = "../wordlists/"
+    WORDLIST_PATH = "../data/wordlists/"
 
     # Lista tag POS (Part-of-speech)
     POS_LIST = [

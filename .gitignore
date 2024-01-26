@@ -1,8 +1,8 @@
 # output
-rawdata/*
-rawdata_all/*
+data/rawdata/*
+data/rawdata_all/*
 models/*
-datasets/*
+data/datasets/*
 logs/*
 testing/*
 configs/frontend_users.json

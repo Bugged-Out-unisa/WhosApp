@@ -12,8 +12,8 @@ from utility.dataset.featureConstruction import featureConstruction
 
 
 class datasetCreation:
-    DATA_PATH = "../rawdata"
-    DATASET_PATH = "../datasets/"
+    DATA_PATH = "../data/rawdata"
+    DATASET_PATH = "../data/datasets/"
     CONFIG_PATH = "../configs/"
 
     def __init__(

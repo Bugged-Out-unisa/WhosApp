@@ -6,7 +6,7 @@ from utility.exceptions import ExtensionError
 
 
 class DatasetSelection:
-    DATASET_PATH = "../datasets/"
+    DATASET_PATH = "../data/datasets/"
 
     def __init__(self):
         self.__dataset = self.__select_dataset()
