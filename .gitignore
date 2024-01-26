@@ -6,6 +6,7 @@ datasets/*
 logs/*
 testing/*
 configs/frontend_users.json
+configs/aliases.json
 
 # pycache
 **/__pycache__/
