@@ -14,6 +14,9 @@ from sklearn.model_selection import train_test_split, cross_validate
 from utility.exceptions import DatasetNotFoundError, ModelNotFoundError
 import matplotlib.pyplot as plt
 from sklearn import metrics
+from itertools import cycle
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
 
 
 class ModelTraining:
@@ -217,29 +220,6 @@ class ModelTraining:
             print("Il modello non verifica importanza delle features")
 
 
-        cm = confusion_matrix(y_test, predictions, labels=self.__model.classes_)
-
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.__model.classes_)
-        disp.plot()
-        plt.show()
-
-        # Predict probabilities
-        y_score = self.__model.predict_proba(X_test)[:,1]
-
-        # Compute ROC curve
-        fpr, tpr, _ = metrics.roc_curve(y_test, y_score)
-
-        # Plot ROC curve
-        plt.figure()
-        plt.plot(fpr, tpr)
-        plt.plot([0, 1], [0, 1], 'k--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('Receiver Operating Characteristic curve')
-        plt.show()
-
         # Crea una pipeline con lo scaler e il classificatore
         pipeline = Pipeline([
             ('scaler', scaler),
@@ -248,5 +228,39 @@ class ModelTraining:
 
         # Salva la pipeline (scaler e modello)
         dump(pipeline, self.MODEL_PATH + self.__outputName)
+
+        # CREA CONFUSION MATRIX E ROC CURVE
+        cm = confusion_matrix(y_test, predictions, labels=self.__model.classes_)
+
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.__model.classes_)
+        disp.plot()
+        plt.show()
+
+        # Convert labels to binary format
+        y_test_bin = label_binarize(y_test, classes=self.__model.classes_)
+
+        # Compute probabilities for each class
+        y_score = self.__model.predict_proba(X_test)
+
+        # Compute ROC curve and ROC area for each class
+        fpr = dict()
+        tpr = dict()
+        roc_auc = dict()
+        for i in range(len(self.__model.classes_)):
+            fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_score[:, i])
+            roc_auc[i] = auc(fpr[i], tpr[i])
+
+        # Plot ROC curve for each class
+        plt.figure()
+        for i in range(len(self.__model.classes_)):
+            plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic')
+        plt.legend(loc="lower right")
+        plt.show()
 
         return accuracy

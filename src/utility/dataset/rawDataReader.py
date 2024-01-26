@@ -7,7 +7,7 @@ class rawDataReader:
     def __init__(self):
         # Path della cartella delle chat
         # dove verranno analizzati in automatico tutti i file al suo interno
-        self.DATA_PATH = "../rawdata"
+        self.DATA_PATH = "../data/rawdata"
 
     def __init__(self, dataPath):
         self.DATA_PATH = dataPath

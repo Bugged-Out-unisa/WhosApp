@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 
 class featureConstruction:
-    WORDLIST_PATH = "../wordlists/"
+    WORDLIST_PATH = "../data/wordlists/"
 
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
