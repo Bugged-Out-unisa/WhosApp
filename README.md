@@ -53,7 +53,7 @@ The project is organized into the following directories:
    git clone https://github.com/danlig/WhosApp.git
    cd WhosApp
    pip install -r requirements.txt
-```
+    ```
 
 2. Upload the chat you want to analyze in the `data/raw/` folder
 3. Run the `py src/pipeline.py` script. For more information, run `py src/pipeline.py -h`.
