@@ -2,7 +2,7 @@
     "uppercase_count" : true,
     "char_count" : true,
     "word_length" : true,
-    "emoji_count"  : true,
+    "emoji_count"  : false,
     "unique_emoji_count"  : true,
     "sentiment" : false,
     "emotion" : false,
@@ -11,11 +11,11 @@
     "englishness" : true,
     "italianness" : true,
     "bag_of_words" : true,
-    "responsiveness": false,
-    "type_token_ratio" : true,
-    "simpsons_index" : true,
-    "swear_words" : true,
-    "common_words" : true,
+    "responsiveness": true,
+    "type_token_ratio" : false,
+    "simpsons_index" : false,
+    "swear_words" : false,
+    "common_words" : false,
     "readability" : false,
-    "functional_words" : true
+    "functional_words" : false
 }
