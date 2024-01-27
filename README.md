@@ -55,7 +55,7 @@ The project is organized into the following directories:
    pip install -r requirements.txt
     ```
 
-2. Upload the chat you want to analyze in the `data/raw/` folder
+2. Upload the chat you want to analyze in the `data/rawdata/` folder
 3. Run the `py src/pipeline.py` script. For more information, run `py src/pipeline.py -h`.
 4. Run the `py src/main.py` script to load and use the model
 5. Finally, run `node frontend/index.js` to start the frontend of the project 
