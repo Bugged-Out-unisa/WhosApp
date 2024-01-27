@@ -75,9 +75,6 @@ For more information on how to use these scripts, run `py <script_name>.py -h`
 - [Luigi Turco](@KronosPNG)
 
 
-Feel free to adjust the formatting or content as needed!
-
-
 
 
 
