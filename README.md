@@ -34,7 +34,7 @@ The project is organized into the following directories:
 ### Prerequisites
 
 1. Create the following folders:
-    - `data/raw/`
+    - `data/rawdata/`
     - `configs/`
 
 2. In the `configs/` folder, create the following files:
