@@ -17,7 +17,7 @@ The project is organized into the following directories:
   - `configs/config.json`: Feature configuration
 
 - `data/`: Holds project data with subdirectories:
-  - `data/raw/`: Raw data storage
+  - `data/rawdata/`: Raw data storage
   - `data/dataset/`: Dataset used for training
   - `data/wordlist/`: Wordlist used for processing
 
