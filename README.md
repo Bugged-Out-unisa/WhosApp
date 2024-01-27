@@ -70,9 +70,9 @@ For more information on how to use these scripts, run `py <script_name>.py -h`
 
 ---                                                                          
 ### Authors
-- [Daniele Liguori](@danlig)
-- [José Sgariglia](@jose-sgariglia)
-- [Luigi Turco](@KronosPNG)
+- [Daniele Liguori](https://github.com/danlig)
+- [José Sgariglia](https://github.com/jose-sgariglia)
+- [Luigi Turco](https://github.com/KronosPNG)
 
 
 
