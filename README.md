@@ -62,9 +62,9 @@ The project is organized into the following directories:
    
 ### Other Useful Commands 🛠️
 
-- `py src/new_dataset.py`: Create a new dataset from the raw data in `data/raw/` and save it in `data/dataset/` in _.parquet_ format
-- `py src/new_model.py`: Create a new model from the dataset created with `py src/new_dataset.py` and save it in `models/` in _.joblib_ format.
-- `py src/pipeline.py`:  Create a new dataset and model from the raw data in `data/raw/` and save them in `data/dataset/` and `models/` respectively.
+- `py src/new_dataset.py`: Creates a new dataset from the raw data in `data/raw/` and saves it in `data/dataset/` in _.parquet_ format
+- `py src/new_model.py`: Creates a new model from the dataset created with `py src/new_dataset.py` and saves it in `models/` in _.joblib_ format.
+- `py src/pipeline.py`:  Creates a new dataset and model from the raw data in `data/raw/` and saves them in `data/dataset/` and `models/` respectively.
 - `py src/test_features.py`: test the features that you have configured in the `configs/config.json` file
 For more information on how to use these scripts, run `py <script_name>.py -h`
 
