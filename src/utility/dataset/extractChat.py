@@ -1,6 +1,5 @@
 import re
 import json
-import logging
 from tqdm import tqdm
 from datetime import datetime
 from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager as Phum
@@ -25,18 +24,12 @@ class ExtractChat:
         self.__loadAliases()
 
     def __loadAliases(self):
-        try:
-            f = open(self.__aliasesPath, "r", encoding="utf8")
-        except Exception:
-            return
+        with open(self.__aliasesPath, "r", encoding="utf8") as f:
+            data = json.load(f)
 
-        data = json.load(f)
-
-        for name in data:
-            for value in data[name]:
-                self.__userDict[value] = name
-
-        f.close()
+            for name in data:
+                for value in data[name]:
+                    self.__userDict[value] = name
 
     def __set_datatime(self, file):
         """

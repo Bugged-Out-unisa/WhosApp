@@ -10,10 +10,12 @@ from tqdm import tqdm
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+from utility.decorator import check_file_exists
 
 
 class featureConstruction:
     WORDLIST_PATH = "../data/wordlists/"
+    CONFIG_PATH = "../configs/"
 
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
@@ -22,7 +24,7 @@ class featureConstruction:
         "SYM", "VERB", "X", "SPACE"
     ]
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="../configs/config.json", saveDataFrame :bool = True):
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="config.json", saveDataFrame:bool = True):
         self.DATASET_PATH = self.__check_dataset_path(datasetPath)
         self.__dataFrame = dataFrame
         self.__config = self.__check_config_file(config_path)
@@ -42,15 +44,12 @@ class featureConstruction:
         """Controlla se il percorso del dataset esiste"""
         if dataset_path is not None:
             return dataset_path
-        else:
-            raise ValueError("Percorso del dataset non valido")
+        raise ValueError("Percorso del dataset non valido")
 
     @staticmethod
+    @check_file_exists(base_path=CONFIG_PATH, subdir="")
     def __check_config_file(config_path: str) -> str:
-        if config_path and os.path.exists(config_path):
-            return config_path
-        else:
-            raise ValueError("File di configurazione non valido")
+        return config_path if config_path is not None else "config.json"
 
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""

@@ -4,13 +4,8 @@ from tqdm import tqdm
 
 
 class rawDataReader:
-    def __init__(self):
-        # Path della cartella delle chat
-        # dove verranno analizzati in automatico tutti i file al suo interno
-        self.DATA_PATH = "../data/rawdata"
-
-    def __init__(self, dataPath):
-        self.DATA_PATH = dataPath
+    def __init__(self, data_path="../data/rawdata"):
+        self.DATA_PATH = data_path
 
     def read_all_files(self):
         """Restituisce una lista di stringhe contenente il contenuto di tutti i file nella cartella DATA_PATH."""

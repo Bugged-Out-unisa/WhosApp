@@ -9,9 +9,35 @@ from utility.dataset.extractChat import ExtractChat
 from utility.dataset.rawDataReader import rawDataReader
 from utility.dataset.dataFrameProcess import DataFrameProcessor
 from utility.dataset.featureConstruction import featureConstruction
-from utility.decorator import check_file_exists, check_extension_file, check_type_param
+from utility.clean_coding.decorator import check_path_exists
+from utility.clean_coding.ensure import validation, ensure_valid_file_extension, ensure_file_exists, ensure_valid_type
 
 
+@check_path_exists(path="../data/datasets/")
+@validation(
+    "dataset_name",
+    "Nome del dataset",
+    ensure_valid_file_extension(".parquet"))
+@validation(
+    "config_file",
+    "File di configurazione",
+    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", ""))
+@validation(
+    "alias_file",
+    "File per gli alias in chat",
+    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", "", allow_none=True))
+@validation(
+    "other_user",
+    "Utente Blob",
+    ensure_valid_type(Hashable, allow_none=True))
+@validation(
+    "remove_other",
+    "Rimuovi Blob",
+    ensure_valid_type(bool))
+@validation(
+    "refactor",
+    "Opzione di refactor",
+    ensure_valid_type(bool))
 class datasetCreation:
     DATA_PATH = "../data/rawdata"
     DATASET_PATH = "../data/datasets/"
@@ -26,59 +52,26 @@ class datasetCreation:
             remove_other: bool = False,
             refactor: bool = False
     ):
-        self.__dataset_name = self.__check_dataset_name(dataset_name)
-        self.__config_file = self.__check_config_file(config_file)
-        self.__alias_file = self.__check_aliases_file(alias_file)
+        self.__dataset_name = dataset_name if dataset_name is not None else "dataset_" + str(calendar.timegm(time.gmtime()))
+        self.__config_file = config_file if config_file is not None else "config.json"
+        self.__alias_file = alias_file if alias_file is not None else None
 
-        self.__other_user = self.__check_other_user(other_user)
-        self.__remove_other = self.__check_remove_other(remove_other)
+        self.__other_user = other_user if self.__alias_file is not None else None
+        self.__remove_other = remove_other if self.__alias_file is not None else False
 
-        self.__isToRefactor = self.__check_refactor(refactor)
-        self.__dataFrame = None
-
-    # -------- Controlli --------
-
-    @staticmethod
-    @check_file_exists(base_path=CONFIG_PATH, subdir="")
-    @check_extension_file(".json")
-    def __check_config_file(config_file: str) -> str:
-        return config_file if config_file is not None else "config.json"
-
-    @staticmethod
-    @check_file_exists(base_path=CONFIG_PATH, subdir="", allow_none=True)
-    @check_extension_file(".json")
-    def __check_aliases_file(aliases_file: str):
-        return aliases_file if aliases_file is not None else None
-
-    @staticmethod
-    @check_extension_file(".parquet")
-    def __check_dataset_name(name: str) -> str:
-        return name if name is not None else "dataset_" + str(calendar.timegm(time.gmtime())) + ".parquet"
-
-    @check_type_param("other_user", Hashable, allow_none=True)
-    def __check_other_user(self, other_user: str):
-        return other_user if self.__alias_file is not None else None
-
-    @check_type_param("remove_other", bool)
-    def __check_remove_other(self, remove_other: bool):
-        return remove_other if self.__alias_file is not None else False
-
-    @staticmethod
-    @check_type_param("refactor", bool)
-    def __check_refactor(refactor: bool):
-        return refactor if refactor is not None else refactor
+        self.__refactor = refactor if refactor is not None else False
+        self.__data_frame = None
 
     # -------- Getter & Setter --------
-
     @property
     def data_frame(self):
-        return self.__dataFrame
+        return self.__data_frame
 
     @data_frame.setter
-    def data_frame(self, data_frame):
-        raise SetterNotAllowedError("DataFrame must be generated through 'run' method")
+    def data_frame(self, value):
+        raise SetterNotAllowedError("data_frame must not be set. Use run() method instead")
 
-    # -------- Main Method --------
+    # -------- Methods --------
 
     def run(self):
         """Genera il frame"""
@@ -135,7 +128,7 @@ class datasetCreation:
         :param messages: messaggi
         :return: dataframe
         """
-        return DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).get_dataframe()
+        return DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).run()
 
     def __construct_features(self):
         """
@@ -153,5 +146,3 @@ class datasetCreation:
         """Carica un dataset esistente"""
         print("[INFO] Trovato dataset esistente")
         self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__dataset_name)
-
-
