@@ -36,12 +36,7 @@ class datasetCreation:
         self.__other_user = self.__check_other_user(other_user)
         self.__remove_other = self.__check_remove_other(remove_other)
 
-
-        # Controlla se refactor è stato inserito
-        if not isinstance(refactor, bool):
-            raise TypeError("refactor deve essere un booleano")
-        self.__isToRefactor = True if refactor else False
-
+        self.__isToRefactor = self.__check_refactor(refactor)
         self.__dataFrame = None
 
     # -------- Controlli --------
@@ -73,7 +68,7 @@ class datasetCreation:
 
     @staticmethod
     @check_type_param("refactor", bool)
-    def __check_refactor(refactor=bool):
+    def __check_refactor(refactor: bool):
         return refactor if refactor is not None else refactor
 
     # -------- Getter & Setter --------
