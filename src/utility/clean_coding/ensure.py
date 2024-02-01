@@ -46,8 +46,7 @@ def ensure_file_exists(base_path, subdir, allow_none=False):
         full_path = os.path.join(base_path, subdir, value)
         if os.path.exists(full_path):
             return value
-        else:
-            raise FileNotFoundError(f"File {value} not found in {subdir} directory.")
+        raise FileNotFoundError(f"File {value} not found in {subdir} directory.")
 
     return decorator
 
@@ -63,7 +62,37 @@ def ensure_valid_type(param_type, allow_none=False):
             return None
         if isinstance(value, param_type):
             return value
-        else:
-            raise TypeError(f"Parameter {name} must be {param_type} type.")
+        raise TypeError(f"Parameter {name} must be {param_type} type.")
+
+    return decorator
+
+
+def ensure_not_none(default_value=None):
+    """
+        Decoratore che controlla se il parametro è None.
+        Se è None, lancia un'eccezione.
+    """
+
+    def decorator(name, value):
+        if value is None:
+            if default_value is None:
+                raise TypeError(f"Parameter {name} must not be None.")
+            return default_value
+        return value
+
+    return decorator
+
+
+def ensure_into_allowed_options(options: list | tuple | set, default_value=None):
+    """
+        Decoratore che controlla se il parametro è nel insieme.
+    """
+
+    def decorator(name, value):
+        if value not in options:
+            if default_value is None:
+                raise TypeError(f"Parameter {name} must be in the allowed options.\n This is the options: {options}")
+            return default_value
+        return value
 
     return decorator

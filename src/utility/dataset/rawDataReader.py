@@ -1,10 +1,17 @@
 import os
 import logging
 from tqdm import tqdm
+from utility.config_path import RAWDATA_PATH
 
 
 class rawDataReader:
-    def __init__(self, data_path="../data/rawdata"):
+
+    # Secondo me non serve il costruttore.
+    # Alla fine i file da leggere sono sempre all'interno della cartella RAWDATA_PATH.
+    # Se si vuole cambiare la cartella basta cambiare il valore di RAWDATA_PATH.
+
+    # P.S Se si cambia, si può rendere la classe un singleton oppure una classe statica.
+    def __init__(self, data_path=RAWDATA_PATH):
         self.DATA_PATH = data_path
 
     def read_all_files(self):

@@ -4,28 +4,29 @@ import logging
 import calendar
 import pandas as pd
 from collections.abc import Hashable
-from utility.exceptions import SetterNotAllowedError
 from utility.dataset.extractChat import ExtractChat
+from utility.exceptions import SetterNotAllowedError
 from utility.dataset.rawDataReader import rawDataReader
+from utility.clean_coding.decorator import check_path_exists
 from utility.dataset.dataFrameProcess import DataFrameProcessor
 from utility.dataset.featureConstruction import featureConstruction
-from utility.clean_coding.decorator import check_path_exists
-from utility.clean_coding.ensure import validation, ensure_valid_file_extension, ensure_file_exists, ensure_valid_type
+from utility.config_path import DATASET_PATH, CONFIG_PATH, RAWDATA_PATH
+from utility.clean_coding.ensure import *
 
 
-@check_path_exists(path="../data/datasets/")
+@check_path_exists(path=DATASET_PATH, create=True)
 @validation(
     "dataset_name",
     "Nome del dataset",
-    ensure_valid_file_extension(".parquet"))
+    ensure_valid_file_extension(".parquet"), ensure_not_none("dataset_" + str(calendar.timegm(time.gmtime()))))
 @validation(
     "config_file",
     "File di configurazione",
-    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", ""))
+    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", ""), ensure_not_none("config.json"))
 @validation(
     "alias_file",
     "File per gli alias in chat",
-    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", "", allow_none=True))
+    ensure_valid_file_extension(".json"), ensure_file_exists("../configs/", "", allow_none=True), ensure_not_none("aliases.json"))
 @validation(
     "other_user",
     "Utente Blob",
@@ -37,12 +38,8 @@ from utility.clean_coding.ensure import validation, ensure_valid_file_extension,
 @validation(
     "refactor",
     "Opzione di refactor",
-    ensure_valid_type(bool))
+    ensure_valid_type(bool), ensure_not_none(False))
 class datasetCreation:
-    DATA_PATH = "../data/rawdata"
-    DATASET_PATH = "../data/datasets/"
-    CONFIG_PATH = "../configs/"
-
     def __init__(
             self,
             dataset_name: str,
@@ -52,14 +49,14 @@ class datasetCreation:
             remove_other: bool = False,
             refactor: bool = False
     ):
-        self.__dataset_name = dataset_name if dataset_name is not None else "dataset_" + str(calendar.timegm(time.gmtime()))
-        self.__config_file = config_file if config_file is not None else "config.json"
-        self.__alias_file = alias_file if alias_file is not None else None
+        self.__dataset_name = dataset_name
+        self.__config_file = config_file
+        self.__alias_file = alias_file
 
         self.__other_user = other_user if self.__alias_file is not None else None
         self.__remove_other = remove_other if self.__alias_file is not None else False
 
-        self.__refactor = refactor if refactor is not None else False
+        self.__refactor = refactor
         self.__data_frame = None
 
     # -------- Getter & Setter --------
@@ -77,9 +74,9 @@ class datasetCreation:
         """Genera il frame"""
         logging.info(f"Dataset name: {self.__dataset_name}")
 
-        if not os.path.exists(self.DATASET_PATH + self.__dataset_name) or self.__isToRefactor:
+        if not os.path.exists(DATASET_PATH + self.__dataset_name) or self.__refactor:
             self.__create_dataset()
-        elif os.path.exists(self.DATASET_PATH + self.__dataset_name):
+        elif os.path.exists(DATASET_PATH + self.__dataset_name):
             self.__load_existing_dataset()
 
     def __create_dataset(self):
@@ -98,12 +95,13 @@ class datasetCreation:
 
         print("[INFO] Dataset creato con successo.")
 
-    def __read_raw_data(self):
+    @staticmethod
+    def __read_raw_data():
         """
         Legge i dati grezzi
         :return: dati grezzi
         """
-        return rawDataReader(self.DATA_PATH).read_all_files()
+        return rawDataReader(RAWDATA_PATH).read_all_files()
 
     def __extract_info(self, rawdata):
         """
@@ -114,8 +112,8 @@ class datasetCreation:
         if self.__alias_file:
             return ExtractChat(
                 rawdata,
-                self.CONFIG_PATH + self.__alias_file,
-                self.__other_user
+                aliases=CONFIG_PATH + self.__alias_file,
+                placeholder_user=self.__other_user
             ).extract()
         else:
             return ExtractChat(rawdata).extract()
@@ -138,11 +136,11 @@ class datasetCreation:
 
         return featureConstruction(
             self.__dataFrame,
-            self.DATASET_PATH + self.__dataset_name,
-            self.CONFIG_PATH + self.__config_file
+            DATASET_PATH + self.__dataset_name,
+            self.__config_file
         ).get_dataframe()
 
     def __load_existing_dataset(self):
         """Carica un dataset esistente"""
         print("[INFO] Trovato dataset esistente")
-        self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__dataset_name)
+        self.__dataFrame = pd.read_parquet(DATASET_PATH + self.__dataset_name)

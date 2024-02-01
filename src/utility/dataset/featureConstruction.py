@@ -1,5 +1,4 @@
 import re
-import os
 import json
 import spacy
 import emojis
@@ -10,13 +9,21 @@ from tqdm import tqdm
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from utility.decorator import check_file_exists
+from utility.clean_coding.decorator import check_path_exists
+from utility.clean_coding.ensure import validation, ensure_not_none, ensure_valid_file_extension, ensure_file_exists
+from utility.config_path import CONFIG_PATH, DATASET_PATH, WORDLIST_PATH
 
 
+@check_path_exists(path=CONFIG_PATH, create=True)
+@validation(
+    "dataset_name",
+    "Nome del dataset",
+    ensure_not_none)
+@validation(
+    "config_path",
+    "File di configurazione",
+    ensure_valid_file_extension(".json"), ensure_file_exists(CONFIG_PATH, ""))
 class featureConstruction:
-    WORDLIST_PATH = "../data/wordlists/"
-    CONFIG_PATH = "../configs/"
-
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
         "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
@@ -24,38 +31,26 @@ class featureConstruction:
         "SYM", "VERB", "X", "SPACE"
     ]
 
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, config_path="config.json", saveDataFrame:bool = True):
-        self.DATASET_PATH = self.__check_dataset_path(datasetPath)
-        self.__dataFrame = dataFrame
-        self.__config = self.__check_config_file(config_path)
+    def __init__(self, data_frame: pd.DataFrame, dataset_name: str, config_path="config.json", save_dataFrame:bool = True):
+        self.__dataFrame = data_frame
+        self.__dataset_name = dataset_name
+        self.__config = config_path if config_path is not None else "config.json"
         self.__columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
         self.__feature_construction()
         
-        if saveDataFrame:
+        if save_dataFrame:
             self.__write_dataFrame()
 
     def get_dataframe(self):
         return self.__dataFrame
 
-    @staticmethod
-    def __check_dataset_path(dataset_path: str) -> str:
-        """Controlla se il percorso del dataset esiste"""
-        if dataset_path is not None:
-            return dataset_path
-        raise ValueError("Percorso del dataset non valido")
-
-    @staticmethod
-    @check_file_exists(base_path=CONFIG_PATH, subdir="")
-    def __check_config_file(config_path: str) -> str:
-        return config_path if config_path is not None else "config.json"
-
     def __init_configs(self):
         """Inizializza variabili in base al file di configurazione."""
 
         # Leggi file di configurazione
-        with open(self.__config, 'r') as f:
+        with open(CONFIG_PATH + self.__config, 'r') as f:
             features = json.load(f)
 
         # Estrai i nomi delle feature con valore vero (cioè feature abilitate)
@@ -78,14 +73,14 @@ class featureConstruction:
 
         # Car   ica wordlist
         if "swear_words" in self.__features_enabled:
-            with open(self.WORDLIST_PATH + "swear_words.txt", 'r') as f:
+            with open(WORDLIST_PATH + "swear_words.txt", 'r') as f:
                 self.__swear_words = set(f.read().splitlines())
 
                 # rimuovi l'ultimo carattere di ogni parola (per parole in dialetto)
                 self.__swear_words.update([word[:-1] for word in self.__swear_words])
 
         if "common_words" in self.__features_enabled:
-            with open(self.WORDLIST_PATH + "common_words.txt", 'r') as f:
+            with open(WORDLIST_PATH + "common_words.txt", 'r') as f:
                 self.__common_words = set(f.read().splitlines())
 
         # Inizializza sentiment/emotion classifier
@@ -185,7 +180,7 @@ class featureConstruction:
 
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
-        self.__dataFrame.to_parquet(self.DATASET_PATH)
+        self.__dataFrame.to_parquet(DATASET_PATH + self.__dataset_name)
 
     def type_token_ratio(self, m):
         """Calcola la ricchezza lessicale di un messaggio."""
