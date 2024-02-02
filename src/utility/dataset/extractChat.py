@@ -20,7 +20,7 @@ class ExtractChat:
     def __init__(
             self,
             rawdata: str,
-            placeholder_user: str,
+            placeholder_user: str = Phum.DEFAULT_PLACEHOLDER,
             aliases: str = None,
     ):
         self.__rawdata = rawdata
