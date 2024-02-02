@@ -1,5 +1,5 @@
 import os
-from utility.exceptions import PathNotFoundError
+from ..exceptions import PathNotFoundError
 
 
 def check_path_exists(path: str, create: bool = False):

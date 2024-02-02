@@ -2,7 +2,7 @@ import re
 import logging
 import pandas as pd
 from sklearn.utils import resample
-from utility.logging import LoggerUser
+from ..logging import LoggerUser
 
 
 class DataFrameProcessor:

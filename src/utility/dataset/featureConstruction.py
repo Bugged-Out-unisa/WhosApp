@@ -9,9 +9,9 @@ from tqdm import tqdm
 from collections import Counter, defaultdict
 from feel_it import EmotionClassifier, SentimentClassifier
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from utility.clean_coding.decorator import check_path_exists
-from utility.clean_coding.ensure import validation, ensure_not_none, ensure_valid_file_extension, ensure_file_exists
-from utility.config_path import CONFIG_PATH, DATASET_PATH, WORDLIST_PATH
+from ..clean_coding.decorator import check_path_exists
+from ..clean_coding.ensure import validation, ensure_not_none, ensure_valid_file_extension, ensure_file_exists
+from ..config_path import CONFIG_PATH, DATASET_PATH, WORDLIST_PATH
 
 
 @check_path_exists(path=CONFIG_PATH, create=True)

@@ -1,7 +1,7 @@
 import os
 import logging
 from tqdm import tqdm
-from utility.config_path import RAWDATA_PATH
+from ..config_path import RAWDATA_PATH
 
 
 class rawDataReader:
