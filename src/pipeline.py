@@ -3,7 +3,7 @@ import calendar
 import argparse
 from utility.logging import LoggerReport, LoggerUser, LoggerUserModelHistory
 from utility.model.modelTraining import ModelTraining
-from utility.dataset.datasetCreation import datasetCreation
+from utility.dataset.datasetCreation import DatasetCreation
 from utility.cmdlineManagement.modelSelection import ModelSelection
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserManager
@@ -61,7 +61,7 @@ def create_dataset_and_train_model():
     selected_model = ModelSelection().model
 
     # Creazione del dataset con i parametri passati da linea di comando
-    dataset_creator = datasetCreation(
+    dataset_creator = DatasetCreation(
         dataset_name,
         config,
         aliases_file,

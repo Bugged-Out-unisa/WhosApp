@@ -4,7 +4,7 @@ from tqdm import tqdm
 from ..config_path import RAWDATA_PATH
 
 
-class rawDataReader:
+class RawDataReader:
 
     # Secondo me non serve il costruttore.
     # Alla fine i file da leggere sono sempre all'interno della cartella RAWDATA_PATH.

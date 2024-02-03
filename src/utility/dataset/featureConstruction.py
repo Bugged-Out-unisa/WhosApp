@@ -18,12 +18,12 @@ from ..config_path import CONFIG_PATH, DATASET_PATH, WORDLIST_PATH
 @validation(
     "dataset_name",
     "Nome del dataset",
-    ensure_not_none)
+    ensure_not_none())
 @validation(
-    "config_path",
+    "config",
     "File di configurazione",
     ensure_valid_file_extension(".json"), ensure_file_exists(CONFIG_PATH, ""))
-class featureConstruction:
+class FeatureConstruction:
     # Lista tag POS (Part-of-speech)
     POS_LIST = [
         "ADJ", "ADP", "ADV", "AUX", "CONJ", "CCONJ", "DET", "INTJ",
@@ -33,9 +33,9 @@ class featureConstruction:
 
     def __init__(self, data_frame: pd.DataFrame, dataset_name: str, config_path="config.json", save_dataFrame:bool = True):
         self.__dataFrame = data_frame
-        self.__dataset_name = dataset_name
-        self.__config = config_path if config_path is not None else "config.json"
-        self.__columns_to_drop = ['message_composition', 'message']
+        self._dataset_name = dataset_name
+        self._config = config_path if config_path is not None else "config.json"
+        self._columns_to_drop = ['message_composition', 'message']
 
         self.__init_configs()
         self.__feature_construction()
@@ -50,7 +50,7 @@ class featureConstruction:
         """Inizializza variabili in base al file di configurazione."""
 
         # Leggi file di configurazione
-        with open(CONFIG_PATH + self.__config, 'r') as f:
+        with open(CONFIG_PATH + self._config, 'r') as f:
             features = json.load(f)
 
         # Estrai i nomi delle feature con valore vero (cioè feature abilitate)
@@ -106,7 +106,7 @@ class featureConstruction:
         else:
             # Rimuovi dal dataframe se non è abilitata
             # (perché non ha senso per il messaggio in input in demo.py)
-            self.__columns_to_drop.append("responsiveness")
+            self._columns_to_drop.append("responsiveness")
 
         # Colonne (features) che si aggiungeranno al dataframe
         features = {key: [] for key in self.__features_enabled}
@@ -117,7 +117,7 @@ class featureConstruction:
             "\n".join(f"\t{feature_name}" for feature_name in self.__features_enabled)
         )
 
-        for message in tqdm(self.__dataFrame['message']):
+        for message in tqdm(self._dataFrame['message']):
             # Resetta analisi nlp per nuovo messaggio
             self.__nlp_it_message = None
 
@@ -130,15 +130,15 @@ class featureConstruction:
 
         # Aggiungi nuove colonne al dataframe
         for feature_name in self.__features_enabled:
-            self.__dataFrame[feature_name] = features[feature_name]
+            self._dataFrame[feature_name] = features[feature_name]
 
         if "message_composition" in self.__features_enabled:
             for pos in self.POS_LIST:
-                self.__dataFrame[pos] = [d[pos] for d in features["message_composition"]]
+                self._dataFrame[pos] = [d[pos] for d in features["message_composition"]]
 
         # Rimuovi features inutili in fase di training
         # errors='ignore' per evitare errori se la colonna non esiste
-        self.__dataFrame = self.__dataFrame.drop(self.__columns_to_drop, axis=1, errors='ignore')
+        self.__dataFrame = self._dataFrame.drop(self._columns_to_drop, axis=1, errors='ignore')
 
         # Assicurati che il nome delle colonne siano stringhe
         # (altrimenti ci sono problemi in fase di esportazione del file parquet)
@@ -176,11 +176,11 @@ class featureConstruction:
 
         # Unisci la matrice al dataframe
         df_hashed_text = pd.DataFrame(hashed_text.toarray())
-        self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
+        self._dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
 
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""
-        self.__dataFrame.to_parquet(DATASET_PATH + self.__dataset_name)
+        self.__dataFrame.to_parquet(DATASET_PATH + self._dataset_name)
 
     def type_token_ratio(self, m):
         """Calcola la ricchezza lessicale di un messaggio."""
