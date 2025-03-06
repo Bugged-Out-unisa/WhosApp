@@ -1,0 +1,36 @@
+{
+    "version": "0.3.0",
+    "compounds": [
+        {
+            "name": "Launch Program",
+            "configurations": ["Launch Backend", "Launch Frontend"]
+        }
+    ],
+    "configurations": [
+        {
+            "command": "npm run start",
+            "name": "Launch Frontend",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/frontend"
+        },
+        {
+            "name": "Launch Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "src/main.py",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true,
+            "autoStartBrowser": false,
+            "cwd": "${workspaceFolder}/src"
+        }
+    ]
+}

@@ -50,7 +50,7 @@ The project is organized into the following directories:
 
 1. Clone the repository and install the requirements:
    ```bash
-   git clone https://github.com/danlig/WhosApp.git
+   git clone https://github.com/Bugged-Out-unisa/WhosApp
    cd WhosApp
    pip install -r requirements.txt
     ```

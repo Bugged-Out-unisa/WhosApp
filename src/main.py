@@ -129,6 +129,8 @@ class modelExecution:
             print("\n\n[INFO] Interruzione dell'esecuzione del modello.")
             exit(0)
 
+execution = modelExecution()
+
 @app.route("/WhosApp", methods=["POST"])
 def serverModelExecution():
     with lock:       
@@ -138,7 +140,5 @@ def serverModelExecution():
     return jsonify(response), 200
 
 if __name__ == "__main__":
-    global execution 
-    execution = modelExecution()
     print("Modello pronto all'uso\n[In ascolto sulla porta 5000]")
     app.run(port = 5000)

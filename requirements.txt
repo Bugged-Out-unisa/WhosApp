@@ -14,3 +14,4 @@ skops
 requests
 flask
 inquirer
+pydantic
