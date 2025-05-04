@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock, mock_open
 import pandas as pd
 import time
 import calendar
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -825,6 +826,8 @@ class TestDatasetCreation(unittest.TestCase):
             path == self.dataset_path + f"dataset_{self.timestamp}.parquet" 
             else True
         )
+
+        self.expected_output = "Config file not found"
         
         # Make json.load raise FileNotFoundError when called
         mock_json_load.side_effect = FileNotFoundError("Config file not found")
@@ -859,6 +862,9 @@ class TestDatasetCreation(unittest.TestCase):
     def test_pc18_invalid_alias_file(self, mock_feature_construction, mock_data_processor,
                             mock_extract_chat, mock_raw_reader):
         """PC18: Invalid aliases file, default config, no refactor, default name, no existing dataset."""
+       
+        self.expected_output = "Aliases file not found"
+
         # Set up path existence - alias file does not exist but config.json does
         self.mock_path_exists.side_effect = lambda path: False if path == self.config_path + "non_esiste.json" else self._mock_path_exists(path)
         
@@ -912,6 +918,9 @@ class TestDatasetCreation(unittest.TestCase):
     @patch('utility.dataset.datasetCreation.ExtractChat')
     def test_pc20_error_in_ExtractChat(self, mock_extract_chat, mock_raw_reader):
         """PC20: Default settings, error in ExtractChat module."""
+        
+        self.expected_output = "Error in ExtractChat module"
+        
         # Configure mocks
         mock_raw_reader_instance = MagicMock()
         mock_raw_reader_instance.read_all_files.return_value = self.mock_rawdata
@@ -936,6 +945,9 @@ class TestDatasetCreation(unittest.TestCase):
     @patch('utility.dataset.datasetCreation.DataFrameProcessor')
     def test_pc21_error_in_DataFrameProcessor(self, mock_data_processor, mock_extract_chat, mock_raw_reader):
         """PC21: Default settings, error in DataFrameProcessor module."""
+        
+        self.expected_output = "Error in DataFrameProcessor module"
+        
         # Configure mocks
         mock_raw_reader_instance = MagicMock()
         mock_raw_reader_instance.read_all_files.return_value = self.mock_rawdata
@@ -966,6 +978,9 @@ class TestDatasetCreation(unittest.TestCase):
     def test_pc22_error_in_featureConstruction(self, mock_feature_construction, mock_data_processor,
                                          mock_extract_chat, mock_raw_reader):
         """PC22: Default settings, error in featureConstruction module."""
+        
+        self.expected_output = "Error in featureConstruction module"
+        
         # Configure mocks
         mock_raw_reader_instance = MagicMock()
         mock_raw_reader_instance.read_all_files.return_value = self.mock_rawdata
@@ -993,4 +1008,4 @@ class TestDatasetCreation(unittest.TestCase):
         self.assertTrue("Error in featureConstruction module" in str(context.exception))
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("DatasetCreation.csv"))

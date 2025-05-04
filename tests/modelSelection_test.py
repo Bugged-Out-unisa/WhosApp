@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 from unittest.mock import patch
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -22,6 +23,8 @@ class TestModelSelection(unittest.TestCase):
     # Test for invalid model selection: user selects an invalid model
     @patch('inquirer.prompt', return_value={'model': 'invalid_model'})
     def test_model_selection_invalid(self, mock_prompt):
+        self.expected_output = "Modello non valido."
+
         # Patch the 'models' dictionary within the model_selection module
         with patch('utility.cmdlineManagement.modelSelection.models', {"valid_model": "ModelObject"}):
             # Patch the model_names attribute to reflect the patched models dictionary
@@ -31,4 +34,4 @@ class TestModelSelection(unittest.TestCase):
                 self.assertEqual(str(context.exception), "Modello non valido.")
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("ModelSelection.csv"))

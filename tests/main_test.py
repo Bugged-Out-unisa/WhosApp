@@ -3,6 +3,7 @@ import json
 from unittest.mock import patch, MagicMock
 import os
 import sys
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -55,18 +56,24 @@ class TestServer(unittest.TestCase):
 
     # S2: R2 – RF1 – IE1: Invalid route returns 404.
     def test_invalid_route(self):
+        self.expected_output = "Route not found"
+
         payload = {"text": "This is a test message"}
         response = self.client.post("/InvalidRoute", json=payload)
         self.assertEqual(response.status_code, 404)
 
     # S3: R1 – RF2 – IE1: Valid route but invalid request format (non-JSON) returns 400.
     def test_invalid_request_format(self):
+        self.expected_output = "Invalid request format"
+
         response = self.client.post("/WhosApp", data="Not a JSON", content_type="text/plain")
         self.assertEqual(response.status_code, 415)
 
     # S4: R1 – RF1 – IE2: Simulate an error during initialization.
     @patch('main.TrainedModelSelection.__init__', side_effect=Exception("Initialization error"))
     def test_initialization_error(self, mock_init):
+        self.expected_output = "Initialization error"
+
         with self.assertRaises(Exception) as context:
             _ = modelExecution()
         self.assertEqual(str(context.exception), "Initialization error")
@@ -74,9 +81,11 @@ class TestServer(unittest.TestCase):
     # S5: R1 – RF1 – IE3: Simulate an error during execution (__rest_predict__) causing a 500 error.
     @patch.object(modelExecution, '__rest_predict__', side_effect=Exception("Execution error"))
     def test_execution_error(self, mock_rest_predict):
+        self.expected_output = "Execution error"
+
         payload = {"text": "This is a test message"}
         response = self.client.post("/WhosApp", json=payload)
         self.assertEqual(response.status_code, 500)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("main.csv"))

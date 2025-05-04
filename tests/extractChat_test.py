@@ -3,6 +3,7 @@ import sys
 import json
 import unittest
 from unittest.mock import patch, mock_open
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -88,11 +89,13 @@ class TestExtractChat(unittest.TestCase):
     def test_ED3_invalid_rawdata(self):
         # ED3: When rawdata contains text not matching any supported format,
         # the __set_datatime method should raise an exception.
+        self.expected_output = "Format not supported"
+
         invalid_rawdata = ["This is not valid chat content"]
         extractor = ExtractChat(rawdata=invalid_rawdata, aliases=None, placeholder_user="PhUser")
         with self.assertRaises(Exception) as context:
             extractor.extract()
-        self.assertIn("Format not supported", str(context.exception))
+        self.assertIn(self.expected_output, str(context.exception))
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("ExtractChat.csv"))

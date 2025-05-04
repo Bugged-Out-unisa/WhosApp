@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from io import StringIO
 import sys
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -54,6 +55,8 @@ class TestDatasetSelection(unittest.TestCase):
     def test_DF2_no_datasets_available(self, mock_prompt, mock_listdir):
         """Test case DF2: Directory is empty, no datasets available."""
 
+        self.expected_output = "Nessun dataset disponibile per il training."
+
         mock_listdir.return_value = []
 
         
@@ -66,6 +69,8 @@ class TestDatasetSelection(unittest.TestCase):
     def test_DF3_extension_error_direct(self):
         """Test case DF3: Testing ExtensionError by directly calling __load_dataset."""
 
+        self.expected_output = "Il dataset deve essere in formato .parquet"
+
         with mock.patch.object(DatasetSelection, '__init__', return_value=None):
             selection = DatasetSelection()
             
@@ -77,4 +82,4 @@ class TestDatasetSelection(unittest.TestCase):
             self.assertIn("Il dataset deve essere in formato .parquet", str(context.exception))
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("DatasetSelection.csv"))

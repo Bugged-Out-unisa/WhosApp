@@ -5,6 +5,7 @@ import types
 import unittest
 from unittest.mock import MagicMock, patch
 import pandas as pd
+from test_logger import TableTestRunner
 
 # Path to the new_dataset.py script (adjust the path if needed)
 SCRIPT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/new_dataset.py"))
@@ -64,6 +65,9 @@ class TestNewDataset(unittest.TestCase):
 
     def test_icd2_failure(self):
         # Configure the dummy PlaceholderUserManager to return dummy values.
+
+        self.expected_output = "Test induced error"
+
         ph_mock = self.dummy_placeholder.PlaceholderUserManager.return_value
         ph_mock.selection.return_value = ("dummy_user", False)
 
@@ -80,4 +84,4 @@ class TestNewDataset(unittest.TestCase):
             ph_mock.selection.assert_called_once()
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("NewDataset.csv"))

@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from io import StringIO
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -239,6 +240,9 @@ class TestPipeline(unittest.TestCase):
         Test pipeline with default output name, invalid config file path,
         no retrain, with or without alias file, with or without refactor.
         """
+
+        self.expected_output = "File di configurazione non trovato"
+
         # Setup mocks
         mock_path_exists.return_value = False  # Config file doesn't exist
         mock_model.return_value = self.mock_model_selection
@@ -279,6 +283,9 @@ class TestPipeline(unittest.TestCase):
         with or without alias file, with or without refactor, but with an internal
         error occurring in one of the modules.
         """
+
+        self.expected_output = "Errore interno nel modulo datasetCreation"
+
         # Setup mocks
         mock_path_exists.return_value = True
         mock_model.return_value = self.mock_model_selection
@@ -386,4 +393,4 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(called_args[5])  # refactor parameter should be True
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("Pipeline.csv"))

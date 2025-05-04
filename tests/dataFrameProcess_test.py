@@ -3,6 +3,7 @@ import sys
 import unittest
 import pandas as pd
 from unittest.mock import patch, mock_open
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -81,6 +82,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD5: D1 – U1 – M1 – L2 (non congruent lengths)
     # Here we simulate a condition that should flag an error (empty cells in the dataframe).
     def test_CD5_non_congruent_lengths(self):
+        self.expected_output = "Error: all arrays must be of the same length"
+
         dates = [100, 200, 300]       # length 3
         users = ["Alice", "Bob"]      # length 2
         messages = ["Hi", "Hello", "Bye"]  # length 3
@@ -98,6 +101,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD6: D1 – U2 – M1 – L1 
     # Invalid unique users: only one unique user.
     def test_CD6_invalid_users(self):
+        self.expected_output = "Invalid number of unique users"
+
         dates = [100, 200, 300]
         users = ["Alice", "Alice", "Alice"]  # Only one unique user.
         messages = ["Msg1", "Msg2", "Msg3"]
@@ -116,6 +121,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD7: D1 – U1 (with at least 2 users, one of which is "other") – M1 – L1 – OU2 – RO3 
     # After removal of the 'other', only one unique user remains.
     def test_CD7_removal_leads_to_invalid_users(self):
+        self.expected_output = "Not enough unique users after removal"
+
         dates = [100, 200, 300, 400]
         # Two unique users originally: "Alice" and "ExtraUser".
         # But if "ExtraUser" is removed, only "Alice" remains.
@@ -136,6 +143,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD8: D2 – U1 – M1 – L1 
     # Dates not in chronological order should be flagged.
     def test_CD8_invalid_dates_order(self):
+        self.expected_output = "Dates not in order"
+
         dates = [300, 200, 400]  # Not sorted.
         users = ["Alice", "Bob", "Alice"]
         messages = ["Msg1", "Msg2", "Msg3"]
@@ -154,6 +163,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD9: D1 – U1 – M2 – L1 
     # Missing messages (None or empty): should flag an error.
     def test_CD9_missing_messages(self):
+        self.expected_output = "Messages are missing"
+
         dates = [100, 200, 300]
         users = ["Alice", "Bob", "Alice"]
         messages = None  # Missing messages.
@@ -172,6 +183,8 @@ class TestDataFrameProcessor(unittest.TestCase):
     # CD10: D3 – U1 – M1 – L1 
     # Incomplete dates: e.g., a None value in dates, causing an error during responsiveness calculation.
     def test_CD10_incomplete_dates(self):
+        self.expected_output = "Incomplete dates"
+
         dates = [100, None, 300]
         users = ["Alice", "Bob", "Alice"]
         messages = ["Msg1", "Msg2", "Msg3"]
@@ -186,4 +199,4 @@ class TestDataFrameProcessor(unittest.TestCase):
             self.assertTrue("unsupported operand" in str(context.exception).lower() or "error" in str(context.exception).lower())
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("DataframeProcess.csv"))

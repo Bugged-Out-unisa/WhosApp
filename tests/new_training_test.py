@@ -5,6 +5,7 @@ import types
 import unittest
 from unittest.mock import MagicMock, patch
 import pandas as pd
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -133,6 +134,9 @@ class TestNewTraining(unittest.TestCase):
     def test_IT5_invalid_config_file(self):
         # IT5: ON1 - CF2 - R1: default output, invalid config file ("non_esiste.json"), retrain False.
         # We'll simulate this by patching DummyModelTraining.__init__ to raise FileNotFoundError.
+
+        self.expected_output = "File di configurazione non trovato"
+
         original_init = self.dummy_modelTraining.ModelTraining.__init__
         def init_raise(self, outputName, model, dataFrame, configFile, retrain):
             if configFile == "non_esiste.json":
@@ -147,6 +151,9 @@ class TestNewTraining(unittest.TestCase):
 
     def test_IT6_internal_error_propagation(self):
         # IT6: Simulate internal error propagation in ModelTraining
+
+        self.expected_output = "Internal error"
+
         test_args = ['new_training.py', '-c', 'config.json']
 
         # Configure the mock to raise an exception
@@ -164,4 +171,4 @@ class TestNewTraining(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("NewTraining.csv"))

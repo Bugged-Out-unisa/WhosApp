@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from unittest.mock import patch, mock_open
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
@@ -140,6 +141,8 @@ class TestFeatureConstruction(unittest.TestCase):
     @patch("os.path.exists")
     @patch("builtins.open")
     def test_EF3_invalid_dataframe_missing_column(self, mock_open_func, mock_exists, mock_spacy_load):
+        self.expected_output = "KeyError"
+
         mock_exists.return_value = True
         m = mock_open(read_data=valid_config_json)
         mock_open_func.side_effect = [m.return_value]
@@ -154,6 +157,8 @@ class TestFeatureConstruction(unittest.TestCase):
     @patch("os.path.exists")
     @patch("builtins.open")
     def test_EF4_none_dataframe(self, mock_open_func, mock_exists, mock_spacy_load):
+        self.expected_output = "TypeError"
+        
         mock_exists.return_value = True
         m = mock_open(read_data=valid_config_json)
         mock_open_func.side_effect = [m.return_value]
@@ -168,6 +173,8 @@ class TestFeatureConstruction(unittest.TestCase):
     @patch("os.path.exists")
     @patch("builtins.open")
     def test_EF5_invalid_dataset_path(self, mock_open_func, mock_exists, mock_spacy_load):
+        self.expected_output = "OSError"
+
         mock_exists.return_value = True
         m = mock_open(read_data=valid_config_json)
         mock_open_func.side_effect = [m.return_value]
@@ -181,6 +188,8 @@ class TestFeatureConstruction(unittest.TestCase):
     # EF6: DF1 - DP1 - CP3 - S1: Invalid configuration path (config file does not exist)
     @patch("os.path.exists")
     def test_EF6_invalid_config_path(self, mock_exists):
+        self.expected_output = "ValueError"
+        
         # Simulate that the config file is not found.
         mock_exists.return_value = False
         with self.assertRaises(ValueError):
@@ -194,6 +203,8 @@ class TestFeatureConstruction(unittest.TestCase):
     @patch("os.path.exists")
     @patch("builtins.open")
     def test_EF7_config_no_features_enabled(self, mock_open_func, mock_exists, mock_spacy_load):
+        self.expected_output = "Exception"
+        
         mock_exists.return_value = True
         m = mock_open(read_data=no_features_config_json)
         mock_open_func.side_effect = [m.return_value]
@@ -212,6 +223,8 @@ class TestFeatureConstruction(unittest.TestCase):
     # EF8: DF1 - DP1 - CP3 - S1: Config path is None (or empty) should raise ValueError.
     @patch("os.path.exists")
     def test_EF8_config_path_invalid_value(self, mock_exists):
+        self.expected_output = "ValueError"
+        
         # Passing config_path as None should raise ValueError.
         with self.assertRaises(ValueError):
             fc = featureConstruction(self.df_valid, self.valid_dataset_path,
@@ -220,4 +233,4 @@ class TestFeatureConstruction(unittest.TestCase):
             fc.get_dataframe()
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("FeatureConstruction.csv"))

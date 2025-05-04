@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
+from test_logger import TableTestRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'utility', 'dataset')))
 
@@ -52,6 +53,8 @@ class TestRawDataReader(unittest.TestCase):
     @patch("os.listdir")
     def test_LF3_invalid_path(self, mock_listdir):
         # Simulate that os.listdir fails because the path is invalid.
+        self.expected_output = "Invalid path"
+
         mock_listdir.side_effect = FileNotFoundError("Invalid path")
         rdr = rawDataReader("invalid/path")
         with self.assertRaises(FileNotFoundError):
@@ -62,11 +65,13 @@ class TestRawDataReader(unittest.TestCase):
     @patch("os.listdir")
     def test_LF4_empty_folder(self, mock_listdir, mock_isfile):
         # Simulate an empty directory.
+        self.expected_output = "Nessun file di testo trovato"
+
         mock_listdir.return_value = []
         rdr = rawDataReader("dummy/path")
         with self.assertRaises(Exception) as context:
             rdr.read_all_files()
-        self.assertIn("Nessun file di testo trovato", str(context.exception))
+        self.assertIn(self.expected_output, str(context.exception))
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("RawDataReader.csv"))

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, mock_open
 import pandas as pd
 import numpy as np
 from joblib import dump
-
+from test_logger import TableTestRunner
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 # Import the ModelTraining class from the correct namespace.
@@ -226,6 +226,9 @@ class TestModelTraining(unittest.TestCase):
 
     def test_TM9_no_model_provided(self):
         # TM9: Missing model should raise ModelNotFoundError.
+
+        self.expected_output = "Model not found"
+
         with self.assertRaises(ModelNotFoundError):
             ModelTraining(
                 outputName=None,
@@ -237,6 +240,9 @@ class TestModelTraining(unittest.TestCase):
 
     def test_TM10_no_dataframe_provided(self):
         # TM10: Missing DataFrame should raise DatasetNotFoundError.
+
+        self.expected_output = "Dataset not found"
+
         dummy_model = get_dummy_model()
         with self.assertRaises(DatasetNotFoundError):
             ModelTraining(
@@ -247,10 +253,16 @@ class TestModelTraining(unittest.TestCase):
                 retrain=False
             )
 
+    @patch("utility.model.modelTraining.dump", return_value=None)
     @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: False)
-    def test_TM11_invalid_config_file(self, mock_exists):
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path, exist_ok=False: None)
+    def test_TM11_invalid_config_file(self, mock_makedirs, mock_exists, mock_dump):
         # TM11: Invalid config file should raise FileNotFoundError.
+
+        self.expected_output = "Config file not found"
+
         dummy_model = get_dummy_model()
+
         with self.assertRaises(FileNotFoundError):
             mt = ModelTraining(
                 outputName=None,
@@ -262,4 +274,4 @@ class TestModelTraining(unittest.TestCase):
             mt.run()
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(testRunner=TableTestRunner("ModelTraining.csv"))
