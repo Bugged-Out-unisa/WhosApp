@@ -9,6 +9,7 @@ from utility.dataset.extractChat import ExtractChat
 from utility.dataset.rawDataReader import rawDataReader
 from utility.dataset.dataFrameProcess import DataFrameProcessor
 from utility.dataset.featureConstruction import featureConstruction
+from utility.dataset.embeddingsCreation import EmbeddingsCreation
 
 
 class datasetCreation:
@@ -23,8 +24,16 @@ class datasetCreation:
             alias_file: str = None,
             other_user: str = None,
             remove_other: bool = False,
-            refactor: bool = False
+            refactor: bool = False,
+            runFeatureConstruction: bool = True,
+            runEmbeddings: bool = True
     ):
+        if not runEmbeddings and not runFeatureConstruction:
+            raise ValueError("runFeatureConstruction e runEmbeddings non possono essere entrambi False")
+        
+        self.__runFeatureConstruction = runFeatureConstruction
+        self.__runEmbeddings = runEmbeddings
+
         self.__dataset_name = self.__check_dataset_name(dataset_name)
         self.__config_file = self.__check_config_file(config_file)
         self.__alias_file, self.__other_user, self.__remove_other = self.__check_aliases_file(alias_file, other_user, remove_other)
@@ -35,6 +44,7 @@ class datasetCreation:
         self.__isToRefactor = True if refactor else False
 
         self.__dataFrame = None
+        self.__embeddings_dataframe = None
         self.__check_dataset_path()
 
     def __check_config_file(self, config_file: str) -> str:
@@ -103,11 +113,22 @@ class datasetCreation:
             self.__dataFrame = DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).get_dataframe()
 
             print("\n[LOADING] Applicando feature construction...")
-            self.__dataFrame = featureConstruction(
-                self.__dataFrame,
-                self.DATASET_PATH + self.__dataset_name,
-                self.CONFIG_PATH + self.__config_file
-            ).get_dataframe()
+
+            df = self.__dataFrame.copy()
+
+            if(self.__runFeatureConstruction):
+                self.__dataFrame = featureConstruction(
+                    df,
+                    self.DATASET_PATH + self.__dataset_name,
+                    self.CONFIG_PATH + self.__config_file
+                ).get_dataframe()
+            
+            if(self.__runEmbeddings):
+                self.__embeddings_dataframe = EmbeddingsCreation(
+                    df,
+                    self.DATASET_PATH + self.__dataset_name,
+                    self.CONFIG_PATH + self.__config_file
+                ).get_dataframe()
 
             print("[INFO] Dataset creato con successo.")
 
@@ -120,3 +141,7 @@ class datasetCreation:
     @property
     def dataFrame(self):
         return self.__dataFrame
+
+    @property
+    def embeddings_dataframe(self):
+        return self.__embeddings_dataframe

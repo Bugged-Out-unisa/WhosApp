@@ -15,3 +15,4 @@ requests
 flask
 inquirer
 pydantic
+transformers

@@ -10,7 +10,7 @@ from test_logger import TableTestRunner
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 # Import the ModelTraining class from the correct namespace.
-from utility.model.modelTraining import ModelTraining
+from utility.model.modelTraining_feature import ModelTraining
 from utility.exceptions import ModelNotFoundError, DatasetNotFoundError
 
 # Dummy configuration JSON (valid config)

@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import inquirer
 from utility.exceptions import ExtensionError
-from utility.model.modelTraining import ModelTraining
+from utility.model.modelTraining_feature import ModelTraining
 from joblib import load
 
 

@@ -39,9 +39,21 @@ class featureConstruction:
 
     @staticmethod
     def __check_dataset_path(dataset_path: str) -> str:
-        """Controlla se il percorso del dataset esiste"""
-        if dataset_path is not None:
-            return dataset_path
+
+        dir_name = os.path.dirname(dataset_path)
+        base_name = os.path.basename(dataset_path)
+
+        prefix = "features_"
+
+        if base_name.startswith(prefix):
+            new_name = base_name
+        else:
+            new_name = prefix + base_name
+
+        actual_path = os.path.join(dir_name, new_name)
+
+        if actual_path is not None:
+            return actual_path
         else:
             raise ValueError("Percorso del dataset non valido")
 
@@ -100,11 +112,11 @@ class featureConstruction:
 
     def __feature_construction(self):
         """Crea nuove feature: un insieme di metadati relativo ad ogni messaggio."""
-        # Applica bag of words solo se abilitato
-        if "bag_of_words" in self.__features_enabled:
-            print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
-            self.bag_of_words()
-            self.__features_enabled.remove("bag_of_words")
+        # # Applica bag of words solo se abilitato
+        # if "bag_of_words" in self.__features_enabled:
+        #     print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
+        #     self.bag_of_words()
+        #     self.__features_enabled.remove("bag_of_words")
 
         if "responsiveness" in self.__features_enabled:
             # Rimuovi dalla lista perché è già calcolata in fase di training
@@ -157,32 +169,32 @@ class featureConstruction:
 
         return self.__nlp_it_message
 
-    def bag_of_words(self, max_accuracy=False):
-        """
-            Trasforma il messaggio in una matrice di frequenza delle parole (bag of words).
-            In questo modo, il modello capisce le parole più utilizzate da un utente
-        """
-        # Numero di feature di default (compromesso fra velocità e accuratezza)
-        n = 2 ** 12
+    # def bag_of_words(self, max_accuracy=False):
+    #     """
+    #         Trasforma il messaggio in una matrice di frequenza delle parole (bag of words).
+    #         In questo modo, il modello capisce le parole più utilizzate da un utente
+    #     """
+    #     # Numero di feature di default (compromesso fra velocità e accuratezza)
+    #     n = 2 ** 12
 
-        # Se si vuole usare il numero di feature ottimale per non avere collisioni
-        # ma si vuole sacrificare la velocità di esecuzione
-        if max_accuracy:
-            # Tokenizza il testo e conta il numero di parole uniche
-            count_vec = CountVectorizer()
-            count_vec.fit(self.__dataFrame['message'])
-            n_unique_words = len(count_vec.vocabulary_)
+    #     # Se si vuole usare il numero di feature ottimale per non avere collisioni
+    #     # ma si vuole sacrificare la velocità di esecuzione
+    #     if max_accuracy:
+    #         # Tokenizza il testo e conta il numero di parole uniche
+    #         count_vec = CountVectorizer()
+    #         count_vec.fit(self.__dataFrame['message'])
+    #         n_unique_words = len(count_vec.vocabulary_)
 
-            # Imposta n_features come la potenza di 2 successiva che è maggiore di n_unique_words
-            n = int(2 ** np.ceil(np.log2(n_unique_words)))
+    #         # Imposta n_features come la potenza di 2 successiva che è maggiore di n_unique_words
+    #         n = int(2 ** np.ceil(np.log2(n_unique_words)))
 
-        # Inizializza l'HashingVectorizer con il numero di features calcolato
-        hashing_vec = HashingVectorizer(n_features=n)
-        hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
+    #     # Inizializza l'HashingVectorizer con il numero di features calcolato
+    #     hashing_vec = HashingVectorizer(n_features=n)
+    #     hashed_text = hashing_vec.fit_transform(self.__dataFrame['message'])
 
-        # Unisci la matrice al dataframe
-        df_hashed_text = pd.DataFrame(hashed_text.toarray())
-        self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
+    #     # Unisci la matrice al dataframe
+    #     df_hashed_text = pd.DataFrame(hashed_text.toarray())
+    #     self.__dataFrame = pd.concat([self.__dataFrame, df_hashed_text], axis=1)
 
     def __write_dataFrame(self):
         """Salva il dataframe aggiornato in formato parquet."""

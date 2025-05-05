@@ -2,7 +2,7 @@ import time
 import calendar
 import argparse
 from utility.logging import LoggerReport, LoggerUser, LoggerUserModelHistory
-from utility.model.modelTraining import ModelTraining
+from utility.model.modelTraining_feature import ModelTraining
 from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.modelSelection import ModelSelection
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
