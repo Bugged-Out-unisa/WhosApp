@@ -3,6 +3,7 @@ import calendar
 import argparse
 from utility.logging import LoggerReport, LoggerUser, LoggerUserModelHistory
 from utility.model.modelTraining_feature import ModelTraining
+from utility.model.modelTraining_embeds import CNN1D
 from utility.dataset.datasetCreation import datasetCreation
 from utility.cmdlineManagement.modelSelection import ModelSelection
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
@@ -38,14 +39,29 @@ def create_dataset_and_train_model():
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
     parser.add_argument("-ref", "--refactor", help="Opzione di refactor", action="store_true", required=False)
+    parser.add_argument("-st", "--select_training", help="selezione se eseguire training feature o embeddings", required=False, default="both")
 
     args = parser.parse_args()
 
     # Parametri comuni
     output_name, retrain = args.outputName, args.retrain
-    dataset_name, config, aliases_file, refactor = args.outputName, args.config, args.aliases, args.refactor
+    dataset_name, config, aliases_file, refactor, select_training = args.outputName, args.config, args.aliases, args.refactor, args.select_training
 
-    # Selezione opzioni per l'utente "other"
+    feature_training = False
+    embeddings_training = False
+
+    if select_training not in ["feature", "embeddings", "both"]:
+        raise ValueError("Invalid value for --select_training. Choose 'feature', 'embeddings', or 'both'.")
+    
+    if select_training == "feature":
+        feature_training = True
+    elif select_training == "embeddings":
+        embeddings_training = True
+    elif select_training == "both":
+        feature_training = True
+        embeddings_training = True
+
+    # Selezione opzioni per l'utente "other"    
     placeholder_user, remove_generic = PlaceholderUserManager(aliases_file).selection()
 
     # LOGGING:: Inizializza il logging
@@ -67,21 +83,35 @@ def create_dataset_and_train_model():
         aliases_file,
         placeholder_user,
         remove_generic,
-        refactor
+        refactor,
+        feature_training,
+        embeddings_training
     )
     dataset_creator.run()
 
     LoggerUserModelHistory.append_model_user(dataset_name, output_name)
 
-    # Usa il dataset creato oppure effettua la selezione del dataset
-    selected_dataset = dataset_creator.dataFrame if dataset_creator.dataFrame is not None else DatasetSelection().dataset
-
     # Se il output_name non è None, lo imposta al timestamp. Altrimenti lo usa
     output_name = args.outputName if args.outputName is not None else timestamp
 
-    # Training del modello con i parametri passati da linea di comando
-    ModelTraining(output_name, selected_model, selected_dataset, config, retrain).run()
+    if feature_training:
+        # Usa il dataset creato oppure effettua la selezione del dataset
+        selected_dataset = dataset_creator.dataFrame if dataset_creator.dataFrame is not None else DatasetSelection().dataset
 
+         # Training del modello con i parametri passati da linea di comando
+        ModelTraining(output_name, selected_model, selected_dataset, config, retrain).run()
+
+    if embeddings_training:
+        # Usa il dataset creato oppure effettua la selezione del dataset
+        selected_embeddings = dataset_creator.embeddings_dataframe if dataset_creator.embeddings_dataframe is not None else DatasetSelection().dataset
+
+        CNN1D(
+            dataset=selected_embeddings,
+            output_name=output_name,
+            retrain=retrain
+        ).train_and_evaluate()
+
+   
 
     LoggerUser.close()
 

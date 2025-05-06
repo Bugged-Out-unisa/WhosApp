@@ -7,7 +7,7 @@ from utility.cmdlineManagement.PlaceholderUserManager import PlaceholderUserMana
 
 
 # HOW TO USE
-# py new_dataset.py -dN <*datasetName> -c <*configFile> -a <*aliases> -r
+# py new_dataset.py -dN <*datasetName> -c <*configFile> -a <*aliases> -sf <feature|embeddings|both> -r
 #   if datasetName exists
 #       if refactor is specified then create dataset with said name
 #       else return already made dataset
@@ -25,20 +25,21 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
     parser.add_argument("-r", "--refactor", help="Opzione di refactor", action="store_true", required=False)
-    parser.add_argument("-sf", "--selectfunction", help="Choose if to run feature construction, embeddings or both", required=False)
+    parser.add_argument("-sf", "--selectfunction", help="Choose if to run feature construction, embeddings or both", required=False, default="both")
 
     args = parser.parse_args()
     dataset_name, config, aliases_file, refactor, select_function = args.datasetName, args.config, args.aliases, args.refactor, args.selectfunction
 
-    run_embeddings = True
-    run_feature = True
+    run_embeddings = False
+    run_feature = False
+
+    if select_function not in ["feature", "embeddings", "both"]:
+        raise ValueError("Invalid value for --selectfunction. Choose 'feature', 'embeddings', or 'both'.")
 
     if select_function == "feature":
         run_feature = True
-        run_embeddings = False
 
     elif select_function == "embeddings":
-        run_feature = False
         run_embeddings = True
 
     elif select_function == "both":

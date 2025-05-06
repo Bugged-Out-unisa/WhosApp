@@ -93,6 +93,15 @@ class datasetCreation:
         # LOGGING:: Stampa il nome del dataset
         logging.info(f"Dataset name: {self.__dataset_name}")
 
+        if self.__runFeatureConstruction:
+            if os.path.exists(self.DATASET_PATH + "features_" + self.__dataset_name):
+                self.__dataFrame = pd.read_parquet(self.DATASET_PATH + "features_" + self.__dataset_name)
+            
+                
+        if self.__runEmbeddings:
+            if os.path.exists(self.DATASET_PATH + "embeddings_" + self.__dataset_name):
+                self.__embeddings_dataframe = pd.read_parquet(self.DATASET_PATH + "embeddings_" + self.__dataset_name)
+
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
         if not os.path.exists(self.DATASET_PATH + self.__dataset_name) or self.__isToRefactor:
 
