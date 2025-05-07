@@ -243,7 +243,7 @@ class CNN1D(nn.Module):
         return train_loader, val_loader, test_loader
         
     def train_model(self, train_loader, val_loader, criterion=None, optimizer=None, 
-                num_epochs=10, learning_rate=0.001):
+                num_epochs=5, learning_rate=0.001):
         """Train the CNN model."""
         
         # Set up the device
@@ -258,9 +258,6 @@ class CNN1D(nn.Module):
 
         # Add learning rate scheduler
         scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3, verbose=True)
-        
-        # In your epoch loop, after validation:
-        scheduler.step(epoch_val_acc)
         
         train_losses, val_losses = [], []
         train_accs, val_accs = [], []
@@ -337,6 +334,9 @@ class CNN1D(nn.Module):
                 self.best_val_acc = epoch_val_acc
                 self.best_model_state = self.state_dict().copy()
                 print(f'  New best model saved with validation accuracy: {self.best_val_acc:.4f}')
+
+            # after validation:
+            scheduler.step(epoch_val_acc)
         
         # Load the best model
         self.load_state_dict(self.best_model_state)
@@ -432,7 +432,6 @@ class CNN1D(nn.Module):
             criterion=criterion,
             optimizer=optimizer,
             num_epochs=num_epochs,
-            device=self.device,
             learning_rate=learning_rate
         )
         
@@ -440,7 +439,6 @@ class CNN1D(nn.Module):
         print("\n--- Evaluating Model ---")
         report, cm, predictions, true_labels = self.evaluate(
             test_loader=test_loader,
-            device=self.device
         )
         
         # Print evaluation results
@@ -566,9 +564,9 @@ class CNN1D(nn.Module):
     def check_output_model_name(self, name):
         """Check if the model name is valid."""
         if name:
-            name = self.check_prefix_extension(name, "embed_", ".pth")
+            return self.check_prefix_extension(name, "embed_", ".pth")
         else:
-            name = "embed_" + str(calendar.timegm(time.gmtime())) + ".pth"
+            return "embed_" + str(calendar.timegm(time.gmtime())) + ".pth"
         
     def check_prefix_extension(self, name, prefix, extension):
         """Check if the name has the correct prefix and extension."""
@@ -580,5 +578,6 @@ class CNN1D(nn.Module):
     
     def check_duplicate_model_name(self, name, retrain):
         """Check if the model name already exists."""
+
         if os.path.exists(os.path.join(self.MODEL_PATH, name)) and not retrain:
             raise ValueError(f"Model with name {name} already exists. Allow retraining to overrite.")

@@ -56,12 +56,12 @@ if __name__ == "__main__":
         path=LoggerReport.TRAINING_LOGGING_PATH
     ).run()
 
-    # Select dataset
-    dataset_selection = DatasetSelection()
-    dataset = dataset_selection.dataset
-    dataset_name = dataset_selection.dataset_name
-
     if feature_training:
+        # Select dataset
+        dataset_selection = DatasetSelection()
+        dataset = dataset_selection.dataset
+        dataset_name = dataset_selection.dataset_name
+
         # Select model
         model = ModelSelection().model
 
@@ -72,6 +72,11 @@ if __name__ == "__main__":
         model_training.run()
 
     if embeddings_training:
+        # Select dataset
+        dataset_selection = DatasetSelection()
+        dataset = dataset_selection.dataset
+        dataset_name = dataset_selection.dataset_name
+
         # Training del modello con i parametri passati da linea di comando
         model = CNN1D(dataset, output_name=output_name, retrain=retrain)
         model.train_and_evaluate()
