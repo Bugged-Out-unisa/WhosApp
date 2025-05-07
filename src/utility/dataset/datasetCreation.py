@@ -25,14 +25,17 @@ class datasetCreation:
             other_user: str = None,
             remove_other: bool = False,
             refactor: bool = False,
-            runFeatureConstruction: bool = True,
-            runEmbeddings: bool = True
+            selectFeatureConstruction: bool = True,
+            selectEmbeddings: bool = True
     ):
-        if not runEmbeddings and not runFeatureConstruction:
-            raise ValueError("runFeatureConstruction e runEmbeddings non possono essere entrambi False")
+        if not selectEmbeddings and not selectFeatureConstruction:
+            raise ValueError("selectFeatureConstruction e selectEmbeddings non possono essere entrambi False")
         
-        self.__runFeatureConstruction = runFeatureConstruction
-        self.__runEmbeddings = runEmbeddings
+        self.__selectFeatureConstruction = selectFeatureConstruction
+        self.__selectEmbeddings = selectEmbeddings
+        
+        self.__runFeatureConstruction = False
+        self.__runEmbeddings = False
 
         self.__dataset_name = self.__check_dataset_name(dataset_name)
         self.__config_file = self.__check_config_file(config_file)
@@ -87,23 +90,28 @@ class datasetCreation:
         if not os.path.exists(cls.DATASET_PATH):
             os.makedirs(cls.DATASET_PATH)
 
-    def run(self):
+    def select(self):
         """Avvia la creazione del dataset."""
 
         # LOGGING:: Stampa il nome del dataset
         logging.info(f"Dataset name: {self.__dataset_name}")
 
-        if self.__runFeatureConstruction:
-            if os.path.exists(self.DATASET_PATH + "features_" + self.__dataset_name):
+        if self.__selectFeatureConstruction:
+            if os.path.exists(self.DATASET_PATH + "features_" + self.__dataset_name) and not self.__isToRefactor:
                 self.__dataFrame = pd.read_parquet(self.DATASET_PATH + "features_" + self.__dataset_name)
-            
+
+            else:
+                self.__runFeatureConstruction = True
                 
-        if self.__runEmbeddings:
-            if os.path.exists(self.DATASET_PATH + "embeddings_" + self.__dataset_name):
+        if self.__selectEmbeddings:
+            if os.path.exists(self.DATASET_PATH + "embeddings_" + self.__dataset_name)  and not self.__isToRefactor:
                 self.__embeddings_dataframe = pd.read_parquet(self.DATASET_PATH + "embeddings_" + self.__dataset_name)
 
+            else:
+                self.__runEmbeddings = True
+
         # se il file non esiste oppure è richiesta un ricreazione di esso, esegue tutte le operazioni
-        if not os.path.exists(self.DATASET_PATH + self.__dataset_name) or self.__isToRefactor:
+        if self.__runEmbeddings or self.__runFeatureConstruction or self.__isToRefactor:
 
             print("\n[LOADING] Leggendo le chat dai file grezzi...")
             rawdata = rawDataReader(self.DATA_PATH).read_all_files()
@@ -141,12 +149,7 @@ class datasetCreation:
 
             print("[INFO] Dataset creato con successo.")
 
-        # se il file esiste già allora salva il DF esistente
-        elif os.path.exists(self.DATASET_PATH + self.__dataset_name):
-            print("[INFO] Trovato dataset esistente")
-            self.__dataFrame = pd.read_parquet(self.DATASET_PATH + self.__dataset_name)
-
-    # -------- Getter --------
+    # -------- Getters --------
     @property
     def dataFrame(self):
         return self.__dataFrame

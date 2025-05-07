@@ -3,7 +3,7 @@ import calendar
 import argparse
 from utility.logging import LoggerReport, LoggerUserModelHistory
 from utility.model.modelTraining_feature import ModelTraining
-from utility.model.modelTraining_embeds import CNN1D
+from utility.model.modelTraining_embeddings import CNN1D
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.modelSelection import ModelSelection
 
