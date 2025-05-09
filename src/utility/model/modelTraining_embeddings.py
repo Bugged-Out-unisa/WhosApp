@@ -50,8 +50,12 @@ class CNN1D(nn.Module):
 
         self.output_name = self.check_output_model_name(output_name)
         self.check_duplicate_model_name(self.output_name, retrain)
+        
+        if(torch.cuda.is_available()):
+            print("[INFO]: Using GPU")
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
         
         # Process input and determine embedding dimension and number of classes
         if isinstance(embedding_input, pd.DataFrame):
@@ -109,7 +113,7 @@ class CNN1D(nn.Module):
         # Combined features processing
         self.pool1 = nn.MaxPool1d(kernel_size=2, stride=2)
         
-        self.conv2 = nn.Conv1d(64, 128, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv1d(192, 128, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm1d(128)
         self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2)
         
@@ -118,21 +122,21 @@ class CNN1D(nn.Module):
         self.pool3 = nn.MaxPool1d(kernel_size=2, stride=2)
         
         # Calculate the size after multiple pooling operations
-        pooled_size =  max(1, embedding_dim // 8)  # Ensure at least 1 to prevent zero-sized tensors
+        # pooled_size =  max(1, embedding_dim // 8)  # Ensure at least 1 to prevent zero-sized tensors
         
         # Global average pooling to handle variable length inputs better
         self.global_avg_pool = nn.AdaptiveAvgPool1d(1)
         
         # Attention mechanism for stylometry (helps focus on distinctive style markers)
         self.attention = nn.Sequential(
-            nn.Linear(512, 256),
+            nn.Linear(256, 128),
             nn.Tanh(),
-            nn.Linear(256, 1),
+            nn.Linear(128, 1),
             nn.Softmax(dim=1)
         )
 
         # Classification head
-        self.fc1 = nn.Linear(256 * pooled_size, 512)
+        self.fc1 = nn.Linear(256, 512)
         self.dropout = nn.Dropout(dropout_rate)
         self.fc2 = nn.Linear(512, num_classes)
         
@@ -154,8 +158,7 @@ class CNN1D(nn.Module):
         x_large = self.relu(self.bn1_large(self.conv1_large(x)))
         
         # Combine features from different scales (use the one that matches your architecture)
-        x = x_small + x_medium + x_large  # Simple addition
-        # Alternative: x = torch.cat([x_small, x_medium, x_large], dim=1)  # Concatenation along channel dimension
+        x = torch.cat([x_small, x_medium, x_large], dim=1)  # Concatenation along channel dimension
         
         # Apply pooling to the combined features
         x = self.pool1(x)
@@ -165,19 +168,19 @@ class CNN1D(nn.Module):
         # Global average pooling 
         x_pooled = self.global_avg_pool(x).squeeze(-1)
         
-        # Apply attention if you want to use it
-        # attention_weights = self.attention(x_pooled)
-        # x_attended = x_pooled * attention_weights
+        # Apply attention 
+        attention_weights = self.attention(x_pooled)
+        x_attended = x_pooled * attention_weights
         
         # Flatten for fully connected layer
-        x = x.view(x.size(0), -1)
+        x_attended = x_attended.view(x.size(0), -1)
         
         # Classification head
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
+        x_attended = self.relu(self.fc1(x_attended))
+        x_attended = self.dropout(x_attended)
+        x_attended = self.fc2(x_attended)
         
-        return x
+        return x_attended
         
     def prepare_data(self, test_size=0.2, val_size=0.25, batch_size=32, random_state=42):
         """
@@ -243,7 +246,7 @@ class CNN1D(nn.Module):
         return train_loader, val_loader, test_loader
         
     def train_model(self, train_loader, val_loader, criterion=None, optimizer=None, 
-                num_epochs=5, learning_rate=0.001):
+                num_epochs=10, learning_rate=0.0005):
         """Train the CNN model."""
         
         # Set up the device
@@ -251,13 +254,17 @@ class CNN1D(nn.Module):
         
         # Set up default criterion and optimizer if not provided
         if criterion is None:
-            criterion = nn.CrossEntropyLoss()
+            # Calculate class weights if needed
+            class_counts = torch.bincount(torch.tensor([y for _, y in train_loader.dataset]))
+            class_weights = 1.0 / class_counts.float()
+            class_weights = class_weights / class_weights.sum() * len(class_weights)
+            criterion = nn.CrossEntropyLoss(weight=class_weights.to(self.device))
             
         if optimizer is None:
             optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
         # Add learning rate scheduler
-        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3, verbose=True)
+        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3)
         
         train_losses, val_losses = [], []
         train_accs, val_accs = [], []
@@ -385,7 +392,7 @@ class CNN1D(nn.Module):
         return report_df, cm, all_preds, all_labels
     
     def train_and_evaluate(self, test_size=0.2, val_size=0.2, batch_size=32, 
-                     num_epochs=10, learning_rate=0.001, 
+                     num_epochs=60, learning_rate=0.001, 
                      criterion=None, optimizer=None, random_state=42, 
                      plot_results=True):
         """
