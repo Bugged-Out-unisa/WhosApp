@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torch.nn import functional as F
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
@@ -165,25 +165,25 @@ class CNN1D(nn.Module):
             # First layer
             nn.Linear(256, 512),
             nn.BatchNorm1d(512),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate),
             
             # Second layer
             nn.Linear(512, 384),
             nn.BatchNorm1d(384),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate * 0.8),  # Gradually decrease dropout
             
             # Third layer
             nn.Linear(384, 256),
             nn.BatchNorm1d(256),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate * 0.6),  # Further decrease dropout
             
             # Fourth layer
             nn.Linear(256, 128),
             nn.BatchNorm1d(128),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate * 0.4),  # Even less dropout
             
             # Output layer
@@ -273,7 +273,16 @@ class CNN1D(nn.Module):
         print(f"Training set: {X_train.shape[0]} samples")
         print(f"Validation set: {X_val.shape[0]} samples")
         print(f"Test set: {X_test.shape[0]} samples")
+
+        # Check class distribution
+        train_class_counts = np.bincount(y_train)
+        val_class_counts = np.bincount(y_val)
+        test_class_counts = np.bincount(y_test)
         
+        print("Class distribution in training set:", train_class_counts)
+        print("Class distribution in validation set:", val_class_counts)
+        print("Class distribution in test set:", test_class_counts)
+            
         # Convert numpy arrays to PyTorch tensors
         X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
         y_train_tensor = torch.tensor(y_train, dtype=torch.long)
@@ -289,9 +298,20 @@ class CNN1D(nn.Module):
         train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
         val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
         test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+
+        # Calculate class weights
+        class_weights = 1.0 / torch.tensor(train_class_counts, dtype=torch.float)
+        sample_weights = class_weights[y_train_tensor]
+
+        # Create weighted sampler
+        sampler = WeightedRandomSampler(
+            weights=sample_weights,
+            num_samples=len(train_dataset),
+            replacement=True
+        )
         
         # Create DataLoaders
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler)
         val_loader = DataLoader(val_dataset, batch_size=batch_size)
         test_loader = DataLoader(test_dataset, batch_size=batch_size)
         
@@ -444,7 +464,7 @@ class CNN1D(nn.Module):
         return report_df, cm, all_preds, all_labels
     
     def train_and_evaluate(self, test_size=0.2, val_size=0.2, batch_size=32, 
-                     num_epochs=30, learning_rate=0.001, 
+                     num_epochs=10, learning_rate=0.001, 
                      criterion=None, optimizer=None, random_state=42, 
                      plot_results=True):
         """
@@ -458,7 +478,6 @@ class CNN1D(nn.Module):
             learning_rate: Learning rate for optimizer if not provided (default: 0.001)
             criterion: Loss function (default: CrossEntropyLoss)
             optimizer: Optimizer (default: Adam)
-            device: Device to use for training ('cuda' or 'cpu', default: automatically detected)
             random_state: Random seed for reproducibility (default: 42)
             output_model_name: Path to save the trained model (default: None - don't save)
             plot_results: Whether to plot training history and confusion matrix (default: True)
