@@ -3,9 +3,10 @@ import calendar
 import argparse
 from utility.logging import LoggerReport, LoggerUserModelHistory
 from utility.model.modelTraining_feature import ModelTraining
-from utility.model.modelTraining_embeddings import CNN1D
+from utility.model.modelTraining_embeddings import CNN1D, FocalLoss
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.modelSelection import ModelSelection
+
 
 # HOW TO USE:
 # py new_training.py -oN <*outputName> -c <*configFile> -st <feature|embeddings|both> -r <*retrain>
@@ -78,5 +79,5 @@ if __name__ == "__main__":
         dataset_name = dataset_selection.dataset_name
 
         # Training del modello con i parametri passati da linea di comando
-        model = CNN1D(dataset, output_name=output_name, retrain=retrain)
-        model.train_and_evaluate()
+        model = CNN1D(dataset, output_name=output_name, retrain=retrain,)
+        model.train_and_evaluate(criterion=FocalLoss(alpha=.5, gamma=2))

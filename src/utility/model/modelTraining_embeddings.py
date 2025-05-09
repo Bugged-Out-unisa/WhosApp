@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+from torch.nn import functional as F
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
@@ -21,6 +22,25 @@ import os
 torch.manual_seed(42)
 np.random.seed(42)
 
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.5, gamma=2.0, reduction='mean'):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+        
+    def forward(self, inputs, targets):
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none')
+        pt = torch.exp(-ce_loss)
+        focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
+        
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        else:
+            return focal_loss
+
 class CNN1D(nn.Module):
     """1D CNN for text classification based on BERT embeddings.
     
@@ -30,7 +50,7 @@ class CNN1D(nn.Module):
     MODEL_PATH = "../models/"
     
     def __init__(self, embedding_input, num_classes=None, label_column='user', 
-                 embedding_prefix="embed_", dropout_rate=0.5, output_name=None, retrain=False):
+                 embedding_prefix="embed_", dropout_rate=0.6, output_name=None, retrain=False):
         """
         Initialize the CNN model.
         
@@ -136,9 +156,39 @@ class CNN1D(nn.Module):
         )
 
         # Classification head
-        self.fc1 = nn.Linear(256, 512)
-        self.dropout = nn.Dropout(dropout_rate)
-        self.fc2 = nn.Linear(512, num_classes)
+        # self.fc1 = nn.Linear(256, 512)
+        # self.dropout = nn.Dropout(dropout_rate)
+        # self.fc2 = nn.Linear(512, num_classes)
+
+        # NEW CLASSIFICATION HEAD
+        self.classifier = nn.Sequential(
+            # First layer
+            nn.Linear(256, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            
+            # Second layer
+            nn.Linear(512, 384),
+            nn.BatchNorm1d(384),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate * 0.8),  # Gradually decrease dropout
+            
+            # Third layer
+            nn.Linear(384, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate * 0.6),  # Further decrease dropout
+            
+            # Fourth layer
+            nn.Linear(256, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate * 0.4),  # Even less dropout
+            
+            # Output layer
+            nn.Linear(128, num_classes)
+        )
         
         # Activation function
         self.relu = nn.ReLU()
@@ -176,11 +226,13 @@ class CNN1D(nn.Module):
         x_attended = x_attended.view(x.size(0), -1)
         
         # Classification head
-        x_attended = self.relu(self.fc1(x_attended))
-        x_attended = self.dropout(x_attended)
-        x_attended = self.fc2(x_attended)
+        # x_attended = self.relu(self.fc1(x_attended))
+        # x_attended = self.dropout(x_attended)
+        # x_attended = self.fc2(x_attended)
+
+        output = self.classifier(x_attended)
         
-        return x_attended
+        return output
         
     def prepare_data(self, test_size=0.2, val_size=0.25, batch_size=32, random_state=42):
         """
@@ -392,7 +444,7 @@ class CNN1D(nn.Module):
         return report_df, cm, all_preds, all_labels
     
     def train_and_evaluate(self, test_size=0.2, val_size=0.2, batch_size=32, 
-                     num_epochs=60, learning_rate=0.001, 
+                     num_epochs=30, learning_rate=0.001, 
                      criterion=None, optimizer=None, random_state=42, 
                      plot_results=True):
         """
