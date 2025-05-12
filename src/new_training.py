@@ -80,4 +80,4 @@ if __name__ == "__main__":
 
         # Training del modello con i parametri passati da linea di comando
         model = CNN1D(dataset, output_name=output_name, retrain=retrain,)
-        model.train_and_evaluate(criterion=FocalLoss(alpha=.5, gamma=2))
+        model.train_and_evaluate(criterion=FocalLoss(alpha=.5, gamma=4))
