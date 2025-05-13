@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # Select model
         model = ModelSelection().model
 
-        LoggerUserModelHistory.append_model_user(dataset_name, output_name)
+        # LoggerUserModelHistory.append_model_user(dataset_name, output_name)
 
         # Training del modello con i parametri passati da linea di comando
         model_training = ModelTraining(output_name, model, dataset, config, retrain)

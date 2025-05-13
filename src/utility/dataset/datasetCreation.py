@@ -90,7 +90,7 @@ class datasetCreation:
         if not os.path.exists(cls.DATASET_PATH):
             os.makedirs(cls.DATASET_PATH)
 
-    def select(self):
+    def run(self):
         """Avvia la creazione del dataset."""
 
         # LOGGING:: Stampa il nome del dataset
@@ -129,11 +129,11 @@ class datasetCreation:
             print("\n[LOADING] Creando il dataframe e applicando data cleaning e undersampling...")
             self.__dataFrame = DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).get_dataframe()
 
-            print("\n[LOADING] Applicando feature construction...")
-
             df = self.__dataFrame.copy()
 
             if(self.__runFeatureConstruction):
+                print("\n[LOADING] Applicando feature construction...")
+
                 self.__dataFrame = featureConstruction(
                     df,
                     self.DATASET_PATH + self.__dataset_name,
@@ -141,6 +141,8 @@ class datasetCreation:
                 ).get_dataframe()
             
             if(self.__runEmbeddings):
+                print("\n[LOADING] Creando embeddings...")
+
                 self.__embeddings_dataframe = EmbeddingsCreation(
                     df,
                     self.DATASET_PATH + self.__dataset_name,
