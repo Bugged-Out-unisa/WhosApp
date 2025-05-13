@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     if feature_training:
         # Select dataset
+        print("-- Features --")
         dataset_selection = DatasetSelection()
         dataset = dataset_selection.dataset
         dataset_name = dataset_selection.dataset_name
@@ -74,6 +75,7 @@ if __name__ == "__main__":
 
     if embeddings_training:
         # Select dataset
+        print("-- Embeddings --")
         dataset_selection = DatasetSelection()
         dataset = dataset_selection.dataset
         dataset_name = dataset_selection.dataset_name

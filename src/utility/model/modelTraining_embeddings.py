@@ -475,7 +475,7 @@ class CNN1D(nn.Module):
         return report_df, cm, all_preds, all_labels
     
     def train_and_evaluate(self, test_size=0.2, val_size=0.2, batch_size=32, 
-                     num_epochs=20, learning_rate=0.001, 
+                     num_epochs=10, learning_rate=0.001, 
                      criterion=None, optimizer=None, random_state=42, 
                      plot_results=True):
         """

@@ -1,4 +1,5 @@
 {
+    "bag_of_words": true,
     "uppercase_count" : true,
     "char_count" : true,
     "word_length" : true,

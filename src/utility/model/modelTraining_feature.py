@@ -242,27 +242,33 @@ class ModelTraining:
         # Compute probabilities for each class
         y_score = self.__model.predict_proba(X_test)
 
-        #skip if only one class
-        if len(self.__model.classes_) > 1:
-            # Compute ROC curve and ROC area for each class
-            fpr = dict()
-            tpr = dict()
-            roc_auc = dict()
-            for i in range(len(self.__model.classes_)):
-                fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_score[:, i])
-                roc_auc[i] = auc(fpr[i], tpr[i])
+        n_classes = y_test_bin.shape[1]
 
-            # Plot ROC curve for each class
-            plt.figure()
-            for i in range(len(self.__model.classes_)):
-                plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
-            plt.plot([0, 1], [0, 1], 'k--')
-            plt.xlim([0.0, 1.0])
-            plt.ylim([0.0, 1.05])
-            plt.xlabel('False Positive Rate')
-            plt.ylabel('True Positive Rate')
-            plt.title('Receiver Operating Characteristic')
-            plt.legend(loc="lower right")
-            plt.show()
+        plt.figure()
+
+        if n_classes == 1:
+            # Binary case: only the “positive” column is present (usually column 0)
+            fpr, tpr, _ = roc_curve(y_test_bin[:, 0],
+                                    # if y_score is shape (n_samples,), use it directly; 
+                                    # otherwise take the column for the positive class
+                                    y_score if y_score.ndim == 1 else y_score[:, 1])
+            roc_auc = auc(fpr, tpr)
+            plt.plot(fpr, tpr, label=f'ROC curve (area = {roc_auc:0.2f})')
+        else:
+            # Multiclass: loop over each column
+            for i in range(n_classes):
+                fpr_i, tpr_i, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
+                roc_auc_i = auc(fpr_i, tpr_i)
+                plt.plot(fpr_i, tpr_i,
+                        label=f'Class {self.__model.classes_[i]} (area = {roc_auc_i:0.2f})')
+
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim(0.0, 1.0)
+        plt.ylim(0.0, 1.05)
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic')
+        plt.legend(loc="lower right")
+        plt.show()
 
         return accuracy
