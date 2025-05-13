@@ -141,7 +141,7 @@ class datasetCreation:
                 ).get_dataframe()
             
             if(self.__runEmbeddings):
-                print("\n[LOADING] Creando embeddings...")
+                print("\n[LOADING] Creando embeddings dal testo...")
 
                 self.__embeddings_dataframe = EmbeddingsCreation(
                     df,
