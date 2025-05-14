@@ -132,10 +132,10 @@ class ModelTraining:
                 continue
 
     def __model_training(self, kfold: int = 0):
-        """Applica random forest sul dataframe."""
+        """Addestro il modello sul dataframe."""
 
         # LOGGING:: Stampa il nome del modello trainato
-        logging.info(f"Modello trainato: {self.__outputName}")
+        logging.info(f"Modello addestrato: {self.__outputName}")
 
         # Definisci le features (X) e il target (Y) cioè la variabile da prevedere
         X = self.__dataFrame.drop(['user'], axis=1)
@@ -272,3 +272,6 @@ class ModelTraining:
         plt.show()
 
         return accuracy
+    
+    def get_model(self):
+        return self.__model

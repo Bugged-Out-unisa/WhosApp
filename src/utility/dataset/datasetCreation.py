@@ -130,6 +130,7 @@ class datasetCreation:
             self.__dataFrame = DataFrameProcessor(dates, users, messages, self.__other_user, self.__remove_other).get_dataframe()
 
             df = self.__dataFrame.copy()
+            df['message_id'] = df.index
 
             if(self.__runFeatureConstruction):
                 print("\n[LOADING] Applicando feature construction...")
