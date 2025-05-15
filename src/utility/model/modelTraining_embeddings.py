@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torch.utils.data import TensorDataset, DataLoader, WeightedRandomSampler
 from torch.nn import functional as F
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
@@ -17,6 +17,8 @@ import seaborn as sns
 import calendar
 import time
 import os
+
+from utility.model.model_utilities import ModelUtilities as mu
 
 # Set random seeds for reproducibility
 torch.manual_seed(42)
@@ -46,11 +48,10 @@ class CNN1D(nn.Module):
     
     This class can be initialized directly from a pandas DataFrame containing 
     embeddings and their corresponding labels.
-    """
-    MODEL_PATH = "../models/"
-    
+    """    
     def __init__(self, embedding_input, num_classes=None, label_column='user', 
-                 embedding_prefix=None, dropout_rate=0.7, output_name=None, retrain=False):
+                 embedding_prefix=None, dropout_rate=0.7, output_name=None, 
+                 model_path="../models/", retrain=False):
         """
         Initialize the CNN model.
         
@@ -68,8 +69,11 @@ class CNN1D(nn.Module):
         """
         super(CNN1D, self).__init__()
 
-        self.output_name = self.check_output_model_name(output_name)
-        self.check_duplicate_model_name(self.output_name, retrain)
+        self.model_path = mu.check_not_none(model_path, "model_path")
+        self.model_path = mu.check_path(self.model_path)
+
+        self.output_name = mu.check_output_model_name("embed_", ".pth", output_name)
+        mu.check_duplicate_model_name(self.output_name, retrain, self.model_path)
         
         if(torch.cuda.is_available()):
             print("[INFO]: Using GPU")
@@ -301,7 +305,6 @@ class CNN1D(nn.Module):
         y_test_tensor = torch.tensor(y_test, dtype=torch.long)
         
         # Create TensorDatasets
-        from torch.utils.data import TensorDataset
         train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
         val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
         test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
@@ -649,35 +652,9 @@ class CNN1D(nn.Module):
     def save_model(self):
         """Save the model to a file."""
 
-        if not os.path.exists(self.MODEL_PATH):
-            os.makedirs(self.MODEL_PATH)
-
         output_path = os.path.join(self.MODEL_PATH, self.output_name)
 
         torch.save({
             'model_state_dict': self.state_dict(),
             'class_names': self.class_names if hasattr(self, 'class_names') else None
         }, output_path)
-
-    
-    def check_output_model_name(self, name):
-        """Check if the model name is valid."""
-        if name:
-            return self.check_prefix_extension(name, "embed_", ".pth")
-        else:
-            return "embed_" + str(calendar.timegm(time.gmtime())) + ".pth"
-        
-    def check_prefix_extension(self, name, prefix, extension):
-        """Check if the name has the correct prefix and extension."""
-        if not name.startswith(prefix):
-            name = prefix + name
-        if not name.endswith(extension):
-            name = name + extension
-        return name
-    
-    def check_duplicate_model_name(self, name, retrain):
-        """Check if the model name already exists."""
-
-        if os.path.exists(os.path.join(self.MODEL_PATH, name)) and not retrain:
-            raise ValueError(f"Model with name {name} already exists. Allow retraining to overrite.")
-    

@@ -39,7 +39,7 @@ def create_dataset_and_train_model():
     parser.add_argument("-c", "--config", help="File config", required=False)
     parser.add_argument("-a", "--aliases", help="File per gli alias in chat", required=False)
     parser.add_argument("-ref", "--refactor", help="Opzione di refactor", action="store_true", required=False)
-    parser.add_argument("-st", "--select_training", help="selezione se eseguire training feature o embeddings", required=False, default="both")
+    parser.add_argument("-st", "--select_training", help="selezione se eseguire training feature o embeddings", required=False, default="meta")
 
     args = parser.parse_args()
 
@@ -50,14 +50,17 @@ def create_dataset_and_train_model():
     feature_training = False
     embeddings_training = False
 
-    if select_training not in ["feature", "embeddings", "both"]:
-        raise ValueError("Invalid value for --select_training. Choose 'feature', 'embeddings', or 'both'.")
+    if select_training not in ["feature", "embeddings", "both", "meta"]:
+        raise ValueError("Invalid value for --select_training. Choose 'feature', 'embeddings', 'both' or 'meta'.")
     
     if select_training == "feature":
         feature_training = True
     elif select_training == "embeddings":
         embeddings_training = True
     elif select_training == "both":
+        feature_training = True
+        embeddings_training = True
+    else:
         feature_training = True
         embeddings_training = True
 
