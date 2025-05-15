@@ -131,6 +131,7 @@ class EmbeddingsCreation:
 
         # Concatena 
         self.__dataFrame = pd.concat([self.__dataFrame[["user"]].reset_index(drop=True),
+                                      self.__dataFrame[["message_id"]].reset_index(drop=True),
                                         df_emb_vals.reset_index(drop=True)],
                                     axis=1)
         

@@ -96,8 +96,16 @@ class MetaLearner:
 
         accuracy = metrics.accuracy_score(y_test, preds)
         classification_report = metrics.classification_report(y_test, preds, output_dict=True)
-        roc_auc = metrics.roc_auc_score(y_test, probs, multi_class='ovr')
         confusion_matrix = metrics.confusion_matrix(y_test, preds)
+
+        # Handle binary vs. multi-class AUC
+        n_classes = probs.shape[1]
+        if n_classes == 2:
+            # take probability of the “positive” class
+            roc_auc = metrics.roc_auc_score(y_test, probs[:, 1])
+        else:
+            # multi-class OVR
+            roc_auc = metrics.roc_auc_score(y_test, probs, multi_class='ovr')
 
         print(f"Test Accuracy: {accuracy:.4f}")
         print(f"ROC AUC: {roc_auc:.4f}")

@@ -478,7 +478,7 @@ class CNN1D(nn.Module):
         return report_df, cm, all_preds, all_labels
     
     def train_and_evaluate(self, test_size=0.2, val_size=0.2, batch_size=32, 
-                     num_epochs=10, learning_rate=0.001, 
+                     num_epochs=15, learning_rate=0.001, 
                      criterion=None, optimizer=None, random_state=42, 
                      plot_results=True):
         """
@@ -605,6 +605,23 @@ class CNN1D(nn.Module):
         probs = F.softmax(logits, dim=1)
         return probs.cpu().numpy()
     
+    def predict_proba_batch(self, X, batch_size=128):
+        # if it's a DataFrame, convert to numpy
+        if hasattr(X, "values"):
+            X = X.values
+
+        batch_number = X.shape[0]
+        probs = []
+
+        for start in range(0, batch_number, batch_size):
+            end = start + batch_size
+            batch = X[start:end]
+            batch_probs = self.predict_proba(batch)
+            probs.append(batch_probs)
+
+        return np.vstack(probs)
+        
+    
     def plot_training_results(self, history, confusion_matrix=None):
         """
         Plot training history and confusion matrix.
@@ -652,7 +669,7 @@ class CNN1D(nn.Module):
     def save_model(self):
         """Save the model to a file."""
 
-        output_path = os.path.join(self.MODEL_PATH, self.output_name)
+        output_path = os.path.join(self.model_path, self.output_name)
 
         torch.save({
             'model_state_dict': self.state_dict(),

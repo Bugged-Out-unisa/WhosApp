@@ -86,7 +86,7 @@ if __name__ == "__main__":
         # stratify by 'user' so label proportions stay roughly equal
         train_ids, holdout_ids = train_test_split(
             feature_dataset['message_id'],
-            test_size=0.2,
+            test_size=0.15,
             random_state=42,
             stratify=feature_dataset['user']
         )
@@ -117,8 +117,8 @@ if __name__ == "__main__":
         cnn.train_and_evaluate(criterion=FocalLoss(alpha=.5, gamma=4))
 
     if meta_training:
-        probs_feature = feature_model.get_model().predict_proba( embeddings_holdout_dataset.drop(columns=['user','message_id']) )
-        probs_cnn = cnn.predict_proba( feature_holdout_dataset.drop(columns=['user','message_id']) )
+        probs_feature = feature_model.get_model().predict_proba( feature_holdout_dataset.drop(columns=['user','message_id']) )
+        probs_cnn = cnn.predict_proba_batch( embeddings_holdout_dataset.drop(columns=['user','message_id']) )
 
         X_meta = np.hstack([probs_feature, probs_cnn])
         y_meta = feature_holdout_dataset['user'].values
