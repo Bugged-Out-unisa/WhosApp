@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from utility.logging import LoggerReport, LoggerUserModelHistory
 from utility.model.modelTraining_feature import ModelTraining
 from utility.model.modelTraining_embeddings import CNN1D, FocalLoss
+from utility.model.modelTraining_meta import MetaLearner
 from utility.cmdlineManagement.datasetSelection import DatasetSelection
 from utility.cmdlineManagement.modelSelection import ModelSelection
 
@@ -129,4 +130,5 @@ if __name__ == "__main__":
         )
         df_meta['user'] = y_meta
 
-
+        meta_learner = MetaLearner(df_meta, output_name=output_name, retrain=retrain)
+        meta_learner.train_and_evaluate()

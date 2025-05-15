@@ -8,6 +8,7 @@ from sklearn.utils.class_weight import compute_class_weight
 from sklearn.model_selection import ParameterGrid, train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tqdm import tqdm
 
 from utility.model.model_utilities import ModelUtilities as mu
 
@@ -19,7 +20,7 @@ class MetaLearner:
         self.label_column = mu.check_not_none(label_column, "label_column")
         self.model_path = mu.check_path(model_path)
 
-        self.output_name = mu.check_output_model_name("meta_", ".pth", output_name)
+        self.output_name = mu.check_output_model_name("meta_", ".joblib", output_name)
         mu.check_duplicate_model_name(self.output_name, retrain)
 
         self.retrain = retrain if retrain else False
@@ -30,7 +31,6 @@ class MetaLearner:
             'solver': ['liblinear'],
             'max_iter': [100, 200],
             'warm_start': [True]
-
         }
 
     def prepare_data(self, test_size=0.2, val_size=0.25, random_state=42):
@@ -69,7 +69,12 @@ class MetaLearner:
         best_acc = 0.0
         best_model = None
         best_params = None
-        for params in ParameterGrid(self.param_grid):
+
+        param_count = 1
+        grid  = ParameterGrid(self.param_grid)
+        param_number = len(grid)
+
+        for params in tqdm(grid, desc=f"Finding best parameters {param_count}/{param_number}"):
             model = LogisticRegression(**params, random_state=42)
             model.fit(X_train, y_train)
             acc = model.score(X_val, y_val)
@@ -79,8 +84,11 @@ class MetaLearner:
                 best_model = model
                 best_params = params
 
+            param_count += 1
+
         self.model = best_model
-        print(f"Best Params: {best_params}, Best Validation Accuracy: {best_acc:.4f}")
+        print(f"Best Params: {best_params}\nBest Validation Accuracy: {best_acc:.4f}")
+        return best_params
         
     def evaluate(self, X_test, y_test):
         preds = self.model.predict(X_test)
@@ -123,7 +131,7 @@ class MetaLearner:
         X_train, y_train, X_val, y_val, X_test, y_test = self.prepare_data(test_size=test_size, val_size=val_size, random_state=random_state)
 
         print("Training meta-learner...")
-        self.train(X_train, y_train, X_val, y_val)
+        best_params = self.train(X_train, y_train, X_val, y_val)
 
         print("Evaluating meta-learner...")
         accuracy, classification_report, roc_auc, confusion_matrix = self.evaluate(X_test, y_test)
@@ -136,7 +144,8 @@ class MetaLearner:
             'accuracy': accuracy,
             'classification_report': classification_report,
             'roc_auc': roc_auc,
-            'confusion_matrix': confusion_matrix
+            'confusion_matrix': confusion_matrix,
+            'best_params': best_params
         }
         
     
