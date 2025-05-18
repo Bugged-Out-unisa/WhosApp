@@ -537,9 +537,6 @@ class CNN1D(nn.Module):
         print("\n--- Evaluation Results ---")
         print(report)
         
-        # Save the model
-        self.save_model()
-        
         # Optional: Plot results
         if plot_results:
             self.plot_training_results(history, cm)

@@ -5,7 +5,7 @@ import logging
 import calendar
 import numpy as np
 import pandas as pd
-from joblib import dump
+import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
@@ -17,74 +17,44 @@ from sklearn import metrics
 from itertools import cycle
 from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
+from utility.model.model_utilities import ModelUtilities as mu
 
 
 class ModelTraining:
-    __YES_CHOICES = ["yes", "y", ""]
-    __NO_CHOICES = ["no", "n"]
-    MODEL_PATH = "../models/"
-    CONFIG_PATH = "../configs/"
-
     def __init__(
             self, 
             outputName: str = None, 
             model=None, 
             dataFrame: pd.DataFrame = None,
-            configFile: str = None,
-            retrain: bool = None
+            configFile: str = "config.json",
+            retrain: bool = None,
+            model_path: str = "../models/",
+            config_path: str = "../configs/"
     ):
-        self.__outputName = self.__check_output_name(outputName)
-        self.__model = self.__check_model(model)
-        self.__dataFrame = self.__check_dataframe(dataFrame)
+        self.__outputName = mu.check_output_model_name("model_", ".joblib", outputName)
+        self.__model = mu.check_not_none(model, "model")
+        self.__dataFrame = mu.check_not_none(dataFrame, "dataFrame")
 
         # Imposta configurazione di default
-        self.__configFile = self.__check_config_file(configFile)
+        self.__configFile = mu.check_not_none(configFile, "configFile")
+        self.__configFile= mu.check_prefix_extension(configFile, extension=".json")
+
+        self.config_path = mu.check_not_none(config_path, "config_path")
+        mu.check_path(self.config_path)
         self.__init_configs()
 
         self.__isToRetrain = retrain if retrain is not None else False
-        self.__check_model_path()
+        self.model_path = mu.check_not_none(model_path, "model_path")
+        mu.check_path(self.model_path)
 
-    def __check_output_name(self, outputName: str) -> str:
-        """Controlla se il nome del modello è stato inserito"""
-        if outputName:
-            return self.__check_extension_file(outputName, ".joblib", "model_")
-        else:
-            return "model_" + str(calendar.timegm(time.gmtime())) + ".joblib"
+        mu.check_duplicate_model_name(self.__outputName, self.__isToRetrain, self.model_path)
 
-    def __check_config_file(self, configFile: str) -> str:
-        """Controlla se il file di configurazione è stato inserito"""
-        if configFile and os.path.exists(self.CONFIG_PATH + configFile):
-            return self.__check_extension_file(configFile, ".json")
-        else:
-            return "config.json"
-
-    @staticmethod
-    def __check_model(model):
-        """Controlla se il modello è stato inserito"""
-        if model is not None:
-            return model
-        else:
-            raise ModelNotFoundError("Inserire il modello da addestrare")
-
-    @staticmethod
-    def __check_dataframe(dataFrame):
-        """Controlla se il dataframe è stato inserito"""
-        if dataFrame is not None:
-            return dataFrame
-        else:
-            raise DatasetNotFoundError("Inserire il dataset da usare per l'addestramento")
-
-    def run(self):
-        """Avvia il training del modello."""
-        self.__check_duplicates()
-
-        print("[INFO] Training del modello in corso...")
-        return self.__model_training()
+        self.pipeline = None
 
     def __init_configs(self):
         """Inizializza i parametri di configurazione."""
         # Leggi file di configurazione
-        with open(self.CONFIG_PATH + self.__configFile, 'r') as f:
+        with open(self.config_path + self.__configFile, 'r') as f:
             print()
             features = json.load(f)
 
@@ -101,38 +71,10 @@ class ModelTraining:
             self.__features_disabled.remove("message_composition")
             self.__features_disabled.extend(featureConstruction.POS_LIST)
 
-    def __check_model_path(self):
-        """Controlla se la cartella del modello esiste, altrimenti lo crea."""
-        if not os.path.exists(self.MODEL_PATH):
-            os.makedirs(self.MODEL_PATH)
-
-    @staticmethod
-    def __check_extension_file(filename: str, ext: str, pre: str = ""):
-        """Controlla se l'estensione del file è quella specificata"""
-        if not filename.endswith(ext):
-            filename += ext
-        if not filename.startswith(pre):
-            filename = pre + filename
-        return filename
-
-    def __check_duplicates(self):
-        # Controllo in caso si voglia sovrascrivere comunque
-        while os.path.exists(self.MODEL_PATH + self.__outputName) and not self.__isToRetrain:
-
-            user_input = input("Il modello '{}' già esiste, sovrascriverlo? [Y/N]\n".format(self.__outputName))
-            user_input = user_input.lower()
-
-            if user_input in self.__YES_CHOICES:
-                break
-            elif user_input in self.__NO_CHOICES:
-                print("Operazione di Training annullata")
-                return 1
-            else:
-                print('Inserire \"Y\" o \"N\"')
-                continue
-
-    def __model_training(self, kfold: int = 0):
+    def train(self, kfold: int = 0, plot_results=True):
         """Addestro il modello sul dataframe."""
+
+        print("[INFO] Training del modello in corso...")
 
         # LOGGING:: Stampa il nome del modello trainato
         logging.info(f"Modello addestrato: {self.__outputName}")
@@ -221,57 +163,60 @@ class ModelTraining:
 
 
         # Crea una pipeline con lo scaler e il classificatore
-        pipeline = Pipeline([
+        self.pipeline = Pipeline([
             ('scaler', scaler),
             ('classifier', self.__model)
         ])
 
-        # Salva la pipeline (scaler e modello)
-        dump(pipeline, self.MODEL_PATH + self.__outputName)
+        if plot_results:
+            # CREA CONFUSION MATRIX E ROC CURVE
+            cm = confusion_matrix(y_test, predictions, labels=self.__model.classes_)
 
-        # CREA CONFUSION MATRIX E ROC CURVE
-        cm = confusion_matrix(y_test, predictions, labels=self.__model.classes_)
+            disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.__model.classes_)
+            disp.plot()
+            plt.show()
 
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.__model.classes_)
-        disp.plot()
-        plt.show()
+            # Convert labels to binary format
+            y_test_bin = label_binarize(y_test, classes=self.__model.classes_)
 
-        # Convert labels to binary format
-        y_test_bin = label_binarize(y_test, classes=self.__model.classes_)
+            # Compute probabilities for each class
+            y_score = self.__model.predict_proba(X_test)
 
-        # Compute probabilities for each class
-        y_score = self.__model.predict_proba(X_test)
+            n_classes = y_test_bin.shape[1]
 
-        n_classes = y_test_bin.shape[1]
+            plt.figure()
 
-        plt.figure()
+            if n_classes == 1:
+                # Binary case: only the “positive” column is present (usually column 0)
+                fpr, tpr, _ = roc_curve(y_test_bin[:, 0],
+                                        # if y_score is shape (n_samples,), use it directly; 
+                                        # otherwise take the column for the positive class
+                                        y_score if y_score.ndim == 1 else y_score[:, 1])
+                roc_auc = auc(fpr, tpr)
+                plt.plot(fpr, tpr, label=f'ROC curve (area = {roc_auc:0.2f})')
+            else:
+                # Multiclass: loop over each column
+                for i in range(n_classes):
+                    fpr_i, tpr_i, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
+                    roc_auc_i = auc(fpr_i, tpr_i)
+                    plt.plot(fpr_i, tpr_i,
+                            label=f'Class {self.__model.classes_[i]} (area = {roc_auc_i:0.2f})')
 
-        if n_classes == 1:
-            # Binary case: only the “positive” column is present (usually column 0)
-            fpr, tpr, _ = roc_curve(y_test_bin[:, 0],
-                                    # if y_score is shape (n_samples,), use it directly; 
-                                    # otherwise take the column for the positive class
-                                    y_score if y_score.ndim == 1 else y_score[:, 1])
-            roc_auc = auc(fpr, tpr)
-            plt.plot(fpr, tpr, label=f'ROC curve (area = {roc_auc:0.2f})')
-        else:
-            # Multiclass: loop over each column
-            for i in range(n_classes):
-                fpr_i, tpr_i, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
-                roc_auc_i = auc(fpr_i, tpr_i)
-                plt.plot(fpr_i, tpr_i,
-                        label=f'Class {self.__model.classes_[i]} (area = {roc_auc_i:0.2f})')
-
-        plt.plot([0, 1], [0, 1], 'k--')
-        plt.xlim(0.0, 1.0)
-        plt.ylim(0.0, 1.05)
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('Receiver Operating Characteristic')
-        plt.legend(loc="lower right")
-        plt.show()
+            plt.plot([0, 1], [0, 1], 'k--')
+            plt.xlim(0.0, 1.0)
+            plt.ylim(0.0, 1.05)
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')
+            plt.title('Receiver Operating Characteristic')
+            plt.legend(loc="lower right")
+            plt.show()
 
         return accuracy
+    
+    def save_model(self):
+        # Salva la pipeline (scaler e modello)
+        save_path = os.path.join(self.model_path, self.__outputName)
+        joblib.dump(self.pipeline, save_path)
     
     def get_model(self):
         return self.__model
