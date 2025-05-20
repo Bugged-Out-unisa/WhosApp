@@ -3,9 +3,11 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.utils.class_weight import compute_class_weight
-from sklearn.model_selection import ParameterGrid, train_test_split
+from sklearn.model_selection import train_test_split
+from sklearn_genetic import GASearchCV
+from sklearn_genetic.space import Categorical, Integer, Continuous
+from sklearn_genetic.callbacks import ProgressBar
+from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
@@ -15,7 +17,6 @@ from utility.model.model_utilities import ModelUtilities as mu
 class MetaLearner:
     def __init__(self, dataset, label_column='user',
                  output_name=None, model_path="../models/", retrain=False):
-        self.model = RandomForestClassifier()
         self.dataset = mu.check_not_none(dataset, "dataset")
         self.label_column = mu.check_not_none(label_column, "label_column")
         self.model_path = mu.check_path(model_path)
@@ -24,6 +25,25 @@ class MetaLearner:
         mu.check_duplicate_model_name(self.output_name, retrain, self.model_path)
 
         self.retrain = retrain if retrain else False
+
+        self.param_grid = {
+            'n_estimators': Integer(50, 500),
+            'max_depth': Integer(3, 10),
+            'learning_rate': Continuous(0.01, 0.3),
+            'subsample': Continuous(0.6, 1.0),
+            'colsample_bytree': Continuous(0.6, 1.0),
+            'min_child_weight': Integer(1, 10),
+            'gamma': Continuous(0, 0.5),
+            'reg_alpha': Continuous(0, 10),
+            'reg_lambda': Continuous(0.1, 10)
+        }
+
+        self.model = XGBClassifier(
+            objective='binary:logistic',
+            eval_metric='mlogloss',
+            random_state=42
+        )
+        
 
     def prepare_data(self, test_size=0.2, val_size=0.25, random_state=42):
         """Prepara i dati per il meta-training."""
@@ -95,8 +115,29 @@ class MetaLearner:
     #     return best_params
 
     def train(self, X_train, y_train, X_val, y_val):
-        self.model.fit(X_train, y_train)
-        acc = self.model.score(X_val, y_val)
+        
+        evolved_estimator = GASearchCV(
+            estimator=self.model,
+            param_grid=self.param_grid,
+            cv=5,
+            scoring='accuracy',
+            population_size=20,
+            generations=10,
+            tournament_size=3,
+            elitism=True,
+            crossover_probability=0.8,
+            mutation_probability=0.1,
+            verbose=True,
+            n_jobs=-1
+        )
+
+        progress = ProgressBar()
+
+        evolved_estimator.fit(X_train, y_train, callbacks=progress)
+        
+        self.model = evolved_estimator.best_estimator_
+
+        acc = evolved_estimator.best_score_
         return acc
         
     def evaluate(self, X_test, y_test):

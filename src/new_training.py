@@ -27,6 +27,18 @@ from utility.cmdlineManagement.modelSelection import ModelSelection
 def slice_by_ids(df, ids):
     return df[df['message_id'].isin(ids)].reset_index(drop=True)
 
+def build_single_message_meta(probs_feature, probs_cnn):
+    probs = np.hstack([probs_feature_holdout, probs_cnn_holdout])
+
+    df = pd.DataFrame(
+        probs,
+        columns=[f"probs_feature{i}" for i in range(probs_feature.shape[1])] + 
+                [f"probs_cnn{i}" for i in range(probs_cnn.shape[1])]
+    )
+
+    return enhance_meta_dataset(df)
+
+
 def build_simple_meta_dataset(feature_train_dataset, embeddings_train_dataset, n_folds):
     # Initialising k-fold cross-validation
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=42)
@@ -180,43 +192,6 @@ def enhance_meta_dataset(df_meta):
     enhanced_df['logit_max_prob_cnn'] = logit(
         np.clip(np.max(probs_cnn, axis=1), 0.001, 0.999)
     )
-    
-    # Rank of true label's probability (if user column exists)
-    if 'user' in df_meta.columns:
-        true_label_rank_feature = []
-        true_label_rank_cnn = []
-        
-        for i, true_label in enumerate(df_meta['user']):
-            # Get probabilities for this sample
-            feature_probs = probs_feature[i]
-            cnn_probs = probs_cnn[i]
-            
-            # Get probability for true label
-            try:
-                # Check if true_label is within range of valid indices
-                if 0 <= true_label < n_feature_classes:
-                    true_prob_feature = feature_probs[true_label]
-                    # Count how many classes have higher or equal probability
-                    rank_feature = np.sum(feature_probs >= true_prob_feature)
-                else:
-                    rank_feature = n_feature_classes  # Worst rank if label is out of range
-            except (IndexError, TypeError):
-                rank_feature = n_feature_classes  # Worst rank if error occurs
-            
-            try:
-                if 0 <= true_label < n_cnn_classes:
-                    true_prob_cnn = cnn_probs[true_label]
-                    rank_cnn = np.sum(cnn_probs >= true_prob_cnn)
-                else:
-                    rank_cnn = n_cnn_classes
-            except (IndexError, TypeError):
-                rank_cnn = n_cnn_classes
-            
-            true_label_rank_feature.append(rank_feature)
-            true_label_rank_cnn.append(rank_cnn)
-        
-        enhanced_df['true_label_rank_feature'] = true_label_rank_feature
-        enhanced_df['true_label_rank_cnn'] = true_label_rank_cnn
 
     # 5. Additional advanced features
     # Confidence score - difference between highest and average probability
@@ -391,8 +366,8 @@ if __name__ == "__main__":
         df_meta_holdout['user'] = y_meta_holdout
 
         df_meta_holdout_enhanced = enhance_meta_dataset(df_meta_holdout)
-        X_meta_enhanced = df_meta_holdout.drop("user", axis=1)
-        y_meta_enhanced = df_meta_holdout['user'].values
+        X_meta_enhanced = df_meta_holdout_enhanced.drop("user", axis=1)
+        y_meta_enhanced = df_meta_holdout_enhanced['user'].values
 
         # Evaluate meta-learner on the holdout set
         print("\n--- Meta-Learner Performance on Holdout Set ---")
@@ -401,4 +376,3 @@ if __name__ == "__main__":
         # Plot the holdout results
         print("\n--- Visualizing Holdout Set Results ---")
         meta_learner.plot_metrics(holdout_report, holdout_confusion)
-        

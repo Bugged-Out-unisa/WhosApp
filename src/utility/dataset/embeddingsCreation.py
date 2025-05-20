@@ -7,7 +7,7 @@ from transformers import BertTokenizerFast, BertModel
 from torch.utils.data import DataLoader
 
 class EmbeddingsCreation:
-    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str, saveDataFrame :bool = True, embeddings_strategy = 'mixed'):
+    def __init__(self, dataFrame: pd.DataFrame, datasetPath: str ="./", saveDataFrame :bool = True, embeddings_strategy = 'mixed'):
         self.DATASET_PATH = self.__check_dataset_path(datasetPath)
         self.__dataFrame = dataFrame
 

@@ -49,7 +49,7 @@ class CNN1D(nn.Module):
     This class can be initialized directly from a pandas DataFrame containing 
     embeddings and their corresponding labels.
     """    
-    def __init__(self, embedding_input, num_classes=None, label_column='user', 
+    def __init__(self, embedding_input=None, num_classes=None, label_column='user', 
                  embedding_prefix=None, dropout_rate=0.7, output_name=None, 
                  model_path="../models/", retrain=False):
         """
@@ -80,7 +80,7 @@ class CNN1D(nn.Module):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        
+        embedding_dim=None
         # Process input and determine embedding dimension and number of classes
         if isinstance(embedding_input, pd.DataFrame):
             if label_column is None:
@@ -107,13 +107,6 @@ class CNN1D(nn.Module):
             
             print(f"Detected {embedding_dim} embedding dimensions")
             print(f"Detected {num_classes} classes: {self.class_names}")
-            
-        else:
-            # Direct initialization with dimension
-            embedding_dim = embedding_input
-            if num_classes is None:
-                raise ValueError("num_classes must be specified when initializing with dimension")
-            self.class_names = None
         
         # Store parameters
         self.embedding_dim = embedding_dim
