@@ -90,16 +90,18 @@ class modelExecution:
 
             # Ottieni probabilità per ogni utente
             # [0] perché resituisce una lista di previsioni (come se si aspettasse più messaggi)
-            feature_prob = self._trained_feature_model.predict_proba(feature_df)[0]
-            embeddings_prob = self.__trained_embeddings_model.predict_proba(embeddings_df)[0]
+            feature_prob = self._trained_feature_model.predict_proba(feature_df)
+            embeddings_prob = self.__trained_embeddings_model.predict_proba(embeddings_df)
 
             meta_df = build_single_message_meta(feature_prob, embeddings_prob)
             
-            users_prob = self.__trained_meta_model.predict_proba(meta_df)
+            users_prob = self.__trained_meta_model.predict_proba(meta_df)[0]
+
+            print(f"PROBABILITIES: {users_prob}")
 
             # Per ogni utente, ottieni probabilità per il messaggio inserito e salva in lista
             for i in range(num_users):
-                self.predictions[i].append(users_prob[i])
+                self.predictions[i].append(float(users_prob[i]))
 
             # Stampa report
             # Solo per l'ultima previsione [-1]

@@ -129,9 +129,10 @@ class EmbeddingsCreation:
         embed_cols = [f"{prefix}embed_{i}" for i in range(n_dims)]
         df_emb_vals = pd.DataFrame(final_embeds, columns=embed_cols)
 
+        self.__dataFrame = self.__dataFrame.drop(columns=["message"], errors="ignore")
+
         # Concatena 
-        self.__dataFrame = pd.concat([self.__dataFrame[["user"]].reset_index(drop=True),
-                                      self.__dataFrame[["message_id"]].reset_index(drop=True),
+        self.__dataFrame = pd.concat([self.__dataFrame,
                                         df_emb_vals.reset_index(drop=True)],
                                     axis=1)
         

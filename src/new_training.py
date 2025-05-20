@@ -28,7 +28,7 @@ def slice_by_ids(df, ids):
     return df[df['message_id'].isin(ids)].reset_index(drop=True)
 
 def build_single_message_meta(probs_feature, probs_cnn):
-    probs = np.hstack([probs_feature_holdout, probs_cnn_holdout])
+    probs = np.hstack([probs_feature, probs_cnn])
 
     df = pd.DataFrame(
         probs,
