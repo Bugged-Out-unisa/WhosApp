@@ -1,4 +1,5 @@
 {
+    "bag_of_words": true,
     "uppercase_count" : true,
     "char_count" : true,
     "word_length" : true,
@@ -7,10 +8,9 @@
     "sentiment" : false,
     "emotion" : false,
     "message_composition" : true,
-    "first_word_type" : true,
+    "first_word_type" : false,
     "englishness" : true,
     "italianness" : true,
-    "bag_of_words" : true,
     "responsiveness": false,
     "type_token_ratio" : false,
     "simpsons_index" : false,

@@ -29,3 +29,6 @@ fabric.properties
 
 # NodeJS
 frontend/node_modules/*
+
+# Test results
+*.csv

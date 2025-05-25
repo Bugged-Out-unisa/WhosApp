@@ -39,9 +39,21 @@ class featureConstruction:
 
     @staticmethod
     def __check_dataset_path(dataset_path: str) -> str:
-        """Controlla se il percorso del dataset esiste"""
-        if dataset_path is not None:
-            return dataset_path
+
+        dir_name = os.path.dirname(dataset_path)
+        base_name = os.path.basename(dataset_path)
+
+        prefix = "features_"
+
+        if base_name.startswith(prefix):
+            new_name = base_name
+        else:
+            new_name = prefix + base_name
+
+        actual_path = os.path.join(dir_name, new_name)
+
+        if actual_path is not None:
+            return actual_path
         else:
             raise ValueError("Percorso del dataset non valido")
 
@@ -100,7 +112,7 @@ class featureConstruction:
 
     def __feature_construction(self):
         """Crea nuove feature: un insieme di metadati relativo ad ogni messaggio."""
-        # Applica bag of words solo se abilitato
+        # # Applica bag of words solo se abilitato
         if "bag_of_words" in self.__features_enabled:
             print("[LOADING] Applicazione tecnica bag of words con HashingVectorizer...")
             self.bag_of_words()

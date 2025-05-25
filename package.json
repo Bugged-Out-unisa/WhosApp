@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "ejs": "^3.1.10",
+    "emoji-picker-element": "^1.26.3",
+    "express": "^5.1.0",
+    "jquery": "^3.7.1",
+    "jsdom": "^26.1.0"
+  }
+}

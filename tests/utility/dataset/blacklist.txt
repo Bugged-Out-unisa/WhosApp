@@ -1,0 +1,71 @@
+‎I messaggi e le chiamate sono crittografati end-to-end\. Nessuno al di fuori di questa chat, nemmeno WhatsApp, può leggerne o ascoltarne il contenuto\.
+‎Hai creato il gruppo\\"(?:\\"|[^"])+?\\"\.
+‎Questo messaggio è stato eliminato\ .
+‎Hai cambiato la descrizione del gruppo\.
+‎\S+ ha cambiato il nome del gruppo in \\"(?:\\"|[^"])+?\\"\.
+‎\S+ ha cambiato l'immagine del gruppo\.
+‎\S+ ha eliminato l'immagine del gruppo\.
+‎\S+ ha cambiato la descrizione del gruppo\.
+‎\S+ ha aggiunto \S+\.
+‎\S+ ha rimosso \S+\.
+‎\S+ ha abbandonato\.
+‎Hai aggiunto \S+\.
+‎\S+ ti ha aggiunto.
+‎Ora sei un amministratore\.
+‎\S+\s*:\s*SONDAGGIO:\s*((?:\t{0,4}.*\s+OPZIONE:.*\(\d+\s+voti\))+)
+‎sticker non incluso
+‎Scheda contatto omessa
+‎Questo messaggio è stato eliminato\.
+‎audio omesso
+‎immagine omessa
+‎Videochiamata persa
+‎Videochiamata persa\.\s*\d+\s+secondi\s•\s\d+\s+ora\s+partecipa
+‎Chiamata vocale persa\.\s*\d+\s+secondi\s•\s\d+\s+ora\s+ ora partecipano
+‎GIF esclusa
+‎Posizione:\shttps:\/\/maps\.google\.com\/\?q=[\d.]+,[\d.]+
+‎\S+ ha fissato un messaggio\.
+‎Hai eliminato questo messaggio\.
+‎Chiamata vocale\.\s*\d+\s+secondi\s•\s\d+\s+ora\s+ ora partecipano
+‎Videochiamata\.\s*\d+\s+secondi\s•\s\d+\s+ora\s+partecipa
+‎Chiamata non riuscita\. Riprova
+‎Hai rimosso \S+\.
+‎Hai aggiunto \S+\.
+‎Hai fissato un messaggio\.
+‎Hai cambiato il nome del gruppo in \\"(?:\\"|[^"])+?\\"\.
+‎Hai cambiato l'immagine del gruppo\.
+‎Per entrare nel gruppo, i nuovi membri devono essere approvati da un amministratore\.
+‎\S+ ha aggiunto questo gruppo alla seguente community\: \S+
+‎Hai eliminato l'immagine del gruppo\.
+‎\S+ ha disattivato l'impostazione che richiede l'approvazione di un amministratore per entrare nel gruppo\.
+‎\S+ ha modificato le impostazioni del gruppo per consentire solo agli amministratori di aggiungere altri partecipanti al gruppo\.
+‎Hai cambiato le impostazioni del gruppo per consentire solo agli amministratori di inviare messaggi a questo gruppo\.
+‎Hai cambiato le impostazioni del gruppo per consentire solo agli amministratori di modificarle\.
+‎Hai cambiato le impostazioni del gruppo per consentire a tutti i membri di modificarle\.
+‎Hai cambiato le impostazioni del gruppo per consentire a tutti i membri di inviare messaggi al gruppo\.
+‎\S+ ha attivato i messaggi effimeri\. I nuovi messaggi non saranno più visibili nella chat dopo 24 ore dall'invio, ad eccezione di quelli conservati\. Tocca per modificare l'impostazione\.
+\S+ created group \\"(?:\\"|[^"])+?\\"
+\S+ added \S+
+This message was deleted
+\S+ changed this group description
+\S+ changed this group name from \\"(?:\\"|[^"])+?\\" to \\"(?:\\"|[^"])+?\\"
+\S+ changed this group's icon
+\S+ deleted this group's icon
+You're now an admin
+You're no longer an admin
+\S+ removed \S+
+\S+ left
+\S+\s*:\s*POLL:\s*((?:\t{0,4}.*\s+OPTION:.*\(\d+\s+votes\))+)
+<Media omitted>
+You deleted this message
+null
+live location shared
+location: https:\/\/maps\.google\.com\/\?q=[\d.]+,[\d.]+
+\S+ turned off admin approval to join this group\. Tap to change\.
+\S+ changed this group's settings to allow only admins to add others to this group\.
+\S+ changed this group's settings to allow only admins to send messages to this group\.
+\S+ changed the settings so only admins can edit the group settings
+\S+ changed the settings so all members can edit the group settings
+\S+ changed this group's settings to allow all members to send messages to this group
+\S+ updated the message timer\. New messages will disappear from this chat 24 hours after they're sent, except when kept\.
+\S+ changed the settings so all members can edit the group settings
+\S+ turned off disappearing messages\.

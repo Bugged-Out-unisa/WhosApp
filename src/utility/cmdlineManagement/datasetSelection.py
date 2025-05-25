@@ -6,29 +6,26 @@ from utility.exceptions import ExtensionError
 
 
 class DatasetSelection:
-    DATASET_PATH = "../data/datasets/"
-
-    def __init__(self):
+    def __init__(self, dataset_path="../data/datasets/"):
+        self.dataset_path = dataset_path
         self.__dataset = self.__select_dataset()
 
-    @classmethod
-    def __show_datasets(cls):
-        datasets = [file for file in os.listdir(cls.DATASET_PATH) if file.endswith(".parquet")]
+    def __show_datasets(self):
+        datasets = [file for file in os.listdir(self.dataset_path) if file.endswith(".parquet")]
 
         # Ordina i dataset in base alla data di creazione
-        datasets = sorted(datasets, key=lambda x: os.path.getctime(os.path.join(cls.DATASET_PATH, x)), reverse=True)
+        datasets = sorted(datasets, key=lambda x: os.path.getctime(os.path.join(self.dataset_path, x)), reverse=True)
 
         return datasets
 
-    @classmethod
-    def __load_dataset(cls, index, datasets):
+    def __load_dataset(self, index, datasets):
         if 0 <= index < len(datasets):
             selected_dataset = datasets[index]
 
             if not selected_dataset.endswith(".parquet"):
                 raise ExtensionError("Il dataset deve essere in formato .parquet")
 
-            path = f"{cls.DATASET_PATH}{selected_dataset}"
+            path = f"{self.dataset_path}{selected_dataset}"
 
             # Carica il dataset come DataFrame di pandas
             df = pd.read_parquet(path)
