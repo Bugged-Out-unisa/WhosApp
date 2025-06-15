@@ -1,4 +1,6 @@
 import time
+import os
+import sys
 import calendar
 import argparse
 import numpy as np
@@ -10,9 +12,7 @@ from utility.logging import LoggerReport, LoggerUserModelHistory
 from utility.model.modelTraining_feature import ModelTraining
 from utility.model.modelTraining_embeddings import CNN1D, FocalLoss
 from utility.model.modelTraining_meta import MetaLearner
-from utility.cmdlineManagement.datasetSelection import DatasetSelection
-from utility.cmdlineManagement.modelSelection import ModelSelection
-
+from utility.model.model_list import models
 
 # HOW TO USE:
 # py new_training.py -oN <*outputName> -c <*configFile> -st <*feature|embeddings|both|meta> -fd <*feature_dataset> -ed <*embeddings_dataset> -r <*retrain>
@@ -23,6 +23,18 @@ from utility.cmdlineManagement.modelSelection import ModelSelection
 # ELSE IT CREATES A NEW DATASET WITH SPECIFIED NAME from new_dataset.py
 
 # ONCE A DATASET IS GIVEN, IT TRAINS MODEL THEN PERSISTS IT
+
+def check_dataset_exists(dataset_path):
+
+    if not dataset_path.endswith(".parquet"):
+        raise ValueError("Il dataset deve essere in formato .parquet")
+
+    # Controlla se il file esiste
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Il dataset specificato non esiste: {dataset_path}")
+
+    # Carica il dataset come DataFrame di pandas
+    return pd.read_parquet(dataset_path)
 
 def slice_by_ids(df, ids):
     return df[df['message_id'].isin(ids)].reset_index(drop=True)
@@ -246,10 +258,11 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--retrain", action="store_true", help="Opzione di retraining", required=False)
     parser.add_argument("-st", "--select_training", help="selezione se eseguire training feature o embeddings", required=False, default="meta")
     parser.add_argument("-cv", "--cross_val_folds", type=int, help="Number of folds for meta-learner cross-validation", required=False, default=5)
-
+    parser.add_argument("-fd", "--feature_dataset", help="Dataset per il training delle feature", required=False, default=None)
+    parser.add_argument("-ed", "--embeddings_dataset", help="Dataset per il training delle embeddings", required=False, default=None)
 
     args = parser.parse_args()
-    output_name, config, retrain, select_training, n_folds = args.outputName, args.config, args.retrain, args.select_training, args.cross_val_folds
+    output_name, config, retrain, select_training, n_folds, feature_data_file, embeddings_data_file = args.outputName, args.config, args.retrain, args.select_training, args.cross_val_folds, args.feature_dataset, args.embeddings_dataset
 
     feature_training = False
     embeddings_training = False
@@ -283,16 +296,22 @@ if __name__ == "__main__":
     embeddings_dataset = None
 
     if feature_training:
-        # Select dataset
+        if feature_data_file is None:
+            raise ValueError("Feature dataset file must be specified with -fd or --feature_dataset")
+
         print("\n-- Features --")
-        dataset_selection = DatasetSelection()
+        
+        dataset_selection = check_dataset_exists(feature_data_file)
         feature_dataset = dataset_selection.dataset
         feature_dataset_name = dataset_selection.dataset_name
     
     if embeddings_training:
-        # Select dataset
+        if embeddings_data_file is None:
+            raise ValueError("Embeddings dataset file must be specified with -ed or --embeddings_dataset")
+
         print("\n-- Embeddings --")
-        dataset_selection = DatasetSelection()
+
+        dataset_selection = check_dataset_exists(embeddings_data_file)
         embeddings_dataset = dataset_selection.dataset
         embeddings_dataset_name = dataset_selection.dataset_name
 
@@ -321,7 +340,7 @@ if __name__ == "__main__":
     if feature_training:
         print("\n-- Feature Model --")
         # Select model
-        model_choice = ModelSelection().model
+        model_choice = models["random_forest"]  # Default model
         # feature_train_dataset.drop("message_id", axis=1, inplace=True)
         # LoggerUserModelHistory.append_model_user(dataset_name, output_name)
 
