@@ -41,10 +41,13 @@ check_datasets() {
     
     # Return status: 0 = ready to run, 1 = needs datasets, 2 = needs everything
     if [ $datasets_found -eq 1 ] && [ $models_found -eq 1 ]; then
+        echo "🎉 All required datasets and models are ready!"
         return 0  # Everything ready
     elif [ $datasets_found -eq 1 ]; then
+        echo "🔄 Datasets are ready, but models need training."
         return 1  # Has datasets, needs models
     else
+        echo "❗️ No datasets or models found - you need to prepare data first."
         return 2  # Needs datasets (and probably models)
     fi
 }

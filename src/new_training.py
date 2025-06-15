@@ -15,7 +15,7 @@ from utility.cmdlineManagement.modelSelection import ModelSelection
 
 
 # HOW TO USE:
-# py new_training.py -oN <*outputName> -c <*configFile> -st <feature|embeddings|both> -r <*retrain>
+# py new_training.py -oN <*outputName> -c <*configFile> -st <feature|embeddings|both|meta> -r <*retrain>
 
 # CHECKS IF SPECIFIED DATASET EXIST
 # (dataCreation.py return already existing DF)
@@ -297,6 +297,8 @@ if __name__ == "__main__":
         embeddings_dataset_name = dataset_selection.dataset_name
 
     if meta_training:
+        print("\n[INFO] Getting holdout data...")
+
         # stratify by 'user' so label proportions stay roughly equal
         train_ids, holdout_ids = train_test_split(
             feature_dataset['message_id'],
@@ -317,11 +319,13 @@ if __name__ == "__main__":
         
 
     if feature_training:
+        print("\n-- Feature Model --")
         # Select model
         model_choice = ModelSelection().model
         # feature_train_dataset.drop("message_id", axis=1, inplace=True)
         # LoggerUserModelHistory.append_model_user(dataset_name, output_name)
 
+        print(f"\n[INFO] Training model: {model_choice} with output name: {output_name}")
         # Training del modello con i parametri passati da linea di comando
         feature_model = ModelTraining(output_name, model_choice, feature_train_dataset.drop("message_id", axis=1), config, retrain)
         feature_model.train(plot_results=False)
@@ -330,12 +334,16 @@ if __name__ == "__main__":
     if embeddings_training:
         # Training del modello con i parametri passati da linea di comando
         # embeddings_train_dataset.drop("message_id", axis=1, inplace=True)
+
+        print("\n-- CNN Model --")
+        print(f"\n[INFO] Training CNN model with output name: {output_name}")
         cnn = CNN1D(embeddings_train_dataset.drop("message_id", axis=1), output_name=output_name, retrain=retrain,)
         cnn.train_and_evaluate(criterion=FocalLoss(alpha=.5, gamma=4), plot_results=False)
         cnn.save_model()
 
     if meta_training:
         print("\n--- Meta Learner Training with Cross-Validation ---")
+        print(f"\n[INFO] Using {n_folds} folds for cross-validation")
 
         df_meta = build_simple_meta_dataset(feature_train_dataset, embeddings_train_dataset, n_folds)
         df_meta_enhanced = enhance_meta_dataset(df_meta)
