@@ -19,3 +19,4 @@ pydantic
 transformers
 seaborn
 xgboost
+pytest
