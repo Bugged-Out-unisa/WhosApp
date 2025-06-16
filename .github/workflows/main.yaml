@@ -2,13 +2,13 @@ name: Model Training CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:  # Allows manual triggering
-  # schedule:
+  schedule:
     # Run automatically every day at 2 AM UTC (optional)
-    # - cron: '0 2 * * *'
+    - cron: '0 2 * * *'
 
 jobs:
   train-model:
@@ -21,10 +21,10 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.12' 
+        python-version: '3.12'  # Based on your __pycache__ files showing Python 3.12
         
     - name: Cache pip dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -55,10 +55,11 @@ jobs:
         mkdir -p models
         mkdir -p data/rawdata
         
-    - name: Run tests (optional) # Run your test suite if you want to ensure everything works before training
-      run: if [ -d tests ]; then
-            python -m pytest tests/ -v || echo "Tests failed but continuing with training"
-          fi
+    - name: Run tests (optional)
+      run: |
+        if [ -d tests ]; then
+          python -m pytest tests/ -v || echo "Tests failed but continuing with training"
+        fi
         
     - name: Run model training
       run: |
