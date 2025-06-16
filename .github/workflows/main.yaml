@@ -1,0 +1,105 @@
+name: Model Training CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual triggering
+  # schedule:
+    # Run automatically every day at 2 AM UTC (optional)
+    # - cron: '0 2 * * *'
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12' 
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Set up Node.js (for frontend dependencies)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install Node.js dependencies
+      run: |
+        if [ -f package.json ]; then npm install; fi
+        if [ -f frontend/package.json ]; then cd frontend && npm install; fi
+        
+    - name: Create necessary directories
+      run: |
+        mkdir -p logs/training
+        mkdir -p logs/dataset
+        mkdir -p logs/pipeline
+        mkdir -p logs/aliases
+        mkdir -p models
+        mkdir -p data/rawdata
+        
+    - name: Run tests (optional) # Run your test suite if you want to ensure everything works before training
+      run: if [ -d tests ]; then
+             -m pytest tests/ -v || echo "Tests failed but continuing with training"
+          fi
+        
+    - name: Run model training
+      run: |
+        cd src
+        python new_training.py -oN final -c config.json -st meta -fd ../data/datasets/features_final_dataset -ed ../data/datasets/embeddings_final_dataset -r
+        
+    - name: Upload training logs
+      uses: actions/upload-artifact@v3
+      if: always()  # Upload logs even if training fails
+      with:
+        name: training-logs
+        path: logs/
+        retention-days: 30
+        
+    - name: Upload trained models
+      uses: actions/upload-artifact@v3
+      if: success()  # Only upload models if training succeeded
+      with:
+        name: trained-models
+        path: models/
+        retention-days: 90
+        
+    - name: Upload training results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: tests/TestResults/
+        retention-days: 30
+
+  notify:
+    needs: train-model
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notify training completion
+      run: |
+        if [ "${{ needs.train-model.result }}" == "success" ]; then
+          echo "✅ Model training completed successfully!"
+        else
+          echo "❌ Model training failed!"
+          exit 1
+        fi
