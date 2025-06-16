@@ -27,7 +27,7 @@ from utility.model.model_list import models
 def check_dataset_exists(dataset_path):
 
     if not dataset_path.endswith(".parquet"):
-        raise ValueError("Il dataset deve essere in formato .parquet")
+        dataset_path += ".parquet"
 
     # Controlla se il file esiste
     if not os.path.exists(dataset_path):
@@ -301,9 +301,7 @@ if __name__ == "__main__":
 
         print("\n-- Features --")
         
-        dataset_selection = check_dataset_exists(feature_data_file)
-        feature_dataset = dataset_selection.dataset
-        feature_dataset_name = dataset_selection.dataset_name
+        feature_dataset = check_dataset_exists(feature_data_file)
     
     if embeddings_training:
         if embeddings_data_file is None:
@@ -311,9 +309,7 @@ if __name__ == "__main__":
 
         print("\n-- Embeddings --")
 
-        dataset_selection = check_dataset_exists(embeddings_data_file)
-        embeddings_dataset = dataset_selection.dataset
-        embeddings_dataset_name = dataset_selection.dataset_name
+        embeddings_dataset = check_dataset_exists(embeddings_data_file)
 
     if meta_training:
         print("\n[INFO] Getting holdout data...")
