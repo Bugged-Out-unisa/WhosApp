@@ -3,8 +3,8 @@ data/rawdata/*
 data/rawdata_all/*
 models/*
 data/datasets/*
-# !data/datasets/embeddings_final*
-# !data/datasets/features_final*
+!data/datasets/embeddings_final*
+!data/datasets/features_final*
 logs/*
 testing/*
 configs/frontend_users.json
