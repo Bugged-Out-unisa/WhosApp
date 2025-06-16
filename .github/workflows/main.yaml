@@ -57,7 +57,7 @@ jobs:
         
     - name: Run tests (optional) # Run your test suite if you want to ensure everything works before training
       run: if [ -d tests ]; then
-             -m pytest tests/ -v || echo "Tests failed but continuing with training"
+            python -m pytest tests/ -v || echo "Tests failed but continuing with training"
           fi
         
     - name: Run model training
