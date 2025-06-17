@@ -15,7 +15,7 @@ from utility.model.modelTraining_meta import MetaLearner
 from utility.model.model_list import models
 
 # HOW TO USE:
-# py new_training.py -oN <*outputName> -c <*configFile> -st <*feature|embeddings|both|meta> -fd <*feature_dataset> -ed <*embeddings_dataset> -r <*retrain>
+# py new_training.py -oN <*outputName> -c <*configFile> -st <*feature|embeddings|both|meta> -fd <*feature_dataset> -ed <*embeddings_dataset> -cv <fold_number> -r <*retrain>
 
 # CHECKS IF SPECIFIED DATASET EXIST
 # (dataCreation.py return already existing DF)
