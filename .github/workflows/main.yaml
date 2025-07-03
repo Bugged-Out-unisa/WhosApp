@@ -5,10 +5,10 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Allows manual triggering
-  schedule:
-    # Run automatically every day at 2 AM UTC (optional)
-    - cron: '0 2 * * *'
+  # workflow_dispatch:  # Allows manual triggering
+  # schedule:
+  #   # Run automatically every day at 2 AM UTC (optional)
+  #   - cron: '0 2 * * *'
 
 jobs:
   train-model:
