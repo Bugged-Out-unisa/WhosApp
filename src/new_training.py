@@ -150,7 +150,7 @@ if __name__ == "__main__":
         print("\n--- Meta Learner Training with Cross-Validation ---")
         print(f"\n[INFO] Using {n_folds} folds for cross-validation")
 
-        df_meta = md.build_simple_meta_dataset(feature_train_dataset, embeddings_train_dataset, n_folds)
+        df_meta = md.build_simple_meta_dataset(output_name, model_choice, config, feature_train_dataset, embeddings_train_dataset, n_folds)
         df_meta_enhanced = md.enhance_meta_dataset(df_meta)
 
         # Train meta-learner on full cross-validated data
