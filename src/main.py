@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request
 from utility.dataset.featureConstruction import featureConstruction
 from utility.dataset.embeddingsCreation import EmbeddingsCreation
 from utility.cmdlineManagement.trainedModelSelection import TrainedModelSelection
-from new_training import build_single_message_meta
+from utility.dataset.metaDataset import MetaDataset as md
 
 app = Flask(__name__)
 lock = Lock()
@@ -93,7 +93,7 @@ class modelExecution:
             feature_prob = self._trained_feature_model.predict_proba(feature_df)
             embeddings_prob = self.__trained_embeddings_model.predict_proba(embeddings_df)
 
-            meta_df = build_single_message_meta(feature_prob, embeddings_prob)
+            meta_df = md.build_single_message_meta(feature_prob, embeddings_prob)
             
             users_prob = self.__trained_meta_model.predict_proba(meta_df)[0]
 
