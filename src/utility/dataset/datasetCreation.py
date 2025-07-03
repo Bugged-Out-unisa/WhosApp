@@ -146,8 +146,7 @@ class datasetCreation:
 
                 self.__embeddings_dataframe = EmbeddingsCreation(
                     df,
-                    self.DATASET_PATH + self.__dataset_name,
-                    self.CONFIG_PATH + self.__config_file
+                    self.DATASET_PATH + self.__dataset_name
                 ).get_dataframe()
 
             print("[INFO] Dataset creato con successo.")
