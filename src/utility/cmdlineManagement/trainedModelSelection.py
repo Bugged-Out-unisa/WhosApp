@@ -84,8 +84,3 @@ class TrainedModelSelection:
             return cls.__load_model(menu_entry_index, models)
         elif model_name.endswith(".pth"):
             return cls.__load_torch_model(menu_entry_index, models)
-        
-
-    @property
-    def model(self):
-        return self.__model

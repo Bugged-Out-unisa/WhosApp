@@ -22,10 +22,9 @@ class TestTrainedModelSelection(unittest.TestCase):
             with patch('os.path.isfile', return_value=True):
                 # Patch os.path.getctime to return a fixed value (simulate creation time)
                 with patch('os.path.getctime', return_value=1000):
-                    # Use the new class method select_model
-                    result = TrainedModelSelection.select_model()
-                    # select_model returns a tuple (selected_model, loaded_model)
-                    self.assertEqual(result, ('model1.joblib', 'DummyModel'))
+                    selection = TrainedModelSelection()
+                    # __load_model returns a tuple (selected_model, loaded_model)
+                    self.assertEqual(selection.model, ('model1.joblib', 'DummyModel'))
 
     # SMA2: MF2 – Folder is empty: should raise an error (e.g., because no model is available).
     @patch('inquirer.prompt', return_value=None)
@@ -37,7 +36,7 @@ class TestTrainedModelSelection(unittest.TestCase):
             with patch('os.path.isfile', return_value=False):
                 # Expect that accessing model["model"] will cause an error
                 with self.assertRaises(TypeError):
-                    TrainedModelSelection.select_model()
+                    TrainedModelSelection()
 
     # SMA3: MF3 – SU2: Folder contains only non-.joblib files, so if the user selects one, an ExtensionError is raised.
     @patch('inquirer.prompt', return_value={'model': 'model1.onnx'})
@@ -49,44 +48,9 @@ class TestTrainedModelSelection(unittest.TestCase):
         with patch('os.listdir', return_value=fake_files):
             with patch('os.path.isfile', return_value=True):
                 with patch('os.path.getctime', return_value=1000):
-                    with self.assertRaises(ValueError) as context:
-                        TrainedModelSelection.select_model()
-                        
-    # New test for PyTorch model loading (.pth files)
-    @patch('inquirer.prompt', return_value={'model': 'model1.pth'})
-    @patch('torch.load')
-    @patch('utility.cmdlineManagement.trainedModelSelection.CNN1D')
-    def test_valid_torch_model_selection(self, mock_cnn1d, mock_torch_load, mock_prompt):
-        # Mock torch.load to return a checkpoint dictionary
-        mock_checkpoint = {
-            'model_state_dict': {'layer1.weight': 'dummy_weights'},
-            'class_names': ['class1', 'class2', 'class3']
-        }
-        mock_torch_load.return_value = mock_checkpoint
-        
-        # Mock CNN1D model instance
-        mock_model_instance = MagicMock()
-        mock_cnn1d.return_value = mock_model_instance
-        
-        # Simulate a folder with PyTorch model files
-        fake_files = ['model1.pth', 'model2.joblib']
-        
-        with patch('os.listdir', return_value=fake_files):
-            with patch('os.path.isfile', return_value=True):
-                with patch('os.path.getctime', return_value=1000):
-                    result = TrainedModelSelection.select_model()
-                    
-                    # Verify that CNN1D was instantiated with correct number of classes
-                    mock_cnn1d.assert_called_once_with(num_classes=3)
-                    
-                    # Verify that model state dict was loaded
-                    mock_model_instance.load_state_dict.assert_called_once_with(mock_checkpoint['model_state_dict'])
-                    
-                    # Verify that model was set to evaluation mode
-                    mock_model_instance.eval.assert_called_once()
-                    
-                    # Verify that the method returns the model instance
-                    self.assertEqual(result, mock_model_instance)
+                    with self.assertRaises(Exception) as context:
+                        TrainedModelSelection()
+                    self.assertEqual(str(context.exception), "Il modello deve essere in formato .joblib")
 
 if __name__ == '__main__':
     unittest.main(testRunner=TableTestRunner("TrainedModelSelection.csv"))

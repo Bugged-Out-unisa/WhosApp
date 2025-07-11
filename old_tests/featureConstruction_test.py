@@ -94,7 +94,7 @@ class TestFeatureConstruction(unittest.TestCase):
         # DF3: DataFrame is None
         self.df_none = None
 
-        self.valid_dataset_path = "features_valid_path"
+        self.valid_dataset_path = "valid_path"
         self.invalid_dataset_path = "invalid_path"  # will be simulated to raise error on saving
 
         self.valid_config_path = "valid_config.json"

@@ -55,7 +55,7 @@ class datasetCreation:
         if config_file and os.path.exists(self.CONFIG_PATH + config_file):
             return self.__check_extension_file(config_file, ".json")
         else:
-            return "config.json"
+            raise FileNotFoundError(f"Il file di configurazione '{config_file}' non esiste nella cartella {self.CONFIG_PATH}")
 
     def __check_aliases_file(
             self,

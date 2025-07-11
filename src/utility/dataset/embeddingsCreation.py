@@ -9,7 +9,10 @@ from torch.utils.data import DataLoader
 class EmbeddingsCreation:
     def __init__(self, dataFrame: pd.DataFrame, datasetPath: str ="./", saveDataFrame :bool = True, embeddings_strategy = 'mixed'):
         self.DATASET_PATH = self.__check_dataset_path(datasetPath)
-        self.__dataFrame = dataFrame
+        if dataFrame is not None:
+            self.__dataFrame = dataFrame
+        else:
+            raise ValueError("dataFrame cannot be empty or None")
 
         embeddings_strategy_allowed = ["mixed", "cls", "mean"]
 

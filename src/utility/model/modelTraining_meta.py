@@ -70,7 +70,7 @@ class MetaLearner:
         print(f"Training set: {X_train.shape[0]} samples")
         print(f"Validation set: {X_val.shape[0]} samples")
 
-        if X_test:
+        if X_test is not None and X_test.shape[0] > 0:
             print(f"Test set: {X_test.shape[0]} samples")
 
         # Check class distribution
@@ -80,7 +80,7 @@ class MetaLearner:
         print("Class distribution in training set:", train_class_counts)
         print("Class distribution in validation set:", val_class_counts)
 
-        if y_test:
+        if y_test is not None and len(y_test) > 0:
             test_class_counts = np.bincount(y_test)
             print("Class distribution in test set:", test_class_counts)
         

@@ -22,7 +22,7 @@ def get_dummy_pipeline():
     return dummy_pipeline
 
 class TestServer(unittest.TestCase):
-    @patch('main.TrainedModelSelection.select_model', return_value={'model': 'MyModel'})
+    @patch('main.TrainedModelSelection._TrainedModelSelection__select_model', return_value={'model': 'MyModel'})
     def setUp(self, mock_select):
         self.client = app.test_client()
 

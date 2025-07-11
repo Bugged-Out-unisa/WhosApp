@@ -62,11 +62,11 @@ class TestModelTraining(unittest.TestCase):
         # Reset the fake existence flag.
         fake_os_path_exists.exists = False
 
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=fake_os_path_exists)
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=fake_os_path_exists)
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM1_default_output_valid_model_valid_df_default_config_no_retrain(self, mock_dump, mock_file, mock_makedirs, mock_exists):
         # TM1: Default output name, valid model, valid DataFrame, default config, retrain False.
         dummy_model = get_dummy_model()
@@ -74,19 +74,18 @@ class TestModelTraining(unittest.TestCase):
             outputName=None,
             model=dummy_model,
             dataFrame=dummy_df,
-               # Should use default "config.json"
+            configFile=None,  # Should use default "config.json"
             retrain=False
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertTrue(mock_dump.called)
         self.assertIsNotNone(accuracy)
 
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=fake_os_path_exists)
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=fake_os_path_exists)
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM2_default_output_valid_model_valid_df_custom_config_no_retrain(self, mock_dump, mock_file, mock_makedirs, mock_exists):
         # TM2: Default output, valid model, valid DataFrame, custom config ("custom_config.json"), retrain False.
         dummy_model = get_dummy_model()
@@ -97,16 +96,15 @@ class TestModelTraining(unittest.TestCase):
             configFile="custom_config.json",
             retrain=False
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertTrue(mock_dump.called)
         self.assertIsNotNone(accuracy)
 
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=fake_os_path_exists)
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=fake_os_path_exists)
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM3_custom_output_valid_model_valid_df_default_config_no_retrain(self, mock_dump, mock_file, mock_makedirs, mock_exists):
         # TM3: Custom output name, valid model, valid DataFrame, default config, retrain False.
         dummy_model = get_dummy_model()
@@ -114,20 +112,19 @@ class TestModelTraining(unittest.TestCase):
             outputName="custom_model.joblib",
             model=dummy_model,
             dataFrame=dummy_df,
-             
+            configFile=None,
             retrain=False
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertIn("custom_model.joblib", mt._ModelTraining__outputName)
         self.assertTrue(mock_dump.called)
 
-    @patch("utility.model.modelTraining_feature.input", return_value="y")
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.input", return_value="y")
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM4_retrain_true_existing_file(self, mock_dump, mock_file, mock_makedirs, mock_exists, mock_input):
         # TM4: Default output, valid model, valid DataFrame, default config, retrain True (simulate existing file).
         fake_os_path_exists.exists = True  # Simulate that model file exists.
@@ -136,44 +133,41 @@ class TestModelTraining(unittest.TestCase):
             outputName=None,
             model=dummy_model,
             dataFrame=dummy_df,
-             
+            configFile=None,
             retrain=True
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertTrue(mock_dump.called)
         self.assertIsNotNone(accuracy)
 
-    @patch("utility.model.modelTraining_feature.input", return_value="n")
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.input", return_value="n")
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM5_existing_file_no_retrain_user_declines(self, mock_dump, mock_file, mock_makedirs, mock_exists, mock_input):
         # TM5: Default output, valid model, valid DataFrame, default config, retrain False with existing file and user declining overwrite.
         fake_os_path_exists.exists = True
         dummy_model = get_dummy_model()
-        
-        with self.assertRaises(ValueError):
-            mt = ModelTraining(
-                outputName=None,
-                model=dummy_model,
-                dataFrame=dummy_df,
-                retrain=False
-            )
+        mt = ModelTraining(
+            outputName=None,
+            model=dummy_model,
+            dataFrame=dummy_df,
+            configFile=None,
+            retrain=False
+        )
+        with patch("builtins.print") as mock_print:
+            accuracy = mt.run()
+            printed_messages = [args[0] for args, _ in mock_print.call_args_list]
+            self.assertTrue(any("Operazione di Training annullata" in m for m in printed_messages))
+        self.assertFalse(mock_dump.called)
 
-            with patch("builtins.print") as mock_print:
-                accuracy = mt.train()
-                printed_messages = [args[0] for args, _ in mock_print.call_args_list]
-                self.assertTrue(any("Operazione di Training annullata" in m for m in printed_messages))
-            self.assertFalse(mock_dump.called)
-
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=fake_os_path_exists)
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=fake_os_path_exists)
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM6_custom_output_valid_model_valid_df_custom_config_no_retrain(self, mock_dump, mock_file, mock_makedirs, mock_exists):
         # TM6: Custom output name, valid model, valid DataFrame, custom config, retrain False.
         dummy_model = get_dummy_model()
@@ -187,12 +181,12 @@ class TestModelTraining(unittest.TestCase):
         # Only initialization is checked.
         self.assertIn("custom_model.joblib", mt._ModelTraining__outputName)
 
-    @patch("utility.model.modelTraining_feature.input", return_value="y")
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.input", return_value="y")
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM7_custom_config_retrain_true(self, mock_dump, mock_file, mock_makedirs, mock_exists, mock_input):
         # TM7: Default output, valid model, valid DataFrame, custom config, retrain True.
         fake_os_path_exists.exists = True
@@ -204,17 +198,16 @@ class TestModelTraining(unittest.TestCase):
             configFile="custom_config.json",
             retrain=True
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertTrue(mock_dump.called)
         self.assertIsNotNone(accuracy)
 
-    @patch("utility.model.modelTraining_feature.input", return_value="y")
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, **kwargs: None)
-    @patch("utility.model.modelTraining_feature.open", new_callable=mock_open, read_data=dummy_config)
-    @patch("joblib.dump")
-    @patch("utility.model.modelTraining_feature.plt.show", lambda: None)
+    @patch("utility.model.modelTraining.input", return_value="y")
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: True if "../models/" in path else fake_os_path_exists(path))
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path: None)
+    @patch("utility.model.modelTraining.open", new_callable=mock_open, read_data=dummy_config)
+    @patch("utility.model.modelTraining.dump")
+    @patch("utility.model.modelTraining.plt.show", lambda: None)
     def test_TM8_custom_output_custom_config_retrain_true(self, mock_dump, mock_file, mock_makedirs, mock_exists, mock_input):
         # TM8: Custom output, valid model, valid DataFrame, custom config, retrain True.
         fake_os_path_exists.exists = True
@@ -226,8 +219,7 @@ class TestModelTraining(unittest.TestCase):
             configFile="custom_config.json",
             retrain=True
         )
-        accuracy = mt.train()
-        mt.save_model()
+        accuracy = mt.run()
         self.assertIn("custom_model.joblib", mt._ModelTraining__outputName)
         self.assertTrue(mock_dump.called)
         self.assertIsNotNone(accuracy)
@@ -237,12 +229,12 @@ class TestModelTraining(unittest.TestCase):
 
         self.expected_output = "Model not found"
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ModelNotFoundError):
             ModelTraining(
                 outputName=None,
                 model=None,
                 dataFrame=dummy_df,
-                 
+                configFile=None,
                 retrain=False
             )
 
@@ -252,18 +244,18 @@ class TestModelTraining(unittest.TestCase):
         self.expected_output = "Dataset not found"
 
         dummy_model = get_dummy_model()
-        with self.assertRaises(ValueError):
+        with self.assertRaises(DatasetNotFoundError):
             ModelTraining(
                 outputName=None,
                 model=dummy_model,
                 dataFrame=None,
-                 
+                configFile=None,
                 retrain=False
             )
 
-    @patch("joblib.dump", return_value=None)
-    @patch("utility.model.modelTraining_feature.os.path.exists", side_effect=lambda path: False)
-    @patch("utility.model.modelTraining_feature.os.makedirs", side_effect=lambda path, exist_ok=False: None)
+    @patch("utility.model.modelTraining.dump", return_value=None)
+    @patch("utility.model.modelTraining.os.path.exists", side_effect=lambda path: False)
+    @patch("utility.model.modelTraining.os.makedirs", side_effect=lambda path, exist_ok=False: None)
     def test_TM11_invalid_config_file(self, mock_makedirs, mock_exists, mock_dump):
         # TM11: Invalid config file should raise FileNotFoundError.
 
@@ -279,7 +271,7 @@ class TestModelTraining(unittest.TestCase):
                 configFile="non_esiste.json",
                 retrain=False
             )
-            mt.train()
+            mt.run()
 
 if __name__ == "__main__":
     unittest.main(testRunner=TableTestRunner("ModelTraining.csv"))

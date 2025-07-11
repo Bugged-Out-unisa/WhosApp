@@ -72,12 +72,12 @@ class TestDataFrameProcessor(unittest.TestCase):
         messages = ["Msg1", "Msg2", "Msg3", "Msg4"]
        
         with patch("builtins.open", mock_open(read_data=self.dummy_blacklist)):
-            with patch.object(LoggerUser, "write_user", return_value=None):
-                processor = DataFrameProcessor(dates, users, messages, other_user="ExtraUser", remove_other=True)
-                df = processor.get_dataframe()
-                # Identify the index corresponding to "ExtraUser" and assert no row has that value.
-                other_index = processor._DataFrameProcessor__unique_users.index("ExtraUser")
-                self.assertFalse((df['user'] == other_index).any())
+            
+            processor = DataFrameProcessor(dates, users, messages, other_user="ExtraUser", remove_other=True)
+            df = processor.get_dataframe()
+            # Identify the index corresponding to "ExtraUser" and assert no row has that value.
+            other_index = processor._DataFrameProcessor__unique_users.index("ExtraUser")
+            self.assertFalse((df['user'] == other_index).any())
 
     # CD5: D1 – U1 – M1 – L2 (non congruent lengths)
     # Here we simulate a condition that should flag an error (empty cells in the dataframe).
